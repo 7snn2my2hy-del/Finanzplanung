@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finanzen">
 <meta name="theme-color" content="#000000">
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMGE4NGZmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjYmY1YWYyIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSI0MCIgZmlsbD0iIzBhMGEwYyIvPjxyZWN0IHg9IjM2IiB5PSI0OCIgd2lkdGg9IjEwOCIgaGVpZ2h0PSIyMiIgcng9IjExIiBmaWxsPSJ1cmwoI2cpIi8+PHJlY3QgeD0iMzYiIHk9Ijc5IiB3aWR0aD0iMTA4IiBoZWlnaHQ9IjIyIiByeD0iMTEiIGZpbGw9InVybCgjZykiIG9wYWNpdHk9IjAuNyIvPjxyZWN0IHg9IjM2IiB5PSIxMTAiIHdpZHRoPSIxMDgiIGhlaWdodD0iMjIiIHJ4PSIxMSIgZmlsbD0idXJsKCNnKSIgb3BhY2l0eT0iMC40Ii8+PC9zdmc+">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMGE4NGZmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjYmY1YWYyIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSI0MCIgZmlsbD0iIzBhMGEwYyIvPjx0ZXh0IHg9IjkwIiB5PSI5MCIgZm9udC1mYW1pbHk9Ii1hcHBsZS1zeXN0ZW0sSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iODYiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9InVybCgjZykiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBsZXR0ZXItc3BhY2luZz0iLTIiPkpTPC90ZXh0Pjwvc3ZnPg==">
 <title>Versicherungen, Budgets & Vorsorge</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -89,6 +89,7 @@
     display: flex; align-items: center; justify-content: space-between;
     gap: 12px; padding: 12px 18px; margin-bottom: 6px;
   }
+  .app-header { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 4px 2px 16px; }
   .income-left, .income-right { display: flex; flex-direction: column; gap: 3px; }
   .income-right { align-items: flex-end; }
   .income-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-2); }
@@ -110,9 +111,9 @@
   .dash-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted-2); font-weight: 600; margin-bottom: 14px; }
   .dash-grid { display: flex; gap: 18px; align-items: center; }
   .dash-donut { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
-  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
-  .donut-center-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); }
-  .donut-center-val { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; padding: 0 6px; }
+  .donut-center-label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); }
+  .donut-center-val { font-size: 0.82rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 2px; max-width: 84px; text-align: center; line-height: 1.15; }
   .dash-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
   .dash-sub-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); display: block; margin-bottom: 4px; }
   .dash-saverate { }
@@ -130,6 +131,18 @@
   .acct-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
   .acct-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--violet)); }
   .acct-bar-val { width: 76px; flex-shrink: 0; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; }
+  .bal-acct-row { margin-bottom: 10px; }
+  .bal-acct-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .bal-acct-name { font-size: 0.8rem; font-weight: 600; }
+  .bal-acct-total { font-size: 0.8rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
+  .bal-acct-break { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+  .balance-box { padding: 14px 16px; margin-bottom: 6px; }
+  .bb-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--stroke); }
+  .bb-head span:first-child { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); }
+  .bb-total { font-size: 1.05rem; font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; }
+  .bb-row { display: flex; justify-content: space-between; font-size: 0.8rem; padding: 3px 0; }
+  .bb-name { color: var(--muted); }
+  .bb-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; }
   .dash-empty { color: var(--muted-2); font-size: 0.82rem; text-align: center; padding: 10px 0; }
   @media (max-width: 420px) {
     .dash-grid { flex-direction: column; align-items: stretch; }
@@ -199,6 +212,7 @@
   .cat-Versicherung { background: rgba(10,132,255,0.16);  color: #6cb6ff; }
   .cat-Verein       { background: rgba(48,209,88,0.16);   color: #5fe085; }
   .cat-Finanzen     { background: rgba(255,159,10,0.16);  color: #ffc066; }
+  .cat-Vertrag      { background: rgba(255,159,10,0.16);  color: #ffc066; }
   .cat-Sparen       { background: rgba(48,209,88,0.16);   color: #5fe085; }
   .cat-Urlaub       { background: rgba(10,132,255,0.16);  color: #6cb6ff; }
   .cat-Konsum       { background: rgba(255,159,10,0.16);  color: #ffc066; }
@@ -212,6 +226,18 @@
   .entry-pension { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 0.72rem; font-variant-numeric: tabular-nums; }
   .entry-pension .pv-now { color: #6cb6ff; }
   .entry-pension .pv-end { color: var(--green); }
+  .entry-pension .pv-date { color: var(--muted); }
+
+  .urlaub-year-head { margin: 18px 0 10px; }
+  .urlaub-year-head:first-child { margin-top: 4px; }
+  .uy-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+  .uy-year { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
+  .uy-remaining { font-size: 0.95rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
+  .uy-remaining.negative { color: var(--danger); }
+  .uy-bar { height: 8px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+  .uy-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--violet)); transition: width 0.3s; }
+  .uy-bar-fill.over { background: var(--danger); }
+  .uy-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
 
   .entry-actions { display: flex; gap: 2px; }
   .btn-icon { background: none; border: none; cursor: pointer; color: var(--muted-2); width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; transition: color 0.15s, background 0.15s; }
@@ -220,14 +246,13 @@
   .btn-icon.del:hover  { color: var(--danger); background: rgba(255,69,58,0.14); }
 
   .add-btn {
-    width: 100%; margin-top: 14px; padding: 15px;
-    font: inherit; font-size: 0.95rem; font-weight: 600;
-    color: var(--accent); cursor: pointer; border-radius: 18px;
-    border: 1px solid var(--stroke); background: var(--glass);
-    -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%);
-    transition: background 0.2s, border-color 0.2s;
+    width: 100%; margin-top: 10px; padding: 10px;
+    font: inherit; font-size: 0.82rem; font-weight: 500;
+    color: var(--muted); cursor: pointer; border-radius: 14px;
+    border: 1px solid var(--stroke); background: transparent;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
   }
-  .add-btn:hover  { background: var(--glass-hi); border-color: var(--stroke-hi); }
+  .add-btn:hover  { background: var(--glass); border-color: var(--stroke-hi); color: var(--accent); }
   .add-btn:active { transform: scale(0.99); }
 
   .empty { text-align: center; color: var(--muted-2); font-size: 0.9rem; padding: 36px 0; }
@@ -240,6 +265,7 @@
     -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
     z-index: 100; align-items: flex-end; justify-content: center; padding: 0;
   }
+  #dialog-overlay { z-index: 200; }
   .overlay.open { display: flex; }
 
   .modal {
@@ -289,6 +315,8 @@
 <div class="wrap">
   <div class="notice" id="notice">Speicherung im Browser ist hier nicht möglich – Einträge bleiben nur während dieser Sitzung erhalten. Speichere die App lokal (siehe Anleitung), um dauerhaft zu sichern.</div>
 
+  <div class="app-header">Jörg's Finanzen</div>
+
   <div class="income-bar glass">
     <div class="income-left">
       <span class="income-label">Netto / Monat</span>
@@ -325,6 +353,10 @@
     <div class="dash-accounts" id="dash-accounts">
       <div class="dash-sub-label">Ausgaben nach Konto</div>
       <div id="account-bars"></div>
+    </div>
+    <div class="dash-accounts" id="dash-balances">
+      <div class="dash-sub-label">Kontostände (Sparen &amp; Urlaub)</div>
+      <div id="balance-bars"></div>
     </div>
   </div>
 
@@ -365,6 +397,7 @@
     <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year-b">0,00 €</div></div>
     <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count-b">0</div></div>
   </div>
+  <div class="balance-box glass" id="balance-box-b" style="display:none"></div>
 
   <div class="section-label">Konsum, Urlaub &amp; Sparen</div>
   <div class="list" id="list-b"></div>
@@ -396,10 +429,36 @@
 
   <div class="group-divider"></div>
 
+  <header class="sub-header">
+    <h1>Bonusprogramme</h1>
+    <p>Punkte, Meilen &amp; Verfall im Blick</p>
+  </header>
+
+  <div class="section-label">Bonusprogramme</div>
+  <div class="list" id="list-bonus"></div>
+  <div class="empty" id="empty-bonus" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
+
+  <button class="add-btn" onclick="openBonusModal()">＋ Eintrag hinzufügen</button>
+
+  <div class="group-divider"></div>
+
+  <header class="sub-header">
+    <h1>Urlaube</h1>
+    <p>Geplante Reisen &amp; Jahresbudget im Blick</p>
+  </header>
+
+  <div class="section-label">Urlaube</div>
+  <div id="urlaub-years"></div>
+  <div class="empty" id="empty-urlaub" style="display:none">Noch keine Urlaube geplant. Tippe unten, um zu beginnen.</div>
+
+  <button class="add-btn" onclick="openUrlaubModal()">＋ Urlaub hinzufügen</button>
+
+  <div class="group-divider"></div>
+
   <div class="section-label">Datensicherung</div>
   <div class="backup-row">
     <button class="backup-btn" onclick="exportData()">↓ Sichern</button>
-    <button class="backup-btn" onclick="document.getElementById('import-file').click()">↑ Wiederherstellen</button>
+    <button class="backup-btn" onclick="$('import-file').click()">↑ Wiederherstellen</button>
     <input type="file" id="import-file" accept="application/json,.json" style="display:none" onchange="importData(event)">
   </div>
   <p class="backup-hint">Sichern lädt alle Einträge als Datei herunter – lege sie z.B. in iCloud Drive ab. Wiederherstellen lädt so eine Datei wieder ein. Ideal als Backup vor App-Updates.</p>
@@ -426,7 +485,7 @@
       <label>Name</label>
       <input type="text" id="f-name" placeholder="z.B. Netflix" autocomplete="off">
     </div>
-    <div class="field">
+    <div class="field" id="f-provider-wrap">
       <label id="f-provider-label">Anbieter (optional)</label>
       <input type="text" id="f-provider" placeholder="z.B. Allianz" autocomplete="off">
     </div>
@@ -438,9 +497,9 @@
         <option>DB Spar</option>
         <option>DB Robin</option>
         <option>DKB Giro</option>
-        <option>Scalable Depot</option>
-        <option>Scalable Wealth</option>
-        <option>Scalable Spar</option>
+        <option>Scalable Broker</option>
+        <option>Scalable Wealth (Weltreise)</option>
+        <option>Scalable Tagesgeld</option>
         <option>EquatePlus</option>
       </select>
     </div>
@@ -470,19 +529,57 @@
         <select id="f-extra-select" style="display:none"></select>
       </div>
     </div>
-    <div class="field field-row" id="f-pension-wrap" style="display:none">
-      <div>
-        <label>Aktueller Wert (€)</label>
-        <input type="text" id="f-current" inputmode="decimal" placeholder="z.B. 12.000" autocomplete="off">
-      </div>
-      <div>
-        <label>Bei Renteneintritt (€)</label>
-        <input type="text" id="f-projected" inputmode="decimal" placeholder="z.B. 80.000" autocomplete="off">
-      </div>
-    </div>
+    <div id="f-values"></div>
+    <div id="f-texts"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" id="cancel-btn" onclick="closeModal()">Abbrechen</button>
       <button class="btn btn-primary" id="save-btn" onclick="saveEntry()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="bonus-overlay" onclick="if(event.target===this)closeBonusModal()">
+  <div class="modal">
+    <div class="grabber"></div>
+    <h2 id="bonus-title">Neues Bonusprogramm</h2>
+    <div class="field">
+      <label>Bonusprogramm</label>
+      <input type="text" id="bonus-name" placeholder="z.B. Miles & More" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Punkte / Meilen</label>
+      <input type="text" id="bonus-points" placeholder="z.B. 25.000 Meilen" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Verfall</label>
+      <input type="text" id="bonus-expiry" placeholder="z.B. 31.12.2026" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeBonusModal()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveBonus()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="urlaub-overlay" onclick="if(event.target===this)closeUrlaubModal()">
+  <div class="modal">
+    <div class="grabber"></div>
+    <h2 id="urlaub-title">Neuer Urlaub</h2>
+    <div class="field">
+      <label>Reiseziel / Name</label>
+      <input type="text" id="urlaub-name" placeholder="z.B. Namibia" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Monat (MM.JJJJ)</label>
+      <input type="text" id="urlaub-month" placeholder="z.B. 08.2026" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Kosten (€)</label>
+      <input type="text" id="urlaub-cost" inputmode="decimal" placeholder="z.B. 3.500" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeUrlaubModal()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveUrlaub()">Speichern</button>
     </div>
   </div>
 </div>
@@ -503,20 +600,24 @@ const store = (() => {
 const SECTIONS = {
   v: {
     storageKey: 'abos_v1',
-    cats: ['Abonnement','Versicherung','Verein','Finanzen'],
+    cats: ['Abonnement','Versicherung','Verein','Vertrag'],
     defaultCat: 'Abonnement',
     providerLabel: 'Anbieter (optional)',
     providerPlaceholder: 'z.B. Allianz',
     showPeriod: true,
     extra: { kind: 'text', label: 'Vertragsnummer (optional)', placeholder: '—' },
+    textFields: [
+      { key:'debitDate', label:'Abbuchungsdatum (optional)', placeholder:'z.B. 15.01', display:'Abbuchung' }
+    ],
     namePlaceholder: 'z.B. Netflix',
-    showYearlyPerEntry: false,
+    showYearlyPerEntry: true,
     ids: { list:'list-v', empty:'empty-v', month:'sum-month', year:'sum-year', count:'sum-count' }
   },
   b: {
     storageKey: 'budgets_v1',
     cats: ['Urlaub','Konsum','Sparen'],
     defaultCat: 'Sparen',
+    hideProvider: true,
     providerLabel: 'Bezeichnung (optional)',
     providerPlaceholder: 'z.B. Sparkonto DKB',
     showPeriod: false,           // always monthly
@@ -524,6 +625,9 @@ const SECTIONS = {
     extra: { kind: 'select', label: 'Typ', options: ['Aktien/ ETF','Sparkonto','Robo-Advisor'] },
     namePlaceholder: 'z.B. Notgroschen',
     showYearlyPerEntry: true,
+    valueFields: [
+      { key:'balance', label:'Gesamtbetrag / aktueller Stand (€)', placeholder:'z.B. 3.000', display:'Stand', color:'now' }
+    ],
     ids: { list:'list-b', empty:'empty-b', month:'sum-month-b', year:'sum-year-b', count:'sum-count-b' }
   },
   a: {
@@ -536,13 +640,18 @@ const SECTIONS = {
     extra: { kind: 'text', label: 'Vertragsnummer (optional)', placeholder: '—' },
     namePlaceholder: 'z.B. Riester-Rente',
     showYearlyPerEntry: false,
-    showPensionValues: true,
+    valueFields: [
+      { key:'current',   label:'Aktueller Wert (€)',     placeholder:'z.B. 12.000', display:'Aktuell', color:'now', row:true },
+      { key:'projected', label:'Bei Renteneintritt (€)', placeholder:'z.B. 80.000', display:'Rente',   color:'end', row:true }
+    ],
     ids: { list:'list-a', empty:'empty-a', month:'sum-month-a', year:'sum-year-a', count:'sum-count-a' }
   }
 };
 
-const ACCOUNTS = ['DB Giro','DB Spar','DB Robin','DKB Giro','Scalable Depot','Scalable Wealth','Scalable Spar','EquatePlus'];
+const ACCOUNTS = ['DB Giro','DB Spar','DB Robin','DKB Giro','Scalable Broker','Scalable Wealth (Weltreise)','Scalable Tagesgeld','EquatePlus'];
 const INCOME_KEY = 'income_v1';
+const BONUS_KEY = 'bonus_v1';
+const URLAUB_KEY = 'urlaube_v1';
 
 let data = {
   v: JSON.parse(store.get(SECTIONS.v.storageKey) || '[]'),
@@ -551,18 +660,44 @@ let data = {
 };
 
 let income = parseFloat(store.get(INCOME_KEY) || '0') || 0;
+let bonus = JSON.parse(store.get(BONUS_KEY) || '[]');
+let editBonusId = null;
+let urlaube = JSON.parse(store.get(URLAUB_KEY) || '[]');
+let editUrlaubId = null;
 
 let editId = null;
 let activeSection = 'v';
 
+const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+// Compact euro for tight spaces (donut center): no cents; ≥10.000 shown as e.g. "12,3k €"
+const fmtShort = n => {
+  const v = Math.round(n);
+  if (Math.abs(v) >= 10000) {
+    const k = (v / 1000);
+    const s = (Math.round(k * 10) / 10).toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:1});
+    return s + 'k €';
+  }
+  return v.toLocaleString('de-DE') + ' €';
+};
 
-// Parse German-style money input ("12.000,50" or "12000.5") -> number or null
+// Parse German-style money input -> number or null
+// Handles "12.000,50" (de), "12000.5" (en), "3.000" (de thousands), "1500"
 function parseMoney(s) {
   s = String(s ?? '').trim();
   if (!s) return null;
   s = s.replace(/[^0-9.,]/g, '');
-  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');  // 12.000,50 -> 12000.50
+  if (s.includes(',')) {
+    // German: dot = thousands, comma = decimal
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (s.includes('.')) {
+    const parts = s.split('.');
+    // Treat dot as thousands separator when it groups 3-digit blocks (e.g. 3.000, 1.234.567)
+    if (parts.length > 2 || (parts[1] && parts[1].length === 3)) {
+      s = parts.join('');
+    }
+    // otherwise leave as decimal (e.g. 12.5)
+  }
   const n = parseFloat(s);
   return isNaN(n) ? null : n;
 }
@@ -582,11 +717,11 @@ function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;
 
 function renderSection(sec) {
   const cfg = SECTIONS[sec];
-  const filterEl = document.getElementById('filter-' + sec);
+  const filterEl = $('filter-' + sec);
   const acctFilter = filterEl ? filterEl.value : '';
   const entries = acctFilter ? data[sec].filter(e => (e.account || '') === acctFilter) : data[sec];
-  const list = document.getElementById(cfg.ids.list);
-  const empty = document.getElementById(cfg.ids.empty);
+  const list = $(cfg.ids.list);
+  const empty = $(cfg.ids.empty);
   list.innerHTML = '';
   if (!entries.length) {
     empty.style.display = 'block';
@@ -599,9 +734,29 @@ function renderSection(sec) {
 
   let monthTotal = 0;
   entries.forEach(e => monthTotal += toMonthly(e.amount, e.period));
-  document.getElementById(cfg.ids.month).textContent = fmt(monthTotal);
-  document.getElementById(cfg.ids.year).textContent  = fmt(monthTotal * 12);
-  document.getElementById(cfg.ids.count).textContent = entries.length;
+  $(cfg.ids.month).textContent = fmt(monthTotal);
+  $(cfg.ids.year).textContent  = fmt(monthTotal * 12);
+  $(cfg.ids.count).textContent = entries.length;
+
+  // Balance breakdown box (sections that track a 'balance' value, when a single account is selected)
+  const hasBalance = (cfg.valueFields || []).some(f => f.key === 'balance');
+  if (hasBalance) {
+    const box = $('balance-box-b');
+    if (acctFilter) {
+      const rows = entries.filter(e => e.balance != null);
+      const total = rows.reduce((s,e) => s + e.balance, 0);
+      if (rows.length) {
+        const items = rows.sort((a,b)=>b.balance-a.balance).map(e =>
+          `<div class="bb-row"><span class="bb-name">${esc(e.name)}</span><span class="bb-val">${fmt(e.balance)}</span></div>`).join('');
+        box.innerHTML = `<div class="bb-head"><span>Kontostand ${esc(acctFilter)}</span><span class="bb-total">${fmt(total)}</span></div>${items}`;
+        box.style.display = '';
+      } else {
+        box.style.display = 'none';
+      }
+    } else {
+      box.style.display = 'none';
+    }
+  }
 
   [...entries].sort((a,b)=>a.name.localeCompare(b.name)).forEach(e => {
     const sub = [];
@@ -612,12 +767,18 @@ function renderSection(sec) {
     const yearly = cfg.showYearlyPerEntry
       ? `<div class="entry-yearly">${fmt(toMonthly(e.amount, e.period) * 12)} / Jahr</div>`
       : '';
-    let pension = '';
-    if (cfg.showPensionValues && (e.current != null || e.projected != null)) {
-      const parts = [];
-      if (e.current != null)   parts.push(`<span class="pv-now">Aktuell: ${fmt(e.current)}</span>`);
-      if (e.projected != null) parts.push(`<span class="pv-end">Rente: ${fmt(e.projected)}</span>`);
-      pension = `<div class="entry-pension">${parts.join('')}</div>`;
+    let valuesHtml = '';
+    const vfShown = (cfg.valueFields || []).filter(f => e[f.key] != null);
+    if (vfShown.length) {
+      valuesHtml = `<div class="entry-pension">` + vfShown.map(f =>
+        `<span class="pv-${f.color || 'now'}">${f.display}: ${fmt(e[f.key])}</span>`
+      ).join('') + `</div>`;
+    }
+    const tfShown = (cfg.textFields || []).filter(f => e[f.key]);
+    if (tfShown.length) {
+      valuesHtml += `<div class="entry-pension">` + tfShown.map(f =>
+        `<span class="pv-date">${f.display}: ${esc(e[f.key])}</span>`
+      ).join('') + `</div>`;
     }
     const div = document.createElement('div');
     div.className = 'entry glass';
@@ -626,7 +787,7 @@ function renderSection(sec) {
         <div class="entry-name">${esc(e.name)}</div>
         ${sub.length ? `<div class="entry-sub">${sub.join(' · ')}</div>` : ''}
         <span class="cat-pill cat-${esc(e.cat)}">${esc(e.cat)}</span>
-        ${pension}
+        ${valuesHtml}
       </div>
       <div>
         <div class="entry-amount">${fmt(e.amount)}</div>
@@ -639,6 +800,9 @@ function renderSection(sec) {
       </div>`;
     list.appendChild(div);
   });
+
+  // Vacation budget depends on section-b "Urlaub" savings
+  if (sec === 'b' && typeof renderUrlaube === 'function') renderUrlaube();
 }
 
 function sectionMonthlyTotal(sec) {
@@ -648,7 +812,7 @@ function sectionMonthlyTotal(sec) {
 function updateIncome() {
   const totalExpenses = sectionMonthlyTotal('v') + sectionMonthlyTotal('b') + sectionMonthlyTotal('a');
   const avail = income - totalExpenses;
-  const el = document.getElementById('income-avail');
+  const el = $('income-avail');
   el.textContent = fmt(avail);
   el.classList.toggle('negative', avail < 0);
   renderDashboard();
@@ -676,7 +840,7 @@ function renderDashboard() {
   if (income > 0) segs.push({ key:'avail', name:'Verfügbar', val:avail, color:COLORS.avail });
 
   const donutBase = income > 0 ? income : totalExpenses;
-  const svg = document.getElementById('donut-svg');
+  const svg = $('donut-svg');
   const cx=60, cy=60, rad=46, sw=15, C=2*Math.PI*rad;
   let parts = `<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="${sw}"/>`;
   if (donutBase > 0) {
@@ -690,11 +854,11 @@ function renderDashboard() {
     });
   }
   svg.innerHTML = parts;
-  document.getElementById('donut-center-val').textContent = income > 0 ? fmt(income) : (totalExpenses > 0 ? fmt(totalExpenses) : '–');
+  $('donut-center-val').textContent = income > 0 ? fmtShort(income) : (totalExpenses > 0 ? fmtShort(totalExpenses) : '–');
   document.querySelector('.donut-center-label').textContent = income > 0 ? 'Netto' : 'Ausgaben';
 
   // Legend
-  const legend = document.getElementById('dash-legend');
+  const legend = $('dash-legend');
   if (donutBase > 0) {
     legend.innerHTML = segs.filter(s => s.val > 0).map(s => {
       const pct = Math.round(s.val / donutBase * 100);
@@ -709,8 +873,8 @@ function renderDashboard() {
 
   // Save rate = ("Sparen" from b) + all of a, divided by income
   const saveAmount = categoryMonthly('b','Sparen') + tA;
-  const srEl = document.getElementById('saverate-val');
-  const srEur = document.getElementById('saverate-eur');
+  const srEl = $('saverate-val');
+  const srEur = $('saverate-eur');
   if (income > 0) {
     const rate = Math.round(saveAmount / income * 100);
     srEl.textContent = rate + ' %';
@@ -728,8 +892,8 @@ function renderDashboard() {
   }));
   const accRows = Object.entries(acctTotals).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
   const maxAcc = accRows.length ? accRows[0][1] : 0;
-  const accWrap = document.getElementById('dash-accounts');
-  const barsEl = document.getElementById('account-bars');
+  const accWrap = $('dash-accounts');
+  const barsEl = $('account-bars');
   if (accRows.length) {
     accWrap.style.display = '';
     barsEl.innerHTML = accRows.map(([name,val]) => {
@@ -739,16 +903,224 @@ function renderDashboard() {
   } else {
     accWrap.style.display = 'none';
   }
+
+  // Account balances (section b only): per account total + breakdown by category
+  const balByAcct = {};
+  data.b.forEach(e => {
+    if (e.balance == null) return;
+    const acc = e.account || '— ohne Konto —';
+    if (!balByAcct[acc]) balByAcct[acc] = { total: 0, cats: {} };
+    balByAcct[acc].total += e.balance;
+    balByAcct[acc].cats[e.cat] = (balByAcct[acc].cats[e.cat] || 0) + e.balance;
+  });
+  const balRows = Object.entries(balByAcct).filter(([,o]) => o.total > 0).sort((a,b) => b[1].total - a[1].total);
+  const balWrap = $('dash-balances');
+  const balEl = $('balance-bars');
+  if (balRows.length) {
+    balWrap.style.display = '';
+    balEl.innerHTML = balRows.map(([name,o]) => {
+      const breakdown = Object.entries(o.cats).sort((a,b)=>b[1]-a[1])
+        .map(([c,v]) => `${esc(c)}: ${fmt(v)}`).join(' · ');
+      return `<div class="bal-acct-row"><div class="bal-acct-head"><span class="bal-acct-name">${esc(name)}</span><span class="bal-acct-total">${fmt(o.total)}</span></div><div class="bal-acct-break">${breakdown}</div></div>`;
+    }).join('');
+  } else {
+    balWrap.style.display = 'none';
+  }
 }
 
 function onIncomeInput() {
-  const raw = document.getElementById('income-input').value.replace(/[^0-9,.\-]/g,'').replace(',', '.');
+  const raw = $('income-input').value.replace(/[^0-9,.\-]/g,'').replace(',', '.');
   income = parseFloat(raw) || 0;
   store.set(INCOME_KEY, String(income));
   updateIncome();
 }
 
-function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); updateIncome(); }
+function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderBonus(); renderUrlaube(); updateIncome(); }
+
+function renderBonus() {
+  const list = $('list-bonus');
+  const empty = $('empty-bonus');
+  list.innerHTML = '';
+  empty.style.display = bonus.length ? 'none' : 'block';
+  [...bonus].sort((a,b)=>a.name.localeCompare(b.name)).forEach(e => {
+    const sub = [];
+    if (e.points) sub.push(esc(e.points));
+    if (e.expiry) sub.push('Verfall: ' + esc(e.expiry));
+    const div = document.createElement('div');
+    div.className = 'entry glass';
+    div.innerHTML = `
+      <div>
+        <div class="entry-name">${esc(e.name)}</div>
+        ${sub.length ? `<div class="entry-sub">${sub.join(' · ')}</div>` : ''}
+      </div>
+      <div class="entry-actions">
+        <button class="btn-icon edit" aria-label="Bearbeiten" onclick="openBonusModal('${e.id}')">${ICON_EDIT}</button>
+        <button class="btn-icon del" aria-label="Löschen" onclick="deleteBonus('${e.id}')">${ICON_DEL}</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function openBonusModal(id) {
+  editBonusId = id || null;
+  $('bonus-title').textContent = id ? 'Bonusprogramm bearbeiten' : 'Neues Bonusprogramm';
+  const e = id ? bonus.find(x => x.id === id) : null;
+  $('bonus-name').value   = e ? e.name : '';
+  $('bonus-points').value = e ? (e.points || '') : '';
+  $('bonus-expiry').value = e ? (e.expiry || '') : '';
+  $('bonus-overlay').classList.add('open');
+  setTimeout(() => $('bonus-name').focus(), 60);
+}
+
+function closeBonusModal(){ $('bonus-overlay').classList.remove('open'); }
+
+function saveBonus() {
+  const name   = $('bonus-name').value.trim();
+  const points = $('bonus-points').value.trim();
+  const expiry = $('bonus-expiry').value.trim();
+  if (!name) { notify('Bitte einen Namen eingeben.'); return; }
+  if (editBonusId) {
+    const i = bonus.findIndex(x => x.id === editBonusId);
+    bonus[i] = { ...bonus[i], name, points, expiry };
+  } else {
+    bonus.push({ id: Date.now().toString(), name, points, expiry });
+  }
+  store.set(BONUS_KEY, JSON.stringify(bonus));
+  closeBonusModal();
+  renderBonus();
+}
+
+async function deleteBonus(id) {
+  const ok = await showDialog('Eintrag wirklich löschen?', { title: 'Löschen', okText: 'Löschen' });
+  if (!ok) return;
+  bonus = bonus.filter(x => x.id !== id);
+  store.set(BONUS_KEY, JSON.stringify(bonus));
+  renderBonus();
+}
+
+// ---- Urlaube (vacations grouped by year, budget = Urlaub-savings ×12) ----
+function urlaubYear(monthStr) {
+  // Expect "MM.JJJJ" or "JJJJ" -> return 4-digit year string, or null
+  const m = String(monthStr || '').match(/(\d{4})/);
+  return m ? m[1] : null;
+}
+
+function renderUrlaube() {
+  const wrap = $('urlaub-years');
+  const empty = $('empty-urlaub');
+  wrap.innerHTML = '';
+  empty.style.display = urlaube.length ? 'none' : 'block';
+
+  // Annual vacation budget = monthly "Urlaub" savings ×12
+  const yearlyBudget = categoryMonthly('b','Urlaub') * 12;
+
+  // Group by year (null year -> 'ohne Jahr')
+  const groups = {};
+  urlaube.forEach(u => {
+    const y = urlaubYear(u.month) || 'ohne';
+    (groups[y] = groups[y] || []).push(u);
+  });
+  // Sort years ascending, 'ohne' last
+  const years = Object.keys(groups).sort((a,b) => {
+    if (a === 'ohne') return 1; if (b === 'ohne') return -1;
+    return a.localeCompare(b);
+  });
+
+  years.forEach(y => {
+    const items = groups[y].slice().sort((a,b) => (a.month||'').localeCompare(b.month||''));
+    const spent = items.reduce((s,u) => s + (u.cost || 0), 0);
+    const hasBudget = y !== 'ohne';
+    const remaining = yearlyBudget - spent;
+    const yearLabel = y === 'ohne' ? 'Ohne Jahr' : y;
+
+    const head = document.createElement('div');
+    head.className = 'urlaub-year-head';
+    if (hasBudget) {
+      head.innerHTML = `
+        <div class="uy-top">
+          <span class="uy-year">${yearLabel}</span>
+          <span class="uy-remaining ${remaining < 0 ? 'negative' : ''}">${fmt(remaining)} übrig</span>
+        </div>
+        <div class="uy-bar"><div class="uy-bar-fill ${remaining < 0 ? 'over' : ''}" style="width:${yearlyBudget > 0 ? Math.min(100, Math.round(spent/yearlyBudget*100)) : (spent>0?100:0)}%"></div></div>
+        <div class="uy-meta"><span>Budget: ${fmt(yearlyBudget)}</span><span>Geplant: ${fmt(spent)}</span></div>`;
+    } else {
+      head.innerHTML = `
+        <div class="uy-top">
+          <span class="uy-year">${yearLabel}</span>
+          <span class="uy-remaining">Geplant: ${fmt(spent)}</span>
+        </div>
+        <div class="uy-meta"><span>Diese Urlaube haben kein erkennbares Jahr (Format MM.JJJJ).</span></div>`;
+    }
+    wrap.appendChild(head);
+
+    items.forEach(u => {
+      const div = document.createElement('div');
+      div.className = 'entry glass';
+      const sub = [];
+      if (u.month) sub.push(esc(u.month));
+      div.innerHTML = `
+        <div>
+          <div class="entry-name">${esc(u.name)}</div>
+          ${sub.length ? `<div class="entry-sub">${sub.join(' · ')}</div>` : ''}
+        </div>
+        <div>
+          <div class="entry-amount">${fmt(u.cost || 0)}</div>
+        </div>
+        <div class="entry-actions">
+          <button class="btn-icon edit" aria-label="Bearbeiten" onclick="openUrlaubModal('${u.id}')">${ICON_EDIT}</button>
+          <button class="btn-icon del" aria-label="Löschen" onclick="deleteUrlaub('${u.id}')">${ICON_DEL}</button>
+        </div>`;
+      wrap.appendChild(div);
+    });
+  });
+}
+
+function openUrlaubModal(id) {
+  editUrlaubId = id || null;
+  $('urlaub-title').textContent = id ? 'Urlaub bearbeiten' : 'Neuer Urlaub';
+  const e = id ? urlaube.find(x => x.id === id) : null;
+  $('urlaub-name').value  = e ? e.name : '';
+  $('urlaub-month').value = e ? (e.month || '') : '';
+  $('urlaub-cost').value  = e && e.cost != null ? fmt(e.cost).replace(' €','') : '';
+  $('urlaub-overlay').classList.add('open');
+  setTimeout(() => $('urlaub-name').focus(), 60);
+}
+
+function closeUrlaubModal(){ $('urlaub-overlay').classList.remove('open'); }
+
+function normalizeMonth(s) {
+  s = String(s || '').trim();
+  if (!s) return '';
+  // 6 digits like 082026 -> 08.2026
+  let m = s.match(/^(\d{1,2})\.?(\d{4})$/);
+  if (m) return m[1].padStart(2,'0') + '.' + m[2];
+  // already MM.JJJJ or other text: leave as-is
+  return s;
+}
+
+function saveUrlaub() {
+  const name  = $('urlaub-name').value.trim();
+  const month = normalizeMonth($('urlaub-month').value);
+  const cost  = parseMoney($('urlaub-cost').value) || 0;
+  if (!name) { notify('Bitte ein Reiseziel eingeben.'); return; }
+  if (editUrlaubId) {
+    const i = urlaube.findIndex(x => x.id === editUrlaubId);
+    urlaube[i] = { ...urlaube[i], name, month, cost };
+  } else {
+    urlaube.push({ id: Date.now().toString(), name, month, cost });
+  }
+  store.set(URLAUB_KEY, JSON.stringify(urlaube));
+  closeUrlaubModal();
+  renderUrlaube();
+}
+
+async function deleteUrlaub(id) {
+  const ok = await showDialog('Urlaub wirklich löschen?', { title: 'Löschen', okText: 'Löschen' });
+  if (!ok) return;
+  urlaube = urlaube.filter(x => x.id !== id);
+  store.set(URLAUB_KEY, JSON.stringify(urlaube));
+  renderUrlaube();
+}
 
 function openModal(sec, id) {
   activeSection = sec;
@@ -756,19 +1128,20 @@ function openModal(sec, id) {
   const cfg = SECTIONS[sec];
 
   // Category options
-  document.getElementById('f-cat').innerHTML = cfg.cats.map(c => `<option>${c}</option>`).join('');
+  $('f-cat').innerHTML = cfg.cats.map(c => `<option>${c}</option>`).join('');
 
-  // Provider / Konto label + placeholder
-  document.getElementById('f-provider-label').textContent = cfg.providerLabel;
-  document.getElementById('f-provider').placeholder = cfg.providerPlaceholder;
+  // Provider field: hidden for some sections
+  $('f-provider-wrap').style.display = cfg.hideProvider ? 'none' : '';
+  $('f-provider-label').textContent = cfg.providerLabel || '';
+  $('f-provider').placeholder = cfg.providerPlaceholder || '';
 
   // Interval visibility
-  document.getElementById('f-period-wrap').style.display = cfg.showPeriod ? '' : 'none';
+  $('f-period-wrap').style.display = cfg.showPeriod ? '' : 'none';
 
   // Extra field: text input vs select
-  const exLabel = document.getElementById('f-extra-label');
-  const exInput = document.getElementById('f-extra-input');
-  const exSelect = document.getElementById('f-extra-select');
+  const exLabel = $('f-extra-label');
+  const exInput = $('f-extra-input');
+  const exSelect = $('f-extra-select');
   exLabel.textContent = cfg.extra.label;
   if (cfg.extra.kind === 'select') {
     exInput.style.display = 'none';
@@ -780,58 +1153,82 @@ function openModal(sec, id) {
     exInput.placeholder = cfg.extra.placeholder || '';
   }
 
-  document.getElementById('f-name').placeholder = cfg.namePlaceholder;
-  document.getElementById('modal-title').textContent = id ? 'Eintrag bearbeiten' : 'Neuer Eintrag';
+  $('f-name').placeholder = cfg.namePlaceholder;
+  $('modal-title').textContent = id ? 'Eintrag bearbeiten' : 'Neuer Eintrag';
 
-  // Pension value fields (section a only)
-  document.getElementById('f-pension-wrap').style.display = cfg.showPensionValues ? '' : 'none';
+  // Build custom value fields (e.g. pension values, balance) from config
+  const vf = cfg.valueFields || [];
+  const vEntry = id ? data[sec].find(x => x.id === id) : null;
+  const rowFields = vf.filter(f => f.row);
+  const soloFields = vf.filter(f => !f.row);
+  let vHtml = '';
+  if (rowFields.length) {
+    vHtml += '<div class="field field-row">' + rowFields.map(f =>
+      `<div><label>${f.label}</label><input type="text" id="vf-${f.key}" inputmode="decimal" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+    ).join('') + '</div>';
+  }
+  vHtml += soloFields.map(f =>
+    `<div class="field"><label>${f.label}</label><input type="text" id="vf-${f.key}" inputmode="decimal" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+  ).join('');
+  $('f-values').innerHTML = vHtml;
+  vf.forEach(f => {
+    const v = vEntry ? vEntry[f.key] : null;
+    $('vf-' + f.key).value = (v != null) ? fmt(v).replace(' €','') : '';
+  });
+
+  // Build custom free-text fields (e.g. Abbuchungsdatum) from config
+  const tf = cfg.textFields || [];
+  $('f-texts').innerHTML = tf.map(f =>
+    `<div class="field"><label>${f.label}</label><input type="text" id="tf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+  ).join('');
+  tf.forEach(f => { $('tf-' + f.key).value = vEntry ? (vEntry[f.key] || '') : ''; });
 
   if (id) {
-    const e = data[sec].find(x => x.id === id);
-    document.getElementById('f-name').value     = e.name;
-    document.getElementById('f-provider').value = e.provider || '';
-    document.getElementById('f-account').value  = e.account || '';
-    document.getElementById('f-amount').value   = e.amount;
-    document.getElementById('f-period').value   = e.period || 'monatlich';
-    document.getElementById('f-cat').value      = e.cat;
-    document.getElementById('f-current').value   = (e.current   != null) ? fmt(e.current).replace(' €','') : '';
-    document.getElementById('f-projected').value = (e.projected != null) ? fmt(e.projected).replace(' €','') : '';
+    const e = vEntry;
+    $('f-name').value     = e.name;
+    $('f-provider').value = e.provider || '';
+    $('f-account').value  = e.account || '';
+    $('f-amount').value   = e.amount;
+    $('f-period').value   = e.period || 'monatlich';
+    $('f-cat').value      = e.cat;
     if (cfg.extra.kind === 'select') exSelect.value = e.extra || cfg.extra.options[0];
     else exInput.value = e.extra ?? e.contract ?? '';
   } else {
-    ['f-name','f-provider','f-amount','f-extra-input','f-current','f-projected'].forEach(i => document.getElementById(i).value = '');
-    document.getElementById('f-account').value = '';
-    document.getElementById('f-period').value = cfg.fixedPeriod || 'monatlich';
-    document.getElementById('f-cat').value    = cfg.defaultCat;
+    ['f-name','f-provider','f-amount','f-extra-input'].forEach(i => $(i).value = '');
+    $('f-account').value = '';
+    $('f-period').value = cfg.fixedPeriod || 'monatlich';
+    $('f-cat').value    = cfg.defaultCat;
     if (cfg.extra.kind === 'select') exSelect.value = cfg.extra.options[0];
   }
-  document.getElementById('overlay').classList.add('open');
-  setTimeout(() => document.getElementById('f-name').focus(), 60);
+  $('overlay').classList.add('open');
+  setTimeout(() => $('f-name').focus(), 60);
 }
 
-function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
-function closeIfBg(e){ if (e.target === document.getElementById('overlay')) closeModal(); }
+function closeModal(){ $('overlay').classList.remove('open'); }
+function closeIfBg(e){ if (e.target === $('overlay')) closeModal(); }
 
 function saveEntry() {
   const sec = activeSection;
   const cfg = SECTIONS[sec];
-  const name     = document.getElementById('f-name').value.trim();
-  const provider = document.getElementById('f-provider').value.trim();
-  const account  = document.getElementById('f-account').value;
-  const amount   = parseFloat(document.getElementById('f-amount').value.replace(',', '.'));
-  const period   = cfg.showPeriod ? document.getElementById('f-period').value : (cfg.fixedPeriod || 'monatlich');
-  const cat      = document.getElementById('f-cat').value;
+  const name     = $('f-name').value.trim();
+  const provider = cfg.hideProvider ? '' : $('f-provider').value.trim();
+  const account  = $('f-account').value;
+  const amount   = parseFloat($('f-amount').value.replace(',', '.'));
+  const period   = cfg.showPeriod ? $('f-period').value : (cfg.fixedPeriod || 'monatlich');
+  const cat      = $('f-cat').value;
   const extra    = cfg.extra.kind === 'select'
-    ? document.getElementById('f-extra-select').value
-    : document.getElementById('f-extra-input').value.trim();
+    ? $('f-extra-select').value
+    : $('f-extra-input').value.trim();
 
   if (!name || isNaN(amount) || amount < 0) { notify('Bitte Name und Betrag ausfüllen.'); return; }
 
   const fields = { name, provider, account, amount, period, cat, extra };
-  if (cfg.showPensionValues) {
-    fields.current   = parseMoney(document.getElementById('f-current').value);
-    fields.projected = parseMoney(document.getElementById('f-projected').value);
-  }
+  (cfg.valueFields || []).forEach(f => {
+    fields[f.key] = parseMoney($('vf-' + f.key).value);
+  });
+  (cfg.textFields || []).forEach(f => {
+    fields[f.key] = $('tf-' + f.key).value.trim();
+  });
 
   if (editId) {
     const i = data[sec].findIndex(x => x.id === editId);
@@ -859,17 +1256,17 @@ let _dialogResolver = null;
 function showDialog(message, { title = 'Hinweis', okText = 'OK', cancelText = 'Abbrechen' } = {}) {
   return new Promise(resolve => {
     _dialogResolver = resolve;
-    document.getElementById('dialog-title').textContent = title;
-    document.getElementById('dialog-msg').textContent = message;
-    document.getElementById('dialog-ok').textContent = okText;
-    const cancel = document.getElementById('dialog-cancel');
+    $('dialog-title').textContent = title;
+    $('dialog-msg').textContent = message;
+    $('dialog-ok').textContent = okText;
+    const cancel = $('dialog-cancel');
     cancel.textContent = cancelText;
     cancel.style.display = cancelText ? '' : 'none';
-    document.getElementById('dialog-overlay').classList.add('open');
+    $('dialog-overlay').classList.add('open');
   });
 }
 function dialogResolve(val) {
-  document.getElementById('dialog-overlay').classList.remove('open');
+  $('dialog-overlay').classList.remove('open');
   if (_dialogResolver) { _dialogResolver(val); _dialogResolver = null; }
 }
 function notify(message, title = 'Hinweis') { return showDialog(message, { title, cancelText: '' }); }
@@ -880,7 +1277,10 @@ function exportData() {
     app: 'finanzen-uebersicht',
     version: 1,
     exportedAt: new Date().toISOString(),
-    sections: { v: data.v, b: data.b, a: data.a }
+    income: income,
+    sections: { v: data.v, b: data.b, a: data.a },
+    bonus: bonus,
+    urlaube: urlaube
   };
   const text = JSON.stringify(payload, null, 2);
   const stamp = new Date().toISOString().slice(0,10);
@@ -928,6 +1328,19 @@ async function applyBackup(rawText) {
   if (Array.isArray(sec.v)) { data.v = sec.v; store.set(SECTIONS.v.storageKey, JSON.stringify(data.v)); }
   if (Array.isArray(sec.b)) { data.b = sec.b; store.set(SECTIONS.b.storageKey, JSON.stringify(data.b)); }
   if (Array.isArray(sec.a)) { data.a = sec.a; store.set(SECTIONS.a.storageKey, JSON.stringify(data.a)); }
+  if (typeof parsed.income === 'number') {
+    income = parsed.income;
+    store.set(INCOME_KEY, String(income));
+    $('income-input').value = income > 0 ? fmt(income).replace(' €','') : '';
+  }
+  if (Array.isArray(parsed.bonus)) {
+    bonus = parsed.bonus;
+    store.set(BONUS_KEY, JSON.stringify(bonus));
+  }
+  if (Array.isArray(parsed.urlaube)) {
+    urlaube = parsed.urlaube;
+    store.set(URLAUB_KEY, JSON.stringify(urlaube));
+  }
   renderAll();
   notify('Backup erfolgreich wiederhergestellt.', 'Fertig');
 }
@@ -939,7 +1352,7 @@ document.addEventListener('keydown', e => {
 
 function populateFilters() {
   ['v','b','a'].forEach(sec => {
-    const el = document.getElementById('filter-' + sec);
+    const el = $('filter-' + sec);
     if (!el) return;
     const current = el.value;
     el.innerHTML = '<option value="">Alle Konten</option>' +
@@ -948,8 +1361,8 @@ function populateFilters() {
   });
 }
 
-if (!store.persistent) document.getElementById('notice').style.display = 'block';
-if (income > 0) document.getElementById('income-input').value = income.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
+if (!store.persistent) $('notice').style.display = 'block';
+if (income > 0) $('income-input').value = income.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
 populateFilters();
 renderAll();
 </script>
