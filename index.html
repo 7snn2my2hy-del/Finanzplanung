@@ -70,6 +70,83 @@
     width: 1px; background: var(--stroke);
   }
   .stat-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-2); margin-bottom: 3px; }
+
+  .filter-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .account-filter {
+    font: inherit; font-size: 0.78rem; font-weight: 500;
+    color: var(--text); cursor: pointer;
+    background: var(--glass); border: 1px solid var(--stroke);
+    border-radius: 99px; padding: 6px 30px 6px 14px; outline: none;
+    -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%);
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='3' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+  .account-filter:focus { border-color: var(--accent); }
+  .account-filter option { background: #1c1c1e; color: var(--text); }
+
+  .income-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 12px 18px; margin-bottom: 6px;
+  }
+  .income-left, .income-right { display: flex; flex-direction: column; gap: 3px; }
+  .income-right { align-items: flex-end; }
+  .income-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-2); }
+  .income-input-wrap { display: flex; align-items: baseline; gap: 3px; }
+  #income-input {
+    width: 110px; background: transparent; border: none; outline: none;
+    color: var(--text); font: inherit; font-size: 1.25rem; font-weight: 600;
+    letter-spacing: -0.02em; font-variant-numeric: tabular-nums; padding: 0;
+    border-bottom: 1px solid var(--stroke);
+  }
+  #income-input:focus { border-bottom-color: var(--accent); }
+  #income-input::placeholder { color: var(--muted-2); }
+  .income-eur { font-size: 1.05rem; font-weight: 600; color: var(--muted); }
+  .income-avail { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--green); }
+  .income-avail.negative { color: var(--danger); }
+  .income-divider { height: 1px; background: var(--stroke); margin: 40px 0 4px; }
+
+  .dashboard { padding: 18px; margin: 40px 0 0; }
+  .dash-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted-2); font-weight: 600; margin-bottom: 14px; }
+  .dash-grid { display: flex; gap: 18px; align-items: center; }
+  .dash-donut { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+  .donut-center-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); }
+  .donut-center-val { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .dash-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  .dash-sub-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); display: block; margin-bottom: 4px; }
+  .dash-saverate { }
+  .saverate-val { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: var(--green); font-variant-numeric: tabular-nums; }
+  .saverate-eur { font-size: 0.75rem; color: var(--muted); margin-left: 6px; }
+  .dash-legend { display: flex; flex-direction: column; gap: 5px; }
+  .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.74rem; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+  .legend-name { color: var(--muted); flex: 1; }
+  .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; }
+  .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+  .dash-accounts { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke); }
+  .acct-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 0.74rem; }
+  .acct-bar-name { width: 92px; flex-shrink: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .acct-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+  .acct-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--violet)); }
+  .acct-bar-val { width: 76px; flex-shrink: 0; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; }
+  .dash-empty { color: var(--muted-2); font-size: 0.82rem; text-align: center; padding: 10px 0; }
+  @media (max-width: 420px) {
+    .dash-grid { flex-direction: column; align-items: stretch; }
+    .dash-donut { align-self: center; }
+  }
+  .account-filter {
+    font: inherit; font-size: 0.78rem; font-weight: 500;
+    color: var(--text); cursor: pointer;
+    background: var(--glass); border: 1px solid var(--stroke);
+    border-radius: 99px; padding: 6px 30px 6px 14px; outline: none;
+    -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%);
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='3' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+  .account-filter:focus { border-color: var(--accent); }
+  .account-filter option { background: #1c1c1e; color: var(--text); }
   .stat-value { font-size: 1.05rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
   .stat-value.year  { color: var(--violet); }
   .stat-value.count { color: var(--green); }
@@ -132,6 +209,9 @@
   .entry-amount { font-weight: 600; font-size: 0.97rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .entry-period { font-size: 0.7rem; color: var(--muted-2); text-align: right; margin-top: 2px; }
   .entry-yearly { font-size: 0.7rem; color: var(--green); text-align: right; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .entry-pension { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+  .entry-pension .pv-now { color: #6cb6ff; }
+  .entry-pension .pv-end { color: var(--green); }
 
   .entry-actions { display: flex; gap: 2px; }
   .btn-icon { background: none; border: none; cursor: pointer; color: var(--muted-2); width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; transition: color 0.15s, background 0.15s; }
@@ -207,13 +287,57 @@
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>Versicherungen &amp; Abos</h1>
+  <div class="notice" id="notice">Speicherung im Browser ist hier nicht möglich – Einträge bleiben nur während dieser Sitzung erhalten. Speichere die App lokal (siehe Anleitung), um dauerhaft zu sichern.</div>
+
+  <div class="income-bar glass">
+    <div class="income-left">
+      <span class="income-label">Netto / Monat</span>
+      <div class="income-input-wrap">
+        <input type="text" id="income-input" inputmode="decimal" placeholder="0,00" oninput="onIncomeInput()">
+        <span class="income-eur">€</span>
+      </div>
+    </div>
+    <div class="income-right">
+      <span class="income-label">Verfügbar</span>
+      <span class="income-avail" id="income-avail">0,00 €</span>
+    </div>
+  </div>
+
+  <div class="dashboard glass" id="dashboard">
+    <div class="dash-title">Übersicht</div>
+    <div class="dash-grid">
+      <div class="dash-donut">
+        <svg viewBox="0 0 120 120" id="donut-svg" width="120" height="120"></svg>
+        <div class="donut-center">
+          <span class="donut-center-label">Netto</span>
+          <span class="donut-center-val" id="donut-center-val">–</span>
+        </div>
+      </div>
+      <div class="dash-side">
+        <div class="dash-saverate">
+          <span class="dash-sub-label">Sparquote</span>
+          <span class="saverate-val" id="saverate-val">–</span>
+          <span class="saverate-eur" id="saverate-eur"></span>
+        </div>
+        <div class="dash-legend" id="dash-legend"></div>
+      </div>
+    </div>
+    <div class="dash-accounts" id="dash-accounts">
+      <div class="dash-sub-label">Ausgaben nach Konto</div>
+      <div id="account-bars"></div>
+    </div>
+  </div>
+
+  <div class="income-divider"></div>
+
+  <header class="sub-header">
+    <h1>Versicherungen &amp; Verträge</h1>
     <p>Alle laufenden Ausgaben im Blick</p>
   </header>
 
-  <div class="notice" id="notice">Speicherung im Browser ist hier nicht möglich – Einträge bleiben nur während dieser Sitzung erhalten. Speichere die App lokal (siehe Anleitung), um dauerhaft zu sichern.</div>
-
+  <div class="filter-row">
+    <select class="account-filter" id="filter-v" onchange="renderSection('v')"></select>
+  </div>
   <div class="summary glass">
     <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month">0,00 €</div></div>
     <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year">0,00 €</div></div>
@@ -229,17 +353,20 @@
   <div class="group-divider"></div>
 
   <header class="sub-header">
-    <h1>Budgets &amp; Sparen</h1>
+    <h1>Konsum, Urlaub &amp; Sparen</h1>
     <p>Sparpläne und monatliche Budgets im Blick</p>
   </header>
 
+  <div class="filter-row">
+    <select class="account-filter" id="filter-b" onchange="renderSection('b')"></select>
+  </div>
   <div class="summary glass">
     <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month-b">0,00 €</div></div>
     <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year-b">0,00 €</div></div>
     <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count-b">0</div></div>
   </div>
 
-  <div class="section-label">Budgets &amp; Sparen</div>
+  <div class="section-label">Konsum, Urlaub &amp; Sparen</div>
   <div class="list" id="list-b"></div>
   <div class="empty" id="empty-b" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
 
@@ -252,6 +379,9 @@
     <p>Vorsorge und Rente im Blick</p>
   </header>
 
+  <div class="filter-row">
+    <select class="account-filter" id="filter-a" onchange="renderSection('a')"></select>
+  </div>
   <div class="summary glass">
     <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month-a">0,00 €</div></div>
     <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year-a">0,00 €</div></div>
@@ -300,6 +430,20 @@
       <label id="f-provider-label">Anbieter (optional)</label>
       <input type="text" id="f-provider" placeholder="z.B. Allianz" autocomplete="off">
     </div>
+    <div class="field">
+      <label>Konto</label>
+      <select id="f-account">
+        <option value="">— kein Konto —</option>
+        <option>DB Giro</option>
+        <option>DB Spar</option>
+        <option>DB Robin</option>
+        <option>DKB Giro</option>
+        <option>Scalable Depot</option>
+        <option>Scalable Wealth</option>
+        <option>Scalable Spar</option>
+        <option>EquatePlus</option>
+      </select>
+    </div>
     <div class="field field-row">
       <div>
         <label>Betrag (€)</label>
@@ -324,6 +468,16 @@
         <label id="f-extra-label">Vertragsnummer (optional)</label>
         <input type="text" id="f-extra-input" placeholder="—" autocomplete="off">
         <select id="f-extra-select" style="display:none"></select>
+      </div>
+    </div>
+    <div class="field field-row" id="f-pension-wrap" style="display:none">
+      <div>
+        <label>Aktueller Wert (€)</label>
+        <input type="text" id="f-current" inputmode="decimal" placeholder="z.B. 12.000" autocomplete="off">
+      </div>
+      <div>
+        <label>Bei Renteneintritt (€)</label>
+        <input type="text" id="f-projected" inputmode="decimal" placeholder="z.B. 80.000" autocomplete="off">
       </div>
     </div>
     <div class="modal-actions">
@@ -363,7 +517,7 @@ const SECTIONS = {
     storageKey: 'budgets_v1',
     cats: ['Urlaub','Konsum','Sparen'],
     defaultCat: 'Sparen',
-    providerLabel: 'Konto',
+    providerLabel: 'Bezeichnung (optional)',
     providerPlaceholder: 'z.B. Sparkonto DKB',
     showPeriod: false,           // always monthly
     fixedPeriod: 'monatlich',
@@ -382,9 +536,13 @@ const SECTIONS = {
     extra: { kind: 'text', label: 'Vertragsnummer (optional)', placeholder: '—' },
     namePlaceholder: 'z.B. Riester-Rente',
     showYearlyPerEntry: false,
+    showPensionValues: true,
     ids: { list:'list-a', empty:'empty-a', month:'sum-month-a', year:'sum-year-a', count:'sum-count-a' }
   }
 };
+
+const ACCOUNTS = ['DB Giro','DB Spar','DB Robin','DKB Giro','Scalable Depot','Scalable Wealth','Scalable Spar','EquatePlus'];
+const INCOME_KEY = 'income_v1';
 
 let data = {
   v: JSON.parse(store.get(SECTIONS.v.storageKey) || '[]'),
@@ -392,10 +550,22 @@ let data = {
   a: JSON.parse(store.get(SECTIONS.a.storageKey) || '[]')
 };
 
+let income = parseFloat(store.get(INCOME_KEY) || '0') || 0;
+
 let editId = null;
 let activeSection = 'v';
 
 const fmt = n => n.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+
+// Parse German-style money input ("12.000,50" or "12000.5") -> number or null
+function parseMoney(s) {
+  s = String(s ?? '').trim();
+  if (!s) return null;
+  s = s.replace(/[^0-9.,]/g, '');
+  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');  // 12.000,50 -> 12000.50
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
 
 function toMonthly(a, p) {
   if (p === 'monatlich') return a;
@@ -412,11 +582,20 @@ function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;
 
 function renderSection(sec) {
   const cfg = SECTIONS[sec];
-  const entries = data[sec];
+  const filterEl = document.getElementById('filter-' + sec);
+  const acctFilter = filterEl ? filterEl.value : '';
+  const entries = acctFilter ? data[sec].filter(e => (e.account || '') === acctFilter) : data[sec];
   const list = document.getElementById(cfg.ids.list);
   const empty = document.getElementById(cfg.ids.empty);
   list.innerHTML = '';
-  empty.style.display = entries.length ? 'none' : 'block';
+  if (!entries.length) {
+    empty.style.display = 'block';
+    empty.textContent = acctFilter
+      ? `Keine Einträge für „${acctFilter}".`
+      : 'Noch keine Einträge. Tippe unten, um zu beginnen.';
+  } else {
+    empty.style.display = 'none';
+  }
 
   let monthTotal = 0;
   entries.forEach(e => monthTotal += toMonthly(e.amount, e.period));
@@ -427,11 +606,19 @@ function renderSection(sec) {
   [...entries].sort((a,b)=>a.name.localeCompare(b.name)).forEach(e => {
     const sub = [];
     if (e.provider) sub.push(esc(e.provider));
+    if (e.account) sub.push(esc(e.account));
     const extraVal = e.extra ?? e.contract;
     if (extraVal) sub.push(esc(extraVal));
     const yearly = cfg.showYearlyPerEntry
       ? `<div class="entry-yearly">${fmt(toMonthly(e.amount, e.period) * 12)} / Jahr</div>`
       : '';
+    let pension = '';
+    if (cfg.showPensionValues && (e.current != null || e.projected != null)) {
+      const parts = [];
+      if (e.current != null)   parts.push(`<span class="pv-now">Aktuell: ${fmt(e.current)}</span>`);
+      if (e.projected != null) parts.push(`<span class="pv-end">Rente: ${fmt(e.projected)}</span>`);
+      pension = `<div class="entry-pension">${parts.join('')}</div>`;
+    }
     const div = document.createElement('div');
     div.className = 'entry glass';
     div.innerHTML = `
@@ -439,6 +626,7 @@ function renderSection(sec) {
         <div class="entry-name">${esc(e.name)}</div>
         ${sub.length ? `<div class="entry-sub">${sub.join(' · ')}</div>` : ''}
         <span class="cat-pill cat-${esc(e.cat)}">${esc(e.cat)}</span>
+        ${pension}
       </div>
       <div>
         <div class="entry-amount">${fmt(e.amount)}</div>
@@ -453,7 +641,114 @@ function renderSection(sec) {
   });
 }
 
-function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); }
+function sectionMonthlyTotal(sec) {
+  return data[sec].reduce((s,e) => s + toMonthly(e.amount, e.period), 0);
+}
+
+function updateIncome() {
+  const totalExpenses = sectionMonthlyTotal('v') + sectionMonthlyTotal('b') + sectionMonthlyTotal('a');
+  const avail = income - totalExpenses;
+  const el = document.getElementById('income-avail');
+  el.textContent = fmt(avail);
+  el.classList.toggle('negative', avail < 0);
+  renderDashboard();
+}
+
+// Monthly total of a specific category within a section
+function categoryMonthly(sec, cat) {
+  return data[sec].filter(e => e.cat === cat).reduce((s,e) => s + toMonthly(e.amount, e.period), 0);
+}
+
+function renderDashboard() {
+  const tV = sectionMonthlyTotal('v');
+  const tB = sectionMonthlyTotal('b');
+  const tA = sectionMonthlyTotal('a');
+  const totalExpenses = tV + tB + tA;
+  const avail = Math.max(income - totalExpenses, 0);
+
+  // Donut segments
+  const COLORS = { v: '#0a84ff', b: '#bf5af2', a: '#30d158', avail: 'rgba(235,235,245,0.35)' };
+  const segs = [
+    { key:'v', name:'Versicherungen & Verträge', val:tV, color:COLORS.v },
+    { key:'b', name:'Konsum, Urlaub & Sparen',    val:tB, color:COLORS.b },
+    { key:'a', name:'Altersvorsorge',             val:tA, color:COLORS.a },
+  ];
+  if (income > 0) segs.push({ key:'avail', name:'Verfügbar', val:avail, color:COLORS.avail });
+
+  const donutBase = income > 0 ? income : totalExpenses;
+  const svg = document.getElementById('donut-svg');
+  const cx=60, cy=60, rad=46, sw=15, C=2*Math.PI*rad;
+  let parts = `<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="${sw}"/>`;
+  if (donutBase > 0) {
+    let offset = 0;
+    segs.forEach(s => {
+      if (s.val <= 0) return;
+      const frac = s.val / donutBase;
+      const len = frac * C;
+      parts += `<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="${s.color}" stroke-width="${sw}" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
+      offset += len;
+    });
+  }
+  svg.innerHTML = parts;
+  document.getElementById('donut-center-val').textContent = income > 0 ? fmt(income) : (totalExpenses > 0 ? fmt(totalExpenses) : '–');
+  document.querySelector('.donut-center-label').textContent = income > 0 ? 'Netto' : 'Ausgaben';
+
+  // Legend
+  const legend = document.getElementById('dash-legend');
+  if (donutBase > 0) {
+    legend.innerHTML = segs.filter(s => s.val > 0).map(s => {
+      const pct = Math.round(s.val / donutBase * 100);
+      return `<div class="legend-row"><span class="legend-dot" style="background:${s.color}"></span><span class="legend-name">${s.name}</span><span class="legend-val">${fmt(s.val)}</span><span class="legend-pct">${pct}%</span></div>`;
+    }).join('');
+    if (income > 0 && totalExpenses > income) {
+      legend.innerHTML += `<div class="legend-row" style="margin-top:2px"><span class="legend-dot" style="background:var(--danger)"></span><span class="legend-name" style="color:var(--danger)">Über Budget</span><span class="legend-val" style="color:var(--danger)">${fmt(totalExpenses - income)}</span><span class="legend-pct"></span></div>`;
+    }
+  } else {
+    legend.innerHTML = '<div class="dash-empty">Noch keine Daten.</div>';
+  }
+
+  // Save rate = ("Sparen" from b) + all of a, divided by income
+  const saveAmount = categoryMonthly('b','Sparen') + tA;
+  const srEl = document.getElementById('saverate-val');
+  const srEur = document.getElementById('saverate-eur');
+  if (income > 0) {
+    const rate = Math.round(saveAmount / income * 100);
+    srEl.textContent = rate + ' %';
+    srEur.textContent = fmt(saveAmount) + ' / Monat';
+  } else {
+    srEl.textContent = '–';
+    srEur.textContent = saveAmount > 0 ? fmt(saveAmount) + ' / Monat' : 'Netto eintragen';
+  }
+
+  // Expenses by account (across all sections)
+  const acctTotals = {};
+  ['v','b','a'].forEach(sec => data[sec].forEach(e => {
+    const acc = e.account || '— ohne Konto —';
+    acctTotals[acc] = (acctTotals[acc] || 0) + toMonthly(e.amount, e.period);
+  }));
+  const accRows = Object.entries(acctTotals).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
+  const maxAcc = accRows.length ? accRows[0][1] : 0;
+  const accWrap = document.getElementById('dash-accounts');
+  const barsEl = document.getElementById('account-bars');
+  if (accRows.length) {
+    accWrap.style.display = '';
+    barsEl.innerHTML = accRows.map(([name,val]) => {
+      const w = maxAcc > 0 ? Math.round(val/maxAcc*100) : 0;
+      return `<div class="acct-bar-row"><span class="acct-bar-name">${esc(name)}</span><span class="acct-bar-track"><span class="acct-bar-fill" style="width:${w}%"></span></span><span class="acct-bar-val">${fmt(val)}</span></div>`;
+    }).join('');
+  } else {
+    accWrap.style.display = 'none';
+  }
+}
+
+function onIncomeInput() {
+  const raw = document.getElementById('income-input').value.replace(/[^0-9,.\-]/g,'').replace(',', '.');
+  income = parseFloat(raw) || 0;
+  store.set(INCOME_KEY, String(income));
+  updateIncome();
+}
+
+function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); updateIncome(); }
 
 function openModal(sec, id) {
   activeSection = sec;
@@ -488,17 +783,24 @@ function openModal(sec, id) {
   document.getElementById('f-name').placeholder = cfg.namePlaceholder;
   document.getElementById('modal-title').textContent = id ? 'Eintrag bearbeiten' : 'Neuer Eintrag';
 
+  // Pension value fields (section a only)
+  document.getElementById('f-pension-wrap').style.display = cfg.showPensionValues ? '' : 'none';
+
   if (id) {
     const e = data[sec].find(x => x.id === id);
     document.getElementById('f-name').value     = e.name;
     document.getElementById('f-provider').value = e.provider || '';
+    document.getElementById('f-account').value  = e.account || '';
     document.getElementById('f-amount').value   = e.amount;
     document.getElementById('f-period').value   = e.period || 'monatlich';
     document.getElementById('f-cat').value      = e.cat;
+    document.getElementById('f-current').value   = (e.current   != null) ? fmt(e.current).replace(' €','') : '';
+    document.getElementById('f-projected').value = (e.projected != null) ? fmt(e.projected).replace(' €','') : '';
     if (cfg.extra.kind === 'select') exSelect.value = e.extra || cfg.extra.options[0];
     else exInput.value = e.extra ?? e.contract ?? '';
   } else {
-    ['f-name','f-provider','f-amount','f-extra-input'].forEach(i => document.getElementById(i).value = '');
+    ['f-name','f-provider','f-amount','f-extra-input','f-current','f-projected'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('f-account').value = '';
     document.getElementById('f-period').value = cfg.fixedPeriod || 'monatlich';
     document.getElementById('f-cat').value    = cfg.defaultCat;
     if (cfg.extra.kind === 'select') exSelect.value = cfg.extra.options[0];
@@ -515,6 +817,7 @@ function saveEntry() {
   const cfg = SECTIONS[sec];
   const name     = document.getElementById('f-name').value.trim();
   const provider = document.getElementById('f-provider').value.trim();
+  const account  = document.getElementById('f-account').value;
   const amount   = parseFloat(document.getElementById('f-amount').value.replace(',', '.'));
   const period   = cfg.showPeriod ? document.getElementById('f-period').value : (cfg.fixedPeriod || 'monatlich');
   const cat      = document.getElementById('f-cat').value;
@@ -524,15 +827,22 @@ function saveEntry() {
 
   if (!name || isNaN(amount) || amount < 0) { notify('Bitte Name und Betrag ausfüllen.'); return; }
 
+  const fields = { name, provider, account, amount, period, cat, extra };
+  if (cfg.showPensionValues) {
+    fields.current   = parseMoney(document.getElementById('f-current').value);
+    fields.projected = parseMoney(document.getElementById('f-projected').value);
+  }
+
   if (editId) {
     const i = data[sec].findIndex(x => x.id === editId);
-    data[sec][i] = { ...data[sec][i], name, provider, amount, period, cat, extra };
+    data[sec][i] = { ...data[sec][i], ...fields };
   } else {
-    data[sec].push({ id: Date.now().toString(), name, provider, amount, period, cat, extra });
+    data[sec].push({ id: Date.now().toString(), ...fields });
   }
   store.set(cfg.storageKey, JSON.stringify(data[sec]));
   closeModal();
   renderSection(sec);
+  updateIncome();
 }
 
 async function deleteEntry(sec, id) {
@@ -541,6 +851,7 @@ async function deleteEntry(sec, id) {
   data[sec] = data[sec].filter(x => x.id !== id);
   store.set(SECTIONS[sec].storageKey, JSON.stringify(data[sec]));
   renderSection(sec);
+  updateIncome();
 }
 
 // ---- Custom dialog (replaces native confirm/alert which are blocked in some sandboxes) ----
@@ -610,7 +921,7 @@ async function applyBackup(rawText) {
   const nB = Array.isArray(sec.b) ? sec.b.length : 0;
   const nA = Array.isArray(sec.a) ? sec.a.length : 0;
   const ok = await showDialog(
-    `Versicherungen & Abos: ${nV}\nBudgets & Sparen: ${nB}\nAltersvorsorge: ${nA}\n\nDies ersetzt deine aktuellen Einträge.`,
+    `Versicherungen & Verträge: ${nV}\nKonsum, Urlaub & Sparen: ${nB}\nAltersvorsorge: ${nA}\n\nDies ersetzt deine aktuellen Einträge.`,
     { title: 'Backup wiederherstellen?', okText: 'Wiederherstellen' }
   );
   if (!ok) return;
@@ -626,7 +937,20 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') saveEntry();
 });
 
+function populateFilters() {
+  ['v','b','a'].forEach(sec => {
+    const el = document.getElementById('filter-' + sec);
+    if (!el) return;
+    const current = el.value;
+    el.innerHTML = '<option value="">Alle Konten</option>' +
+      ACCOUNTS.map(a => `<option>${a}</option>`).join('');
+    if (current) el.value = current;
+  });
+}
+
 if (!store.persistent) document.getElementById('notice').style.display = 'block';
+if (income > 0) document.getElementById('income-input').value = income.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
+populateFilters();
 renderAll();
 </script>
 </body>
