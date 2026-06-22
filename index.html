@@ -117,19 +117,19 @@
   .dash-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
   .dash-sub-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); display: block; margin-bottom: 4px; }
   .dash-saverate { }
-  .saverate-val { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: var(--green); font-variant-numeric: tabular-nums; }
-  .saverate-eur { font-size: 0.75rem; color: var(--muted); margin-left: 6px; }
+  .saverate-val { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; color: var(--green); font-variant-numeric: tabular-nums; display: block; }
+  .saverate-eur { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 3px; }
   .dash-legend { display: flex; flex-direction: column; gap: 5px; }
   .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.74rem; }
   .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
-  .legend-name { color: var(--muted); flex: 1; }
-  .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; }
-  .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+  .legend-name { color: var(--muted); flex: 1; min-width: 0; }
+  .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; width: 92px; text-align: right; flex-shrink: 0; }
+  .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; width: 40px; text-align: right; flex-shrink: 0; }
   .dash-accounts { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke); }
   .acct-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 0.82rem; }
-  .acct-row-name { flex: 1; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .acct-row-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; }
-  .acct-row-pct { width: 40px; text-align: right; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+  .acct-row-name { flex: 1; min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .acct-row-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
+  .acct-row-pct { width: 40px; text-align: right; color: var(--muted-2); font-variant-numeric: tabular-nums; flex-shrink: 0; }
   .bal-acct-row { margin-bottom: 10px; }
   .bal-acct-head { display: flex; justify-content: space-between; align-items: baseline; }
   .bal-acct-name { font-size: 0.8rem; font-weight: 600; }
@@ -327,7 +327,7 @@
     <div class="income-left">
       <span class="income-label">Netto / Monat</span>
       <div class="income-input-wrap">
-        <input type="text" id="income-input" inputmode="decimal" placeholder="0,00" oninput="onIncomeInput()">
+        <input type="text" id="income-input" placeholder="0,00" oninput="onIncomeInput()">
         <span class="income-eur">€</span>
       </div>
     </div>
@@ -349,9 +349,9 @@
       </div>
       <div class="dash-side">
         <div class="dash-saverate">
-          <span class="dash-sub-label">Sparquote</span>
-          <span class="saverate-val" id="saverate-val">–</span>
-          <span class="saverate-eur" id="saverate-eur"></span>
+          <span class="dash-sub-label">Gesamtvermögen</span>
+          <span class="saverate-val" id="wealth-val">–</span>
+          <span class="saverate-eur" id="wealth-sub"></span>
         </div>
         <div class="dash-legend" id="dash-legend"></div>
       </div>
@@ -457,7 +457,7 @@
   <div class="urlaub-budget-box glass">
     <span class="ub-label">Jahresbudget (pro Jahr)</span>
     <div class="ub-input-wrap">
-      <input type="text" id="urlaub-budget-input" inputmode="decimal" placeholder="0,00" oninput="onUrlaubBudgetInput()">
+      <input type="text" id="urlaub-budget-input" placeholder="0,00" oninput="onUrlaubBudgetInput()">
       <span class="ub-eur">€</span>
     </div>
   </div>
@@ -519,7 +519,7 @@
     <div class="field field-row">
       <div>
         <label>Betrag (€)</label>
-        <input type="text" id="f-amount" inputmode="decimal" placeholder="9,99">
+        <input type="text" id="f-amount" placeholder="9,99">
       </div>
       <div id="f-period-wrap">
         <label>Intervall</label>
@@ -588,7 +588,7 @@
     </div>
     <div class="field">
       <label>Kosten (€)</label>
-      <input type="text" id="urlaub-cost" inputmode="decimal" placeholder="z.B. 3.500" autocomplete="off">
+      <input type="text" id="urlaub-cost" placeholder="z.B. 3.500" autocomplete="off">
     </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeUrlaubModal()">Abbrechen</button>
@@ -883,17 +883,21 @@ function renderDashboard() {
     legend.innerHTML = '<div class="dash-empty">Noch keine Daten.</div>';
   }
 
-  // Save rate = ("Sparen" from b) + all of a, divided by income
-  const saveAmount = categoryMonthly('b','Sparen') + tA;
-  const srEl = $('saverate-val');
-  const srEur = $('saverate-eur');
-  if (income > 0) {
-    const rate = Math.round(saveAmount / income * 100);
-    srEl.textContent = rate + ' %';
-    srEur.textContent = fmt(saveAmount) + ' / Monat';
+  // Gesamtvermögen = alle Kontostände (Sparen/Urlaub) + aktuelle Altersvorsorge-Werte
+  const balanceSum = data.b.reduce((s,e) => s + (e.balance || 0), 0);
+  const pensionSum = data.a.reduce((s,e) => s + (e.cat === 'Privat' ? (e.current || 0) : 0), 0);
+  const wealth = balanceSum + pensionSum;
+  const wEl = $('wealth-val');
+  const wSub = $('wealth-sub');
+  if (wealth > 0) {
+    wEl.textContent = fmt(wealth);
+    const parts = [];
+    if (balanceSum > 0) parts.push('Sparen ' + fmt(balanceSum));
+    if (pensionSum > 0) parts.push('Vorsorge ' + fmt(pensionSum));
+    wSub.textContent = parts.join(' · ');
   } else {
-    srEl.textContent = '–';
-    srEur.textContent = saveAmount > 0 ? fmt(saveAmount) + ' / Monat' : 'Netto eintragen';
+    wEl.textContent = '–';
+    wSub.textContent = 'Stände eintragen';
   }
 
   // Expenses by account (across all sections)
@@ -1181,11 +1185,11 @@ function openModal(sec, id) {
   let vHtml = '';
   if (rowFields.length) {
     vHtml += '<div class="field field-row">' + rowFields.map(f =>
-      `<div><label>${f.label}</label><input type="text" id="vf-${f.key}" inputmode="decimal" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+      `<div><label>${f.label}</label><input type="text" id="vf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
     ).join('') + '</div>';
   }
   vHtml += soloFields.map(f =>
-    `<div class="field"><label>${f.label}</label><input type="text" id="vf-${f.key}" inputmode="decimal" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+    `<div class="field"><label>${f.label}</label><input type="text" id="vf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
   ).join('');
   $('f-values').innerHTML = vHtml;
   vf.forEach(f => {
