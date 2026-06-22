@@ -126,11 +126,10 @@
   .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; }
   .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
   .dash-accounts { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke); }
-  .acct-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 0.74rem; }
-  .acct-bar-name { width: 92px; flex-shrink: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .acct-bar-track { flex: 1; display: block; height: 8px; background: rgba(255,255,255,0.04); border-radius: 99px; overflow: hidden; }
-  .acct-bar-fill { display: block; height: 100%; min-width: 4px; border-radius: 99px; background: #3b9bff; }
-  .acct-bar-val { width: 76px; flex-shrink: 0; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; }
+  .acct-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 0.82rem; }
+  .acct-row-name { flex: 1; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .acct-row-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .acct-row-pct { width: 40px; text-align: right; color: var(--muted-2); font-variant-numeric: tabular-nums; }
   .bal-acct-row { margin-bottom: 10px; }
   .bal-acct-head { display: flex; justify-content: space-between; align-items: baseline; }
   .bal-acct-name { font-size: 0.8rem; font-weight: 600; }
@@ -230,6 +229,13 @@
 
   .urlaub-year-head { margin: 18px 0 10px; }
   .urlaub-year-head:first-child { margin-top: 4px; }
+  .urlaub-budget-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; margin-bottom: 12px; }
+  .ub-label { font-size: 0.78rem; color: var(--muted); }
+  .ub-input-wrap { display: flex; align-items: baseline; gap: 3px; }
+  #urlaub-budget-input { width: 100px; background: transparent; border: none; outline: none; color: var(--text); font: inherit; font-size: 1.05rem; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; padding: 0; border-bottom: 1px solid var(--stroke); }
+  #urlaub-budget-input:focus { border-bottom-color: var(--accent); }
+  #urlaub-budget-input::placeholder { color: var(--muted-2); }
+  .ub-eur { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
   .uy-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
   .uy-year { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
   .uy-remaining { font-size: 0.95rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
@@ -355,7 +361,7 @@
       <div id="account-bars"></div>
     </div>
     <div class="dash-accounts" id="dash-balances">
-      <div class="dash-sub-label">Kontostände (Sparen &amp; Urlaub)</div>
+      <div class="dash-sub-label">Kontostände</div>
       <div id="balance-bars"></div>
     </div>
   </div>
@@ -448,6 +454,13 @@
   </header>
 
   <div class="section-label">Urlaube</div>
+  <div class="urlaub-budget-box glass">
+    <span class="ub-label">Jahresbudget (pro Jahr)</span>
+    <div class="ub-input-wrap">
+      <input type="text" id="urlaub-budget-input" inputmode="decimal" placeholder="0,00" oninput="onUrlaubBudgetInput()">
+      <span class="ub-eur">€</span>
+    </div>
+  </div>
   <div id="urlaub-years"></div>
   <div class="empty" id="empty-urlaub" style="display:none">Noch keine Urlaube geplant. Tippe unten, um zu beginnen.</div>
 
@@ -652,6 +665,7 @@ const ACCOUNTS = ['DB Giro','DB Spar','DB Robin','DKB Giro','Scalable Broker','S
 const INCOME_KEY = 'income_v1';
 const BONUS_KEY = 'bonus_v1';
 const URLAUB_KEY = 'urlaube_v1';
+const URLAUB_BUDGET_KEY = 'urlaub_budget_v1';
 
 let data = {
   v: JSON.parse(store.get(SECTIONS.v.storageKey) || '[]'),
@@ -663,6 +677,7 @@ let income = parseFloat(store.get(INCOME_KEY) || '0') || 0;
 let bonus = JSON.parse(store.get(BONUS_KEY) || '[]');
 let editBonusId = null;
 let urlaube = JSON.parse(store.get(URLAUB_KEY) || '[]');
+let urlaubBudget = parseFloat(store.get(URLAUB_BUDGET_KEY) || '0') || 0;
 let editUrlaubId = null;
 
 let editId = null;
@@ -800,9 +815,6 @@ function renderSection(sec) {
       </div>`;
     list.appendChild(div);
   });
-
-  // Vacation budget depends on section-b "Urlaub" savings
-  if (sec === 'b' && typeof renderUrlaube === 'function') renderUrlaube();
 }
 
 function sectionMonthlyTotal(sec) {
@@ -891,14 +903,14 @@ function renderDashboard() {
     acctTotals[acc] = (acctTotals[acc] || 0) + toMonthly(e.amount, e.period);
   }));
   const accRows = Object.entries(acctTotals).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
-  const maxAcc = accRows.length ? accRows[0][1] : 0;
+  const accTotal = accRows.reduce((s,[,v]) => s + v, 0);
   const accWrap = $('dash-accounts');
   const barsEl = $('account-bars');
   if (accRows.length) {
     accWrap.style.display = '';
     barsEl.innerHTML = accRows.map(([name,val]) => {
-      const w = maxAcc > 0 ? Math.round(val/maxAcc*100) : 0;
-      return `<div class="acct-bar-row"><span class="acct-bar-name">${esc(name)}</span><span class="acct-bar-track"><span class="acct-bar-fill" style="width:${w}%"></span></span><span class="acct-bar-val">${fmt(val)}</span></div>`;
+      const pct = accTotal > 0 ? Math.round(val/accTotal*100) : 0;
+      return `<div class="acct-row"><span class="acct-row-name">${esc(name)}</span><span class="acct-row-val">${fmt(val)}</span><span class="acct-row-pct">${pct}%</span></div>`;
     }).join('');
   } else {
     accWrap.style.display = 'none';
@@ -919,7 +931,7 @@ function renderDashboard() {
   if (balRows.length) {
     balWrap.style.display = '';
     balEl.innerHTML = balRows.map(([name,o]) => {
-      const breakdown = Object.entries(o.cats).sort((a,b)=>b[1]-a[1])
+      const breakdown = Object.entries(o.cats).filter(([,v]) => v > 0).sort((a,b)=>b[1]-a[1])
         .map(([c,v]) => `${esc(c)}: ${fmt(v)}`).join(' · ');
       return `<div class="bal-acct-row"><div class="bal-acct-head"><span class="bal-acct-name">${esc(name)}</span><span class="bal-acct-total">${fmt(o.total)}</span></div><div class="bal-acct-break">${breakdown}</div></div>`;
     }).join('');
@@ -929,8 +941,7 @@ function renderDashboard() {
 }
 
 function onIncomeInput() {
-  const raw = $('income-input').value.replace(/[^0-9,.\-]/g,'').replace(',', '.');
-  income = parseFloat(raw) || 0;
+  income = parseMoney($('income-input').value) || 0;
   store.set(INCOME_KEY, String(income));
   updateIncome();
 }
@@ -1005,14 +1016,20 @@ function urlaubYear(monthStr) {
   return m ? m[1] : null;
 }
 
+function onUrlaubBudgetInput() {
+  urlaubBudget = parseMoney($('urlaub-budget-input').value) || 0;
+  store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
+  renderUrlaube();
+}
+
 function renderUrlaube() {
   const wrap = $('urlaub-years');
   const empty = $('empty-urlaub');
   wrap.innerHTML = '';
   empty.style.display = urlaube.length ? 'none' : 'block';
 
-  // Annual vacation budget = monthly "Urlaub" savings ×12
-  const yearlyBudget = categoryMonthly('b','Urlaub') * 12;
+  // Annual vacation budget = manually entered value (per year)
+  const yearlyBudget = urlaubBudget;
 
   // Group by year (null year -> 'ohne Jahr')
   const groups = {};
@@ -1280,7 +1297,8 @@ function exportData() {
     income: income,
     sections: { v: data.v, b: data.b, a: data.a },
     bonus: bonus,
-    urlaube: urlaube
+    urlaube: urlaube,
+    urlaubBudget: urlaubBudget
   };
   const text = JSON.stringify(payload, null, 2);
   const stamp = new Date().toISOString().slice(0,10);
@@ -1341,6 +1359,11 @@ async function applyBackup(rawText) {
     urlaube = parsed.urlaube;
     store.set(URLAUB_KEY, JSON.stringify(urlaube));
   }
+  if (typeof parsed.urlaubBudget === 'number') {
+    urlaubBudget = parsed.urlaubBudget;
+    store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
+    $('urlaub-budget-input').value = urlaubBudget > 0 ? fmt(urlaubBudget).replace(' €','') : '';
+  }
   renderAll();
   notify('Backup erfolgreich wiederhergestellt.', 'Fertig');
 }
@@ -1363,6 +1386,7 @@ function populateFilters() {
 
 if (!store.persistent) $('notice').style.display = 'block';
 if (income > 0) $('income-input').value = income.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
+if (urlaubBudget > 0) $('urlaub-budget-input').value = urlaubBudget.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
 populateFilters();
 renderAll();
 </script>
