@@ -176,9 +176,13 @@
     margin: 40px 0 4px;
   }
 
-  .sub-header { margin: 24px 0 22px; }
+  .sub-header { margin: 24px 0 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .sub-header h1 { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.03em; }
   .sub-header p { color: var(--muted); font-size: 0.88rem; margin-top: 3px; }
+  .section-chevron { font-size: 1.4rem; color: var(--muted-2); flex-shrink: 0; transition: transform 0.25s ease; line-height: 1; }
+  .sub-header.collapsed .section-chevron { transform: rotate(-90deg); }
+  .section-body { overflow: hidden; }
+  .section-body.collapsed { display: none; }
 
   .backup-row { display: flex; gap: 10px; }
   .backup-btn {
@@ -368,11 +372,15 @@
 
   <div class="income-divider"></div>
 
-  <header class="sub-header">
-    <h1>Versicherungen &amp; Verträge</h1>
-    <p>Alle laufenden Ausgaben im Blick</p>
+  <header class="sub-header" onclick="toggleSection('v')">
+    <div class="sub-header-text">
+      <h1>Versicherungen &amp; Verträge</h1>
+      <p>Alle laufenden Ausgaben im Blick</p>
+    </div>
+    <span class="section-chevron" id="chev-v">⌄</span>
   </header>
 
+  <div class="section-body" id="body-v">
   <div class="filter-row">
     <select class="account-filter" id="filter-v" onchange="renderSection('v')"></select>
   </div>
@@ -382,19 +390,24 @@
     <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count">0</div></div>
   </div>
 
-  <div class="section-label">Verträge</div>
+  <div class="section-label">Versicherungen &amp; Verträge</div>
   <div class="list" id="list-v"></div>
   <div class="empty" id="empty-v" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
 
   <button class="add-btn" onclick="openModal('v')">＋ Eintrag hinzufügen</button>
+  </div>
 
   <div class="group-divider"></div>
 
-  <header class="sub-header">
-    <h1>Konsum, Urlaub &amp; Sparen</h1>
-    <p>Sparpläne und monatliche Budgets im Blick</p>
+  <header class="sub-header" onclick="toggleSection('b')">
+    <div class="sub-header-text">
+      <h1>Konsum, Urlaub &amp; Sparen</h1>
+      <p>Sparpläne und monatliche Budgets im Blick</p>
+    </div>
+    <span class="section-chevron" id="chev-b">⌄</span>
   </header>
 
+  <div class="section-body" id="body-b">
   <div class="filter-row">
     <select class="account-filter" id="filter-b" onchange="renderSection('b')"></select>
   </div>
@@ -410,14 +423,19 @@
   <div class="empty" id="empty-b" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
 
   <button class="add-btn" onclick="openModal('b')">＋ Eintrag hinzufügen</button>
+  </div>
 
   <div class="group-divider"></div>
 
-  <header class="sub-header">
-    <h1>Altersvorsorge</h1>
-    <p>Vorsorge und Rente im Blick</p>
+  <header class="sub-header" onclick="toggleSection('a')">
+    <div class="sub-header-text">
+      <h1>Altersvorsorge</h1>
+      <p>Vorsorge und Rente im Blick</p>
+    </div>
+    <span class="section-chevron" id="chev-a">⌄</span>
   </header>
 
+  <div class="section-body" id="body-a">
   <div class="filter-row">
     <select class="account-filter" id="filter-a" onchange="renderSection('a')"></select>
   </div>
@@ -432,27 +450,37 @@
   <div class="empty" id="empty-a" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
 
   <button class="add-btn" onclick="openModal('a')">＋ Eintrag hinzufügen</button>
+  </div>
 
   <div class="group-divider"></div>
 
-  <header class="sub-header">
-    <h1>Bonusprogramme</h1>
-    <p>Punkte, Meilen &amp; Verfall im Blick</p>
+  <header class="sub-header" onclick="toggleSection('bonus')">
+    <div class="sub-header-text">
+      <h1>Bonusprogramme</h1>
+      <p>Punkte, Meilen &amp; Verfall im Blick</p>
+    </div>
+    <span class="section-chevron" id="chev-bonus">⌄</span>
   </header>
 
+  <div class="section-body" id="body-bonus">
   <div class="section-label">Bonusprogramme</div>
   <div class="list" id="list-bonus"></div>
   <div class="empty" id="empty-bonus" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
 
   <button class="add-btn" onclick="openBonusModal()">＋ Eintrag hinzufügen</button>
+  </div>
 
   <div class="group-divider"></div>
 
-  <header class="sub-header">
-    <h1>Urlaube</h1>
-    <p>Geplante Reisen &amp; Jahresbudget im Blick</p>
+  <header class="sub-header" onclick="toggleSection('urlaub')">
+    <div class="sub-header-text">
+      <h1>Urlaube</h1>
+      <p>Geplante Reisen &amp; Jahresbudget im Blick</p>
+    </div>
+    <span class="section-chevron" id="chev-urlaub">⌄</span>
   </header>
 
+  <div class="section-body" id="body-urlaub">
   <div class="section-label">Urlaube</div>
   <div class="urlaub-budget-box glass">
     <span class="ub-label">Jahresbudget (pro Jahr)</span>
@@ -465,6 +493,7 @@
   <div class="empty" id="empty-urlaub" style="display:none">Noch keine Urlaube geplant. Tippe unten, um zu beginnen.</div>
 
   <button class="add-btn" onclick="openUrlaubModal()">＋ Urlaub hinzufügen</button>
+  </div>
 
   <div class="group-divider"></div>
 
@@ -508,7 +537,7 @@
         <option value="">— kein Konto —</option>
         <option>DB Giro</option>
         <option>DB Spar</option>
-        <option>DB Robin</option>
+        <option>DB ROBIN</option>
         <option>DKB Giro</option>
         <option>Scalable Broker</option>
         <option>Scalable Wealth (Weltreise)</option>
@@ -661,7 +690,7 @@ const SECTIONS = {
   }
 };
 
-const ACCOUNTS = ['DB Giro','DB Spar','DB Robin','DKB Giro','Scalable Broker','Scalable Wealth (Weltreise)','Scalable Tagesgeld','EquatePlus'];
+const ACCOUNTS = ['DB Giro','DB Spar','DB ROBIN','DKB Giro','Scalable Broker','Scalable Wealth (Weltreise)','Scalable Tagesgeld','EquatePlus'];
 const INCOME_KEY = 'income_v1';
 const BONUS_KEY = 'bonus_v1';
 const URLAUB_KEY = 'urlaube_v1';
@@ -921,10 +950,12 @@ function renderDashboard() {
     accWrap.style.display = 'none';
   }
 
-  // Account balances (section b only): per account total + breakdown by category
+  // Account balances: only show selected accounts (per account total + breakdown by category)
+  const BALANCE_ACCOUNTS = ['Scalable Tagesgeld'];
   const balByAcct = {};
   data.b.forEach(e => {
     if (e.balance == null) return;
+    if (!BALANCE_ACCOUNTS.includes(e.account)) return;
     const acc = e.account || '— ohne Konto —';
     if (!balByAcct[acc]) balByAcct[acc] = { total: 0, cats: {} };
     balByAcct[acc].total += e.balance;
@@ -952,6 +983,25 @@ function onIncomeInput() {
 }
 
 function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderBonus(); renderUrlaube(); updateIncome(); }
+
+const COLLAPSE_KEY = 'collapsed_sections_v1';
+let collapsedSections = JSON.parse(store.get(COLLAPSE_KEY) || '[]');
+function applyCollapsedStates() {
+  ['v','b','a','bonus','urlaub'].forEach(s => {
+    const body = $('body-' + s);
+    const head = body ? body.previousElementSibling : null;
+    const collapsed = collapsedSections.includes(s);
+    if (body) body.classList.toggle('collapsed', collapsed);
+    if (head && head.classList.contains('sub-header')) head.classList.toggle('collapsed', collapsed);
+  });
+}
+function toggleSection(s) {
+  const i = collapsedSections.indexOf(s);
+  if (i >= 0) collapsedSections.splice(i, 1);
+  else collapsedSections.push(s);
+  store.set(COLLAPSE_KEY, JSON.stringify(collapsedSections));
+  applyCollapsedStates();
+}
 
 function renderBonus() {
   const list = $('list-bonus');
@@ -1394,6 +1444,7 @@ if (income > 0) $('income-input').value = income.toLocaleString('de-DE', {minimu
 if (urlaubBudget > 0) $('urlaub-budget-input').value = urlaubBudget.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
 populateFilters();
 renderAll();
+applyCollapsedStates();
 </script>
 </body>
 </html>
