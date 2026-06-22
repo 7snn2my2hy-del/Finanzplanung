@@ -883,8 +883,9 @@ function renderDashboard() {
     legend.innerHTML = '<div class="dash-empty">Noch keine Daten.</div>';
   }
 
-  // Gesamtvermögen = alle Kontostände (Sparen/Urlaub) + aktuelle Altersvorsorge-Werte
-  const balanceSum = data.b.reduce((s,e) => s + (e.balance || 0), 0);
+  // Gesamtvermögen = Kontostände (außer Girokonten) + private Altersvorsorge
+  const GIRO_ACCOUNTS = ['DB Giro','DKB Giro'];
+  const balanceSum = data.b.reduce((s,e) => s + (GIRO_ACCOUNTS.includes(e.account) ? 0 : (e.balance || 0)), 0);
   const pensionSum = data.a.reduce((s,e) => s + (e.cat === 'Privat' ? (e.current || 0) : 0), 0);
   const wealth = balanceSum + pensionSum;
   const wEl = $('wealth-val');
@@ -892,7 +893,7 @@ function renderDashboard() {
   if (wealth > 0) {
     wEl.textContent = fmt(wealth);
     const parts = [];
-    if (balanceSum > 0) parts.push('Sparen ' + fmt(balanceSum));
+    if (balanceSum > 0) parts.push('Vermögen ' + fmt(balanceSum));
     if (pensionSum > 0) parts.push('Vorsorge ' + fmt(pensionSum));
     wSub.textContent = parts.join(' · ');
   } else {
