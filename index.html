@@ -232,6 +232,8 @@
   .entry-pension .pv-date { color: var(--muted); }
   .entry-growth { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; }
   .entry-growth .gv { font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+  .entry-growth .gv-label { color: var(--muted); font-weight: 600; }
+  .growth-auto-note { font-size: 0.72rem; color: var(--muted); line-height: 1.4; background: rgba(255,255,255,0.03); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px 10px; }
 
   .av-dash { padding: 16px; margin-bottom: 14px; }
   .av-totals { display: flex; gap: 12px; margin-bottom: 14px; }
@@ -448,7 +450,7 @@
   <header class="sub-header" onclick="toggleSection('a')">
     <div class="sub-header-text">
       <h1>Altersvorsorge</h1>
-      <p>Vorsorge und Rente im Blick</p>
+      <p>Vorsorge und Rente im Blick · Renteneintrittsalter 67</p>
     </div>
     <span class="section-chevron" id="chev-a">⌄</span>
   </header>
@@ -800,6 +802,41 @@ function toMonthly(a, p) {
   return a;
 }
 
+// --- Retirement projection (private pension) ---
+const BIRTH_DATE = new Date(1988, 0, 13);   // 13.01.1988
+const RETIREMENT_AGE = 67;
+const GROWTH_RATES = [0.02, 0.04, 0.06];    // konservativ 2/4/6 %
+
+// Months from now until 67th birthday (0 if already reached)
+function monthsToRetirement() {
+  const now = new Date();
+  const ret = new Date(BIRTH_DATE.getFullYear() + RETIREMENT_AGE, BIRTH_DATE.getMonth(), BIRTH_DATE.getDate());
+  let months = (ret.getFullYear() - now.getFullYear()) * 12 + (ret.getMonth() - now.getMonth());
+  if (ret.getDate() < now.getDate()) months -= 1;
+  return Math.max(0, months);
+}
+
+// Future value: current capital compounded + monthly contributions compounded, at annual rate over given months
+function projectValue(current, monthlyContribution, annualRate, months) {
+  const r = annualRate / 12;          // monthly rate
+  const fvCurrent = current * Math.pow(1 + r, months);
+  let fvContrib;
+  if (r === 0) fvContrib = monthlyContribution * months;
+  else fvContrib = monthlyContribution * ((Math.pow(1 + r, months) - 1) / r);
+  return fvCurrent + fvContrib;
+}
+
+// Returns [{rate, value}] scenarios for a private-pension entry
+function projectScenarios(entry) {
+  const months = monthsToRetirement();
+  const current = entry.current || 0;
+  const monthly = toMonthly(entry.amount || 0, entry.period);
+  return GROWTH_RATES.map(rate => ({
+    rate,
+    value: projectValue(current, monthly, rate, months)
+  }));
+}
+
 const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 const ICON_DEL  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
 
@@ -868,11 +905,19 @@ function renderSection(sec) {
         return `<span class="pv-${f.color || 'now'}">${txt}</span>`;
       }).join('') + `</div>`;
     }
-    const gfShown = (cfg.growthFields || []).filter(f => e[f.key] != null);
-    if (gfShown.length) {
-      valuesHtml += `<div class="entry-growth">` + gfShown.map(f =>
-        `<span class="gv">${f.display}: ${fmt(e[f.key])}</span>`
+    // Growth: Privat = automatic projection to 67, others = manual values
+    if (sec === 'a' && e.cat === 'Privat' && ((e.current || 0) > 0 || toMonthly(e.amount || 0, e.period) > 0)) {
+      const scenarios = projectScenarios(e);
+      valuesHtml += `<div class="entry-growth"><span class="gv gv-label">Bei 67:</span>` + scenarios.map(sc =>
+        `<span class="gv">${Math.round(sc.rate*100)} %: ${fmt(sc.value)}</span>`
       ).join('') + `</div>`;
+    } else {
+      const gfShown = (cfg.growthFields || []).filter(f => e[f.key] != null);
+      if (gfShown.length) {
+        valuesHtml += `<div class="entry-growth">` + gfShown.map(f =>
+          `<span class="gv">${f.display}: ${fmt(e[f.key])}</span>`
+        ).join('') + `</div>`;
+      }
     }
     const tfShown = (cfg.textFields || []).filter(f => e[f.key]);
     if (tfShown.length) {
@@ -1299,6 +1344,30 @@ async function deleteUrlaub(id) {
   renderUrlaube();
 }
 
+function renderGrowthArea(sec, vEntry) {
+  const cfg = SECTIONS[sec];
+  const gf = cfg.growthFields || [];
+  const el = $('f-growth');
+  if (!gf.length) { el.innerHTML = ''; return; }
+  const cat = $('f-cat').value;
+  // Privat -> automatic projection (no manual inputs)
+  if (cat === 'Privat') {
+    const yrs = (monthsToRetirement() / 12);
+    el.innerHTML = `<div class="field-group-label">Automatische Hochrechnung bis 67 (≈ ${yrs.toFixed(1)} Jahre)</div>` +
+      `<div class="growth-auto-note">Wird aus aktuellem Wert + monatlichem Betrag mit 2 / 4 / 6 % berechnet und im Eintrag angezeigt.</div>`;
+    return;
+  }
+  // Gesetzlich / Betrieblich -> manual fields
+  el.innerHTML = '<div class="field-group-label">Erwarteter Wert bei Steigerung</div><div class="field field-row">' + gf.map(f =>
+    `<div><label>${f.label}</label><input type="text" id="gf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+  ).join('') + '</div>';
+  gf.forEach(f => {
+    const v = vEntry ? vEntry[f.key] : null;
+    const inp = $('gf-' + f.key);
+    if (inp) inp.value = (v != null) ? fmt(v).replace(' €','') : '';
+  });
+}
+
 function openModal(sec, id) {
   activeSection = sec;
   editId = id || null;
@@ -1362,19 +1431,14 @@ function openModal(sec, id) {
     ptWrap.style.display = 'none';
   }
 
-  // Growth scenario fields (1/2/3 %)
-  const gf = cfg.growthFields || [];
-  if (gf.length) {
-    let gHtml = '<div class="field-group-label">Erwarteter Wert bei Steigerung</div><div class="field field-row">' + gf.map(f =>
-      `<div><label>${f.label}</label><input type="text" id="gf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
-    ).join('') + '</div>';
-    $('f-growth').innerHTML = gHtml;
-    gf.forEach(f => {
-      const v = vEntry ? vEntry[f.key] : null;
-      $('gf-' + f.key).value = (v != null) ? fmt(v).replace(' €','') : '';
-    });
+  // Growth scenario fields — category-aware (Privat = auto, others = manual)
+  renderGrowthArea(sec, vEntry);
+
+  // React to category changes within the modal (section a only)
+  if (sec === 'a') {
+    $('f-cat').onchange = () => renderGrowthArea(sec, vEntry);
   } else {
-    $('f-growth').innerHTML = '';
+    $('f-cat').onchange = null;
   }
 
   // Build custom free-text fields (e.g. Abbuchungsdatum) from config
@@ -1434,7 +1498,8 @@ function saveEntry() {
     fields.projectedType = $('f-projtype-select').value;
   }
   (cfg.growthFields || []).forEach(f => {
-    fields[f.key] = parseMoney($('gf-' + f.key).value);
+    const inp = $('gf-' + f.key);
+    fields[f.key] = inp ? parseMoney(inp.value) : null;
   });
 
   if (editId) {
