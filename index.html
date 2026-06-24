@@ -234,18 +234,23 @@
   .entry-growth .gv { font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
   .entry-growth .gv-label { color: var(--muted); font-weight: 600; }
   .growth-auto-note { font-size: 0.72rem; color: var(--muted); line-height: 1.4; background: rgba(255,255,255,0.03); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px 10px; }
-
-  .av-dash { padding: 16px; margin-bottom: 14px; }
-  .av-totals { display: flex; gap: 12px; margin-bottom: 14px; }
-  .av-metric { flex: 1; }
-  .av-metric-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); display: block; margin-bottom: 4px; }
-  .av-metric-val { font-size: 1.05rem; font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-  .av-breakdown { border-top: 1px solid var(--stroke); padding-top: 10px; }
-  .av-cat-row { display: flex; align-items: baseline; gap: 8px; font-size: 0.8rem; padding: 3px 0; }
-  .av-cat-head { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-2); padding-bottom: 2px; }
-  .av-cat-name { flex: 1; color: var(--muted); }
-  .av-cat-cur { width: 96px; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
-  .av-cat-proj { width: 110px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .growth-preview { display: flex; gap: 8px; }
+  .growth-preview-empty { font-size: 0.72rem; color: var(--muted-2); line-height: 1.4; }
+  .gp-cell { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px; text-align: center; }
+  .gp-rate { display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-2); margin-bottom: 3px; }
+  .gp-val { display: block; font-size: 0.78rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
+  .av-dash { padding: 14px 16px; margin-bottom: 14px; }
+  .av-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .av-table th { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-2); font-weight: 500; text-align: right; padding: 0 3px 6px; white-space: nowrap; }
+  .av-table th:first-child { text-align: left; padding-left: 0; }
+  .av-table td { text-align: right; padding: 5px 3px; font-variant-numeric: tabular-nums; border-top: 1px solid rgba(255,255,255,0.04); white-space: nowrap; }
+  .av-table td:first-child { text-align: left; color: var(--muted); font-weight: 600; padding-left: 0; }
+  .av-td-cur { color: var(--text); font-weight: 500; }
+  .av-td-base { color: var(--muted); font-size: 0.68rem; }
+  .av-td-s1 { color: var(--muted); }
+  .av-td-s2 { color: var(--accent); font-weight: 600; }
+  .av-td-s3 { color: var(--green); font-weight: 600; }
+  .av-table-note { font-size: 0.6rem; color: var(--muted-2); margin-top: 8px; }
   .field-group-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-2); margin: 4px 0 6px; }
 
   .urlaub-year-head { margin: 18px 0 10px; }
@@ -302,6 +307,9 @@
     border-radius: 26px 26px 0 0;
     padding: 26px 22px calc(26px + env(safe-area-inset-bottom));
     width: 100%; max-width: 720px;
+    max-height: 92dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     animation: slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
   }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -466,17 +474,7 @@
   </div>
 
   <div class="av-dash glass" id="av-dash">
-    <div class="av-totals">
-      <div class="av-metric">
-        <span class="av-metric-label">Aktueller Wert</span>
-        <span class="av-metric-val" id="av-current">–</span>
-      </div>
-      <div class="av-metric">
-        <span class="av-metric-label">Erwartete Rente</span>
-        <span class="av-metric-val" id="av-projected">–</span>
-      </div>
-    </div>
-    <div class="av-breakdown" id="av-breakdown"></div>
+    <div id="av-table"></div>
   </div>
 
   <div class="section-label">Altersvorsorge</div>
@@ -730,10 +728,11 @@ const SECTIONS = {
     ],
     projectedTypeField: true,
     growthFields: [
-      { key:'growth1', label:'bei 1 % (€)', placeholder:'z.B. 70.000', display:'1 %' },
-      { key:'growth2', label:'bei 2 % (€)', placeholder:'z.B. 85.000', display:'2 %' },
-      { key:'growth3', label:'bei 3 % (€)', placeholder:'z.B. 100.000', display:'3 %' }
+      { key:'growth1', label:'bei 1 %', placeholder:'z.B. 70.000', display:'1 %' },
+      { key:'growth2', label:'bei 2 %', placeholder:'z.B. 85.000', display:'2 %' },
+      { key:'growth3', label:'bei 3 %', placeholder:'z.B. 100.000', display:'3 %' }
     ],
+    growthTypeField: true,
     ids: { list:'list-a', empty:'empty-a', month:'sum-month-a', year:'sum-year-a', count:'sum-count-a' }
   }
 };
@@ -895,27 +894,32 @@ function renderSection(sec) {
       ? `<div class="entry-yearly">${fmt(toMonthly(e.amount, e.period) * 12)} / Jahr</div>`
       : '';
     let valuesHtml = '';
-    const vfShown = (cfg.valueFields || []).filter(f => e[f.key] != null);
+    // For Privat: compute "Bei Renteneintritt" live (current + months×monthly)
+    const eDisplay = (sec === 'a' && e.cat === 'Privat')
+      ? { ...e, projected: (e.current || 0) + toMonthly(e.amount || 0, e.period) * monthsToRetirement() }
+      : e;
+    const vfShown = (cfg.valueFields || []).filter(f => eDisplay[f.key] != null);
     if (vfShown.length) {
       valuesHtml = `<div class="entry-pension">` + vfShown.map(f => {
-        let txt = `${f.display}: ${fmt(e[f.key])}`;
-        if (f.key === 'projected' && e.projectedType) {
-          txt += e.projectedType === 'monatlich' ? ' / Monat' : ' einmalig';
+        let txt;
+        if (f.key === 'projected' && sec === 'a' && e.cat === 'Privat') {
+          txt = `Bei 67: ${fmt(eDisplay[f.key])}`;
+        } else {
+          txt = `${f.display}: ${fmt(eDisplay[f.key])}`;
+          if (f.key === 'projected' && e.projectedType) {
+            txt += e.projectedType === 'monatlich' ? ' / Monat' : ' einmalig';
+          }
         }
         return `<span class="pv-${f.color || 'now'}">${txt}</span>`;
       }).join('') + `</div>`;
     }
-    // Growth: Privat = automatic projection to 67, others = manual values
-    if (sec === 'a' && e.cat === 'Privat' && ((e.current || 0) > 0 || toMonthly(e.amount || 0, e.period) > 0)) {
-      const scenarios = projectScenarios(e);
-      valuesHtml += `<div class="entry-growth"><span class="gv gv-label">Bei 67:</span>` + scenarios.map(sc =>
-        `<span class="gv">${Math.round(sc.rate*100)} %: ${fmt(sc.value)}</span>`
-      ).join('') + `</div>`;
-    } else {
+    // Growth: Privat = auto projection (only in dashboard); others = manual values
+    if (!(sec === 'a' && e.cat === 'Privat')) {
       const gfShown = (cfg.growthFields || []).filter(f => e[f.key] != null);
       if (gfShown.length) {
+        const typeSuffix = e.growthType === 'monatlich' ? '/M' : '';
         valuesHtml += `<div class="entry-growth">` + gfShown.map(f =>
-          `<span class="gv">${f.display}: ${fmt(e[f.key])}</span>`
+          `<span class="gv">${f.display}: ${fmt(e[f.key])}${typeSuffix}</span>`
         ).join('') + `</div>`;
       }
     }
@@ -1094,44 +1098,91 @@ function renderAvDash() {
   if (!entries.length) { dash.style.display = 'none'; return; }
   dash.style.display = '';
 
-  const currentTotal = entries.reduce((s,e) => s + (e.current || 0), 0);
-  // Projected: split into monthly rente vs one-time lump sum
-  let monthlyRente = 0, oneTime = 0;
-  entries.forEach(e => {
-    if (e.projected == null) return;
-    if (e.projectedType === 'monatlich') monthlyRente += e.projected;
-    else oneTime += e.projected;
-  });
+  const mo = monthsToRetirement();
+  const CATS = ['Gesetzlich','Betrieblich','Privat'];
+  // For Privat: growth rates 2/4/6%; for Gesetzlich/Betrieblich: manual 1/2/3%
+  const GF_MAN = [{key:'growth1',label:'1 %'},{key:'growth2',label:'2 %'},{key:'growth3',label:'3 %'}];
 
-  $('av-current').textContent = currentTotal > 0 ? fmt(currentTotal) : '–';
-  const projParts = [];
-  if (monthlyRente > 0) projParts.push(fmt(monthlyRente) + ' / Monat');
-  if (oneTime > 0) projParts.push(fmt(oneTime) + ' einmalig');
-  $('av-projected').textContent = projParts.length ? projParts.join(' + ') : '–';
+  // Build one row per category that has data
+  const rows = CATS.map(cat => {
+    const es = entries.filter(e => e.cat === cat);
+    if (!es.length) return null;
 
-  // Breakdown by category
-  const cats = ['Gesetzlich','Betrieblich','Privat'];
-  const byCat = {};
-  cats.forEach(c => byCat[c] = { current: 0, monthly: 0, oneTime: 0 });
-  entries.forEach(e => {
-    const c = byCat[e.cat]; if (!c) return;
-    c.current += (e.current || 0);
-    if (e.projected != null) {
-      if (e.projectedType === 'monatlich') c.monthly += e.projected;
-      else c.oneTime += e.projected;
+    // Current total
+    const cur = es.reduce((s,e) => s + (e.current || 0), 0);
+
+    // Expected value (manual "Bei Renteneintritt")
+    let baseMonthly = 0, baseEinmal = 0;
+    if (cat === 'Privat') {
+      // Auto: current + months × monthly (no return)
+      baseEinmal = es.reduce((s,e) => s + (e.current || 0) + toMonthly(e.amount || 0, e.period) * mo, 0);
+    } else {
+      es.forEach(e => {
+        if (e.projected == null) return;
+        if (e.projectedType === 'monatlich') baseMonthly += e.projected;
+        else baseEinmal += e.projected;
+      });
     }
-  });
-  const rows = cats.filter(c => byCat[c].current > 0 || byCat[c].monthly > 0 || byCat[c].oneTime > 0).map(c => {
-    const o = byCat[c];
-    const proj = [];
-    if (o.monthly > 0) proj.push(fmt(o.monthly) + '/M');
-    if (o.oneTime > 0) proj.push(fmt(o.oneTime));
-    const projTxt = proj.length ? proj.join(' + ') : '–';
-    return `<div class="av-cat-row"><span class="av-cat-name">${c}</span><span class="av-cat-cur">${fmt(o.current)}</span><span class="av-cat-proj">${projTxt}</span></div>`;
-  }).join('');
-  $('av-breakdown').innerHTML = rows
-    ? `<div class="av-cat-row av-cat-head"><span class="av-cat-name"></span><span class="av-cat-cur">Aktuell</span><span class="av-cat-proj">Rente</span></div>` + rows
+    const baseParts = [];
+    if (baseMonthly > 0) baseParts.push(fmtShort(baseMonthly) + '/M');
+    if (baseEinmal  > 0) baseParts.push(fmtShort(baseEinmal));
+    const baseTxt = baseParts.length ? baseParts.join('+') : '–';
+
+    // Scenarios
+    let s1txt = '–', s2txt = '–', s3txt = '–';
+    if (cat === 'Privat') {
+      const rates = GROWTH_RATES; // [0.02, 0.04, 0.06]
+      const sums = rates.map(r => es.reduce((s,e) => s + projectValue(e.current||0, toMonthly(e.amount||0,e.period), r, mo), 0));
+      s1txt = fmtShort(sums[0]);
+      s2txt = fmtShort(sums[1]);
+      s3txt = fmtShort(sums[2]);
+    } else {
+      const isM = es.some(e => e.growthType === 'monatlich');
+      const sfx = isM ? '/M' : '';
+      const g1 = es.reduce((s,e) => s + (e.growth1 || 0), 0);
+      const g2 = es.reduce((s,e) => s + (e.growth2 || 0), 0);
+      const g3 = es.reduce((s,e) => s + (e.growth3 || 0), 0);
+      if (g1) s1txt = fmtShort(g1) + sfx;
+      if (g2) s2txt = fmtShort(g2) + sfx;
+      if (g3) s3txt = fmtShort(g3) + sfx;
+    }
+
+    const curTxt = cur > 0 ? fmtShort(cur) : '–';
+    return `<tr>
+      <td>${cat}</td>
+      <td class="av-td-cur">${curTxt}</td>
+      <td class="av-td-base">${baseTxt}</td>
+      <td class="av-td-s1">${s1txt}</td>
+      <td class="av-td-s2">${s2txt}</td>
+      <td class="av-td-s3">${s3txt}</td>
+    </tr>`;
+  }).filter(Boolean);
+
+  if (!rows.length) { dash.style.display = 'none'; return; }
+
+  // Header: scenario column labels differ by what's in the data
+  const hasPrivat = entries.some(e => e.cat === 'Privat');
+  const hasManual = entries.some(e => e.cat !== 'Privat');
+  const s1h = hasManual ? '1 %' : '2 %';
+  const s2h = hasManual ? '2 %' : '4 %';
+  const s3h = hasManual ? '3 %' : '6 %';
+  // If we have both Privat and manual, note the difference
+  const mixNote = (hasPrivat && hasManual)
+    ? `<div class="av-table-note">Gesetzlich/Betrieblich: 1/2/3 % manuell · Privat: 2/4/6 % Zinseszins</div>`
     : '';
+
+  $('av-table').innerHTML = `
+    <table class="av-table">
+      <thead><tr>
+        <th></th>
+        <th>Aktuell</th>
+        <th>Bei 67</th>
+        <th>${s1h}</th>
+        <th>${s2h}</th>
+        <th>${s3h}</th>
+      </tr></thead>
+      <tbody>${rows.join('')}</tbody>
+    </table>${mixNote}`;
 }
 
 const COLLAPSE_KEY = 'collapsed_sections_v1';
@@ -1344,28 +1395,90 @@ async function deleteUrlaub(id) {
   renderUrlaube();
 }
 
+function buildValueFields(sec, vEntry) {
+  const cfg = SECTIONS[sec];
+  let vf = cfg.valueFields || [];
+  const isPrivat = (sec === 'a' && $('f-cat').value === 'Privat');
+  // For Privat: only the current value (projected is auto-calculated, field hidden)
+  if (isPrivat) vf = vf.filter(f => f.key !== 'projected');
+
+  const rowFields = vf.filter(f => f.row);
+  const soloFields = vf.filter(f => !f.row);
+  let vHtml = '';
+  if (rowFields.length) {
+    vHtml += '<div class="field field-row">' + rowFields.map(f =>
+      `<div><label>${f.label}</label><input type="text" id="vf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+    ).join('') + '</div>';
+  }
+  vHtml += soloFields.map(f =>
+    `<div class="field"><label>${f.label}</label><input type="text" id="vf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+  ).join('');
+  $('f-values').innerHTML = vHtml;
+  vf.forEach(f => {
+    const v = vEntry ? vEntry[f.key] : null;
+    const inp = $('vf-' + f.key);
+    if (inp) inp.value = (v != null) ? fmt(v).replace(' €','') : '';
+  });
+
+  // Projected type selector — hidden for Privat (auto), shown for others if configured
+  const ptWrap = $('f-projtype');
+  if (cfg.projectedTypeField && !isPrivat) {
+    ptWrap.style.display = '';
+    $('f-projtype-select').value = (vEntry && vEntry.projectedType) ? vEntry.projectedType : 'einmal';
+  } else {
+    ptWrap.style.display = 'none';
+  }
+}
+
 function renderGrowthArea(sec, vEntry) {
   const cfg = SECTIONS[sec];
   const gf = cfg.growthFields || [];
   const el = $('f-growth');
   if (!gf.length) { el.innerHTML = ''; return; }
   const cat = $('f-cat').value;
-  // Privat -> automatic projection (no manual inputs)
+  // Privat -> automatic, show note only
   if (cat === 'Privat') {
-    const yrs = (monthsToRetirement() / 12);
-    el.innerHTML = `<div class="field-group-label">Automatische Hochrechnung bis 67 (≈ ${yrs.toFixed(1)} Jahre)</div>` +
-      `<div class="growth-auto-note">Wird aus aktuellem Wert + monatlichem Betrag mit 2 / 4 / 6 % berechnet und im Eintrag angezeigt.</div>`;
+    el.innerHTML =
+      `<div class="growth-auto-note">„Bei Renteneintritt" wird automatisch berechnet (aktueller Wert + Monatsbetrag bis 67) und in der Übersicht angezeigt. Die Renditeszenarien siehst du im Dashboard.</div>`;
     return;
   }
-  // Gesetzlich / Betrieblich -> manual fields
-  el.innerHTML = '<div class="field-group-label">Erwarteter Wert bei Steigerung</div><div class="field field-row">' + gf.map(f =>
-    `<div><label>${f.label}</label><input type="text" id="gf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
-  ).join('') + '</div>';
+  // Gesetzlich / Betrieblich -> manual fields with one shared type selector
+  const vType = vEntry ? (vEntry.growthType || 'einmal') : 'einmal';
+  el.innerHTML = `<div class="field-group-label">Szenarien bei 1 / 2 / 3 %</div>
+    <div class="field">
+      <label>Art der Szenario-Beträge</label>
+      <select id="gf-growthType">
+        <option value="einmal">Einmalig</option>
+        <option value="monatlich">Monatlich</option>
+      </select>
+    </div>
+    <div class="field field-row">` +
+    gf.map(f =>
+      `<div><label>${f.label} (€)</label><input type="text" id="gf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+    ).join('') +
+    `</div>`;
+  $('gf-growthType').value = vType;
   gf.forEach(f => {
-    const v = vEntry ? vEntry[f.key] : null;
     const inp = $('gf-' + f.key);
+    const v = vEntry ? vEntry[f.key] : null;
     if (inp) inp.value = (v != null) ? fmt(v).replace(' €','') : '';
   });
+}
+
+function updateGrowthPreview() {
+  const box = $('growth-preview');
+  if (!box) return;
+  const current = parseMoney($('vf-current').value) || 0;
+  const monthly = toMonthly(parseMoney($('f-amount').value) || 0, $('f-period').value);
+  const months = monthsToRetirement();
+  if (current <= 0 && monthly <= 0) {
+    box.innerHTML = '<div class="growth-preview-empty">Aktuellen Wert und/oder Monatsbetrag eingeben für die Hochrechnung.</div>';
+    return;
+  }
+  box.innerHTML = GROWTH_RATES.map(rate => {
+    const val = projectValue(current, monthly, rate, months);
+    return `<div class="gp-cell"><span class="gp-rate">${Math.round(rate*100)} %</span><span class="gp-val">${fmt(val)}</span></div>`;
+  }).join('');
 }
 
 function openModal(sec, id) {
@@ -1402,51 +1515,13 @@ function openModal(sec, id) {
   $('f-name').placeholder = cfg.namePlaceholder;
   $('modal-title').textContent = id ? 'Eintrag bearbeiten' : 'Neuer Eintrag';
 
-  // Build custom value fields (e.g. pension values, balance) from config
-  const vf = cfg.valueFields || [];
-  const vEntry = id ? data[sec].find(x => x.id === id) : null;
-  const rowFields = vf.filter(f => f.row);
-  const soloFields = vf.filter(f => !f.row);
-  let vHtml = '';
-  if (rowFields.length) {
-    vHtml += '<div class="field field-row">' + rowFields.map(f =>
-      `<div><label>${f.label}</label><input type="text" id="vf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
-    ).join('') + '</div>';
-  }
-  vHtml += soloFields.map(f =>
-    `<div class="field"><label>${f.label}</label><input type="text" id="vf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
-  ).join('');
-  $('f-values').innerHTML = vHtml;
-  vf.forEach(f => {
-    const v = vEntry ? vEntry[f.key] : null;
-    $('vf-' + f.key).value = (v != null) ? fmt(v).replace(' €','') : '';
-  });
-
-  // Projected type selector (Einmalbetrag / monatlich) for "Bei Renteneintritt"
-  const ptWrap = $('f-projtype');
-  if (cfg.projectedTypeField) {
-    ptWrap.style.display = '';
-    $('f-projtype-select').value = (vEntry && vEntry.projectedType) ? vEntry.projectedType : 'einmal';
-  } else {
-    ptWrap.style.display = 'none';
-  }
-
-  // Growth scenario fields — category-aware (Privat = auto, others = manual)
-  renderGrowthArea(sec, vEntry);
-
-  // React to category changes within the modal (section a only)
-  if (sec === 'a') {
-    $('f-cat').onchange = () => renderGrowthArea(sec, vEntry);
-  } else {
-    $('f-cat').onchange = null;
-  }
-
   // Build custom free-text fields (e.g. Abbuchungsdatum) from config
   const tf = cfg.textFields || [];
   $('f-texts').innerHTML = tf.map(f =>
     `<div class="field"><label>${f.label}</label><input type="text" id="tf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
   ).join('');
-  tf.forEach(f => { $('tf-' + f.key).value = vEntry ? (vEntry[f.key] || '') : ''; });
+
+  const vEntry = id ? data[sec].find(x => x.id === id) : null;
 
   if (id) {
     const e = vEntry;
@@ -1465,6 +1540,19 @@ function openModal(sec, id) {
     $('f-cat').value    = cfg.defaultCat;
     if (cfg.extra.kind === 'select') exSelect.value = cfg.extra.options[0];
   }
+  tf.forEach(f => { $('tf-' + f.key).value = vEntry ? (vEntry[f.key] || '') : ''; });
+
+  // Now build value/growth fields AFTER category is set (category-aware for section a)
+  buildValueFields(sec, vEntry);
+  renderGrowthArea(sec, vEntry);
+
+  // React to category changes (section a only)
+  if (sec === 'a') {
+    $('f-cat').onchange = () => { buildValueFields(sec, vEntry); renderGrowthArea(sec, vEntry); };
+  } else {
+    $('f-cat').onchange = null;
+  }
+
   $('overlay').classList.add('open');
   setTimeout(() => $('f-name').focus(), 60);
 }
@@ -1489,18 +1577,36 @@ function saveEntry() {
 
   const fields = { name, provider, account, amount, period, cat, extra };
   (cfg.valueFields || []).forEach(f => {
-    fields[f.key] = parseMoney($('vf-' + f.key).value);
+    const inp = $('vf-' + f.key);
+    if (inp) fields[f.key] = parseMoney(inp.value);
   });
   (cfg.textFields || []).forEach(f => {
     fields[f.key] = $('tf-' + f.key).value.trim();
   });
-  if (cfg.projectedTypeField) {
-    fields.projectedType = $('f-projtype-select').value;
+
+  // Section a, Privat: auto-compute "Bei Renteneintritt" = current + months×monthly (no return)
+  if (sec === 'a' && cat === 'Privat') {
+    const cur = fields.current || 0;
+    const mo = toMonthly(amount || 0, period);
+    fields.projected = cur + mo * monthsToRetirement();
+    fields.projectedType = 'einmal';
+    // clear any old manual growth values
+    (cfg.growthFields || []).forEach(f => { fields[f.key] = null; if (f.typeKey) fields[f.typeKey] = null; });
+    fields.growthType = null;
+  } else {
+    if (cfg.projectedTypeField) {
+      const pt = $('f-projtype-select');
+      if (pt) fields.projectedType = pt.value;
+    }
+    (cfg.growthFields || []).forEach(f => {
+      const inp = $('gf-' + f.key);
+      fields[f.key] = inp ? parseMoney(inp.value) : null;
+    });
+    if (cfg.growthTypeField) {
+      const sel = $('gf-growthType');
+      fields.growthType = sel ? sel.value : 'einmal';
+    }
   }
-  (cfg.growthFields || []).forEach(f => {
-    const inp = $('gf-' + f.key);
-    fields[f.key] = inp ? parseMoney(inp.value) : null;
-  });
 
   if (editId) {
     const i = data[sec].findIndex(x => x.id === editId);
