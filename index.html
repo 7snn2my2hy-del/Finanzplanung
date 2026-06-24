@@ -243,11 +243,12 @@
   .av-card-metric-val { font-size: 0.8rem; font-weight: 700; font-variant-numeric: tabular-nums; display: block; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
   .av-card-metric-type { font-size: 0.58rem; color: var(--muted-2); display: block; margin-top: 2px; }
   .av-card-metric.base .av-card-metric-val { color: var(--text); }
-  .av-card-metric.s1 .av-card-metric-val  { color: #a0a0b0; }
+  .av-card-metric.s1 .av-card-metric-val  { color: #b88fe0; }
   .av-card-metric.s2 .av-card-metric-val  { color: #f0c060; }
   .av-card-metric.s3 .av-card-metric-val  { color: var(--accent); }
   .av-card-metric.s4 .av-card-metric-val  { color: var(--green); }
   .av-card-total { background: rgba(255,255,255,0.06); border-color: var(--stroke-hi); }
+  .av-legend { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 10px; }
   .av-card-total-scenario { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .av-scenario-select { background: rgba(255,255,255,0.08); border: 1px solid var(--stroke); border-radius: 8px; color: var(--muted); font: inherit; font-size: 0.72rem; padding: 4px 8px; outline: none; cursor: pointer; flex-shrink: 0; }
   .av-card-total-val { font-size: 0.95rem; font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; flex: 1; text-align: right; }
@@ -898,11 +899,11 @@ function renderSection(sec) {
       valuesHtml = `<div class="entry-pension">` + vfShown.map(f => {
         let txt;
         if (f.key === 'projected' && sec === 'a' && e.cat === 'Privat') {
-          txt = `Rente: ${fmt(eDisplay[f.key])} einmalig`;
+          txt = `Rente: ${fmt(eDisplay[f.key])} (e)`;
         } else {
           txt = `${f.display}: ${fmt(eDisplay[f.key])}`;
           if (f.key === 'projected' && e.projectedType) {
-            txt += e.projectedType === 'monatlich' ? ' monatlich' : ' einmalig';
+            txt += e.projectedType === 'monatlich' ? ' (m)' : ' (e)';
           }
         }
         return `<span class="pv-${f.color || 'now'}">${txt}</span>`;
@@ -1100,7 +1101,8 @@ function renderAvDash() {
     } else {
       es.forEach(e => {
         if (e.projected == null) return;
-        if (e.projectedType === 'monatlich') baseMonthly += e.projected;
+        const ptype = cat === 'Gesetzlich' ? 'monatlich' : e.projectedType;
+        if (ptype === 'monatlich') baseMonthly += e.projected;
         else baseEinmal += e.projected;
       });
     }
@@ -1116,8 +1118,7 @@ function renderAvDash() {
       s1amt = fmtShort(sums[0]); s2amt = fmtShort(sums[1]); s3amt = fmtShort(sums[2]);
       sType = '(e)';
     } else {
-      const isM = es.some(e => e.growthType === 'monatlich');
-      sType = isM ? '(m)' : '(e)';
+      sType = cat === 'Gesetzlich' ? '(m)' : (es.some(e => e.growthType === 'monatlich') ? '(m)' : '(e)');
       const g1 = es.reduce((s,e) => s + (e.growth1 || 0), 0);
       const g2 = es.reduce((s,e) => s + (e.growth2 || 0), 0);
       const g3 = es.reduce((s,e) => s + (e.growth3 || 0), 0);
@@ -1151,14 +1152,14 @@ function renderAvDash() {
     if (e.cat === 'Privat') {
       proj = (e.current||0) + toMonthly(e.amount||0, e.period) * mo;
       ptype = 'einmal';
-    } else { proj = e.projected; ptype = e.projectedType; }
+    } else { proj = e.projected; ptype = e.cat === 'Gesetzlich' ? 'monatlich' : e.projectedType; }
     if (!proj) return;
     if (ptype === 'monatlich') totalBaseM += proj;
     else totalBaseE += proj;
   });
   const totalBaseParts = [];
-  if (totalBaseM > 0) totalBaseParts.push(fmt(totalBaseM) + ' monatlich');
-  if (totalBaseE > 0) totalBaseParts.push(fmt(totalBaseE) + ' einmalig');
+  if (totalBaseM > 0) totalBaseParts.push(fmt(totalBaseM) + ' (m)');
+  if (totalBaseE > 0) totalBaseParts.push(fmt(totalBaseE) + ' (e)');
 
   const SCENARIO_OPTS = [
     {label:'Basis (ohne %)', val:'base'},
@@ -1207,7 +1208,7 @@ function renderAvDash() {
     </div>`;
   }).join('');
 
-  $('av-table').innerHTML = `<div class="av-cards">${gesamtCard}${cards}</div>`;
+  $('av-table').innerHTML = `<div class="av-cards">${gesamtCard}${cards}</div><div class="av-legend">(m) = monatlich · (e) = einmalig</div>`;
   // Init scenario display
   updateAvScenario();
 }
@@ -1223,7 +1224,7 @@ function updateAvScenario() {
     data.a.forEach(e => {
       let proj, ptype;
       if (e.cat === 'Privat') { proj=(e.current||0)+toMonthly(e.amount||0,e.period)*mo; ptype='einmal'; }
-      else { proj=e.projected; ptype=e.projectedType; }
+      else { proj=e.projected; ptype = e.cat === 'Gesetzlich' ? 'monatlich' : e.projectedType; }
       if (!proj) return;
       if (ptype==='monatlich') monthly+=proj; else einmal+=proj;
     });
@@ -1234,7 +1235,8 @@ function updateAvScenario() {
         const rate = p >= 6 ? 0.06 : p >= 4 ? 0.04 : 0.02;
         einmal += projectValue(e.current||0, toMonthly(e.amount||0,e.period), rate, mo);
       } else {
-        const gtype = e.growthType || 'einmal';
+        // Gesetzlich is always monthly; Betrieblich uses its stored type
+        const gtype = e.cat === 'Gesetzlich' ? 'monatlich' : (e.growthType || 'einmal');
         const g1=e.growth1||0, g2=e.growth2||0, g3=e.growth3||0;
         const v = p >= 3 ? (g3||g2||g1) : p === 2 ? (g2||g1) : g1;
         if (!v) return;
@@ -1243,8 +1245,8 @@ function updateAvScenario() {
     });
   }
   const parts = [];
-  if (monthly > 0) parts.push(fmt(monthly) + ' monatlich');
-  if (einmal  > 0) parts.push(fmt(einmal)  + ' einmalig');
+  if (monthly > 0) parts.push(fmt(monthly) + ' (m)');
+  if (einmal  > 0) parts.push(fmt(einmal)  + ' (e)');
   val.textContent = parts.join(' + ') || '–';
 }
 
@@ -1518,7 +1520,7 @@ function renderGrowthArea(sec, vEntry) {
         <option value="monatlich">Monatlich</option>
       </select>
     </div>`;
-  el.innerHTML = `<div class="field-group-label">Szenarien bei 1 / 2 / 3 %</div>${typeSelectorHtml}
+  el.innerHTML = `<div class="field-group-label">Szenarien</div>${typeSelectorHtml}
     <div class="field field-row">` +
     gf.map(f =>
       `<div><label>${f.label} (€)</label><input type="text" id="gf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
