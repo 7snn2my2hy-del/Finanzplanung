@@ -233,9 +233,14 @@
   .growth-auto-note { font-size: 0.72rem; color: var(--muted); line-height: 1.4; background: rgba(255,255,255,0.03); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px 10px; }
   .av-dash { padding: 14px 16px; margin-bottom: 14px; }
   .av-cards { display: flex; flex-direction: column; gap: 10px; }
+  .av-group { display: flex; flex-direction: column; gap: 8px; }
+  .av-group-head { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 2px 0; }
+  .av-group-cat { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+  .av-group-cur { font-size: 0.7rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
   .av-card { background: rgba(255,255,255,0.04); border: 1px solid var(--stroke); border-radius: 14px; padding: 12px 14px; }
   .av-card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
   .av-card-cat { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-2); }
+  .av-card-name { text-transform: none; letter-spacing: 0; color: var(--text); font-size: 0.82rem; }
   .av-card-cur { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
   .av-card-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
   .av-card-metric { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 8px 4px; text-align: center; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
@@ -1083,66 +1088,8 @@ function renderAvDash() {
 
   const mo = monthsToRetirement();
   const CATS = ['Gesetzlich','Betrieblich','Privat'];
-  // For Privat: growth rates 2/4/6%; for Gesetzlich/Betrieblich: manual 1/2/3%
-  const GF_MAN = [{key:'growth1',label:'1 %'},{key:'growth2',label:'2 %'},{key:'growth3',label:'3 %'}];
 
-  // Build one row per category that has data
-  const rows = CATS.map(cat => {
-    const es = entries.filter(e => e.cat === cat);
-    if (!es.length) return null;
-
-    // Current total
-    const cur = es.reduce((s,e) => s + (e.current || 0), 0);
-
-    // Expected value (manual "Bei Renteneintritt")
-    let baseMonthly = 0, baseEinmal = 0;
-    if (cat === 'Privat') {
-      baseEinmal = es.reduce((s,e) => s + (e.current || 0) + toMonthly(e.amount || 0, e.period) * mo, 0);
-    } else {
-      es.forEach(e => {
-        if (e.projected == null) return;
-        const ptype = cat === 'Gesetzlich' ? 'monatlich' : e.projectedType;
-        if (ptype === 'monatlich') baseMonthly += e.projected;
-        else baseEinmal += e.projected;
-      });
-    }
-    // base: amount + type label separated
-    const baseAmt  = baseMonthly > 0 ? fmtShort(baseMonthly) : (baseEinmal > 0 ? fmtShort(baseEinmal) : '–');
-    const baseType = baseMonthly > 0 ? '(m)' : (baseEinmal > 0 ? '(e)' : '');
-
-    // Scenarios — amount only, type as separate field
-    let s1amt = '–', s2amt = '–', s3amt = '–';
-    let sType = '';
-    if (cat === 'Privat') {
-      const sums = GROWTH_RATES.map(r => es.reduce((s,e) => s + projectValue(e.current||0, toMonthly(e.amount||0,e.period), r, mo), 0));
-      s1amt = fmtShort(sums[0]); s2amt = fmtShort(sums[1]); s3amt = fmtShort(sums[2]);
-      sType = '(e)';
-    } else {
-      sType = cat === 'Gesetzlich' ? '(m)' : (es.some(e => e.growthType === 'monatlich') ? '(m)' : '(e)');
-      const g1 = es.reduce((s,e) => s + (e.growth1 || 0), 0);
-      const g2 = es.reduce((s,e) => s + (e.growth2 || 0), 0);
-      const g3 = es.reduce((s,e) => s + (e.growth3 || 0), 0);
-      if (g1) s1amt = fmtShort(g1);
-      if (g2) s2amt = fmtShort(g2);
-      if (g3) s3amt = fmtShort(g3);
-    }
-
-    const curTxt = cur > 0 ? fmtShort(cur) : '–';
-    const isPrivat = cat === 'Privat';
-    return {
-      cat, curTxt,
-      baseAmt, baseType,
-      s1amt, s2amt, s3amt, sType,
-      s1label: isPrivat ? '2 %' : '1 %',
-      s2label: isPrivat ? '4 %' : '2 %',
-      s3label: isPrivat ? '6 %' : '3 %'
-    };
-  }).filter(Boolean);
-
-  const hasPrivat = entries.some(e => e.cat === 'Privat');
-  const hasManual = entries.some(e => e.cat !== 'Privat');
-
-  if (!rows.length) { dash.style.display = 'none'; return; }
+  if (!entries.length) { dash.style.display = 'none'; return; }
 
   // Totals card with scenario dropdown
   const totalCurReal = entries.reduce((s,e) => s + (e.current||0), 0);
@@ -1182,7 +1129,6 @@ function renderAvDash() {
     </div>
   </div>`;
 
-  // Category cards — clean layout with type as sub-label
   function metricCell(cls, label, amt, type) {
     const typeLine = type ? `<span class="av-card-metric-type">${type}</span>` : '';
     return `<div class="av-card-metric ${cls}">
@@ -1192,11 +1138,44 @@ function renderAvDash() {
     </div>`;
   }
 
-  const cards = rows.map(row => {
-    const {cat, curTxt, baseAmt, baseType, s1amt, s2amt, s3amt, sType, s1label, s2label, s3label} = row;
+  // Build a single card for one position (entry)
+  function buildPositionCard(e) {
+    const cat = e.cat;
+    const isPrivat = cat === 'Privat';
+    const cur = e.current || 0;
+    const curTxt = cur > 0 ? fmtShort(cur) : '–';
+
+    // Base "Rente"
+    let baseAmt = '–', baseType = '';
+    if (isPrivat) {
+      const v = (e.current||0) + toMonthly(e.amount||0, e.period) * mo;
+      if (v > 0) { baseAmt = fmtShort(v); baseType = '(e)'; }
+    } else if (e.projected != null) {
+      const ptype = cat === 'Gesetzlich' ? 'monatlich' : e.projectedType;
+      baseAmt = fmtShort(e.projected);
+      baseType = ptype === 'monatlich' ? '(m)' : '(e)';
+    }
+
+    // Scenarios
+    let s1amt='–', s2amt='–', s3amt='–', sType='';
+    let s1label, s2label, s3label;
+    if (isPrivat) {
+      s1label='2 %'; s2label='4 %'; s3label='6 %'; sType='(e)';
+      const cu=e.current||0, mon=toMonthly(e.amount||0,e.period);
+      s1amt=fmtShort(projectValue(cu,mon,0.02,mo));
+      s2amt=fmtShort(projectValue(cu,mon,0.04,mo));
+      s3amt=fmtShort(projectValue(cu,mon,0.06,mo));
+    } else {
+      s1label='1 %'; s2label='2 %'; s3label='3 %';
+      sType = cat === 'Gesetzlich' ? '(m)' : (e.growthType === 'monatlich' ? '(m)' : '(e)');
+      if (e.growth1) s1amt = fmtShort(e.growth1);
+      if (e.growth2) s2amt = fmtShort(e.growth2);
+      if (e.growth3) s3amt = fmtShort(e.growth3);
+    }
+
     return `<div class="av-card">
       <div class="av-card-head">
-        <span class="av-card-cat">${cat}</span>
+        <span class="av-card-cat av-card-name">${esc(e.name)}</span>
         <span class="av-card-cur">Aktuell: ${curTxt}</span>
       </div>
       <div class="av-card-metrics">
@@ -1206,9 +1185,24 @@ function renderAvDash() {
         ${metricCell('s3', s3label, s3amt, s3amt !== '–' ? sType : '')}
       </div>
     </div>`;
+  }
+
+  // Group cards by category with a category heading
+  const groups = CATS.map(cat => {
+    const es = entries.filter(e => e.cat === cat);
+    if (!es.length) return '';
+    const catCur = es.reduce((s,e) => s + (e.current||0), 0);
+    const positionCards = es.map(buildPositionCard).join('');
+    return `<div class="av-group">
+      <div class="av-group-head">
+        <span class="av-group-cat">${cat}</span>
+        <span class="av-group-cur">Aktuell: ${fmtShort(catCur)}</span>
+      </div>
+      ${positionCards}
+    </div>`;
   }).join('');
 
-  $('av-table').innerHTML = `<div class="av-cards">${gesamtCard}${cards}</div><div class="av-legend">(m) = monatlich · (e) = einmalig</div>`;
+  $('av-table').innerHTML = `<div class="av-cards">${gesamtCard}${groups}</div><div class="av-legend">(m) = monatlich · (e) = einmalig</div>`;
   // Init scenario display
   updateAvScenario();
 }
