@@ -269,11 +269,6 @@
   .hist-svg { width: 100%; height: 90px; display: block; }
   .hist-empty { font-size: 0.74rem; color: var(--muted-2); line-height: 1.4; padding: 8px 0; }
   .hist-range { font-size: 0.6rem; color: var(--muted-2); text-align: center; margin-top: 4px; }
-  .hist-legend { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
-  .hist-leg-row { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; }
-  .hist-leg-name { flex: 1; color: var(--muted); }
-  .hist-leg-val { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
-  .hist-leg-delta { font-size: 0.72rem; font-variant-numeric: tabular-nums; min-width: 56px; text-align: right; }
   .hist-up { color: var(--green); }
   .hist-down { color: var(--danger); }
   .av-mode-toggle { display: flex; gap: 4px; background: rgba(0,0,0,0.25); border-radius: 9px; padding: 3px; margin-bottom: 10px; }
@@ -944,10 +939,7 @@ function renderHistoryChart(containerId, labels, series) {
     svg += `<line x1="0" y1="${yMid}" x2="${W}" y2="${yMid}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
     series.forEach(s => { svg += `<circle cx="${(W/2).toFixed(1)}" cy="${yMid}" r="3" fill="${s.color}"/>`; });
     svg += `</svg>`;
-    const legend = series.map(s =>
-      `<div class="hist-leg-row"><span class="legend-dot" style="background:${s.color}"></span><span class="hist-leg-name">${s.label}</span><span class="hist-leg-val">${fmtShort(s.points[0])}</span><span class="hist-leg-delta">Start</span></div>`
-    ).join('');
-    el.innerHTML = `${svg}<div class="hist-range">Startwert ${labels[0]} · Verlauf ab dem 2. Monat</div><div class="hist-legend">${legend}</div>`;
+    el.innerHTML = `${svg}<div class="hist-range">Startwert ${labels[0]}: ${fmtShort(series[0].points[0])} · Verlauf ab dem 2. Monat</div>`;
     return;
   }
   const W = 300, H = 90, padL = 4, padR = 4, padT = 8, padB = 4;
@@ -963,14 +955,12 @@ function renderHistoryChart(containerId, labels, series) {
     svg += `<circle cx="${xAt(n-1).toFixed(1)}" cy="${yAt(s.points[n-1]).toFixed(1)}" r="2.6" fill="${s.color}"/>`;
   });
   svg += `</svg>`;
-  const legend = series.map(s => {
-    const last = s.points[n-1], first = s.points[0];
-    const delta = last - first;
-    const deltaTxt = (delta >= 0 ? '+' : '') + fmtShort(delta);
-    const deltaCls = delta >= 0 ? 'hist-up' : 'hist-down';
-    return `<div class="hist-leg-row"><span class="legend-dot" style="background:${s.color}"></span><span class="hist-leg-name">${s.label}</span><span class="hist-leg-val">${fmtShort(last)}</span><span class="hist-leg-delta ${deltaCls}">${deltaTxt}</span></div>`;
-  }).join('');
-  el.innerHTML = `${svg}<div class="hist-range">${labels[0]} – ${labels[n-1]}</div><div class="hist-legend">${legend}</div>`;
+  const s0 = series[0];
+  const last = s0.points[n-1], first = s0.points[0];
+  const delta = last - first;
+  const deltaTxt = (delta >= 0 ? '+' : '') + fmtShort(delta);
+  const deltaCls = delta >= 0 ? 'hist-up' : 'hist-down';
+  el.innerHTML = `${svg}<div class="hist-range">${labels[0]} – ${labels[n-1]} · ${fmtShort(last)} <span class="${deltaCls}">(${deltaTxt})</span></div>`;
 }
 
 function ymLabel(ym) {
