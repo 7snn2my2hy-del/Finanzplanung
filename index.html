@@ -130,7 +130,7 @@
   .saverate-eur { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 3px; }
   .dash-legend { display: flex; flex-direction: column; gap: 5px; }
   .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; }
-  .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; display: inline-block; vertical-align: middle; }
   .legend-name { color: var(--muted); flex: 1; min-width: 0; }
   .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
   .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; width: 40px; text-align: right; flex-shrink: 0; }
@@ -1187,7 +1187,7 @@ function renderDashboard() {
 
   // Vermögensverlauf (history)
   const whWrap = $('dash-wealth-hist');
-  if (history.length >= 2) {
+  if (history.length >= 1) {
     whWrap.style.display = '';
     renderHistoryChart('wealth-hist-chart', history.map(h => ymLabel(h.ym)), [
       { points: history.map(h => h.wealth), color: COLORS.a, label: 'Gesamtvermögen' }
@@ -1422,7 +1422,7 @@ function renderAvDash() {
 function renderPensionHistory() {
   const phWrap = $('dash-pension-hist');
   if (!phWrap) return;
-  if (history.length >= 2 && data.a.length) {
+  if (history.length >= 1 && data.a.length) {
     phWrap.style.display = '';
     renderHistoryChart('pension-hist-chart', history.map(h => ymLabel(h.ym)), [
       { points: history.map(h => h.pension), color: '#30d158', label: 'Vorsorge gesamt' }
