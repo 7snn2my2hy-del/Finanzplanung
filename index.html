@@ -264,6 +264,16 @@
   .av-card-total { background: rgba(255,255,255,0.06); border-color: var(--stroke-hi); }
   .av-legend { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 10px; }
   .av-empty { font-size: 0.82rem; color: var(--muted-2); text-align: center; padding: 30px 12px; line-height: 1.5; }
+  .hist-svg { width: 100%; height: 90px; display: block; }
+  .hist-empty { font-size: 0.74rem; color: var(--muted-2); line-height: 1.4; padding: 8px 0; }
+  .hist-range { font-size: 0.6rem; color: var(--muted-2); text-align: center; margin-top: 4px; }
+  .hist-legend { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+  .hist-leg-row { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; }
+  .hist-leg-name { flex: 1; color: var(--muted); }
+  .hist-leg-val { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .hist-leg-delta { font-size: 0.72rem; font-variant-numeric: tabular-nums; min-width: 56px; text-align: right; }
+  .hist-up { color: var(--green); }
+  .hist-down { color: var(--danger); }
   .av-mode-toggle { display: flex; gap: 4px; background: rgba(0,0,0,0.25); border-radius: 9px; padding: 3px; margin-bottom: 10px; }
   .av-mode-btn { flex: 1; border: none; background: transparent; color: var(--muted); font: inherit; font-size: 0.74rem; font-weight: 600; padding: 6px; border-radius: 7px; cursor: pointer; transition: all 0.15s; }
   .av-mode-btn.active { background: var(--accent); color: #fff; }
@@ -417,6 +427,14 @@
             <div class="dash-sub-label">Kontostände</div>
             <div id="balance-bars"></div>
           </div>
+          <div class="dash-accounts" id="dash-wealth-hist" style="display:none">
+            <div class="dash-sub-label">Vermögensverlauf</div>
+            <div id="wealth-hist-chart"></div>
+          </div>
+          <div class="dash-accounts" id="dash-saverates" style="display:none">
+            <div class="dash-sub-label">Sparquoten (Anteil vom Netto)</div>
+            <div id="saverate-bars"></div>
+          </div>
           <div class="dash-accounts" id="dash-categories">
             <div class="dash-sub-label">Ausgaben nach Kategorie</div>
             <div class="dash-legend" id="dash-legend"></div>
@@ -431,6 +449,10 @@
         <div class="av-dash glass" id="av-dash">
           <div class="dash-title">Altersvorsorge</div>
           <div id="av-table"></div>
+          <div id="dash-pension-hist" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--stroke)">
+            <div class="dash-sub-label">Vorsorgeverlauf</div>
+            <div id="pension-hist-chart"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -877,6 +899,69 @@ let avViewMode = store.get('av_view_mode_v1') || 'nominal';  // 'nominal' | 'rea
 
 function saveAvAssumptions() { store.set(AV_ASSUMPTIONS_KEY, JSON.stringify(avAssumptions)); }
 
+// --- Monthly history snapshots (auto, on app open) ---
+const HISTORY_KEY = 'history_v1';
+let history = JSON.parse(store.get(HISTORY_KEY) || '[]');  // [{ ym:'2026-06', wealth, pension }]
+
+function currentWealthSnapshot() {
+  const GIRO = ['DB Giro','DKB Giro'];
+  const wealth = data.b.reduce((s,e) => s + (GIRO.includes(e.account) ? 0 : (e.balance || 0)), 0)
+               + data.a.reduce((s,e) => s + (e.cat === 'Privat' ? (e.current || 0) : 0), 0);
+  const pension = data.a.reduce((s,e) => s + (e.current || 0), 0);
+  return { wealth, pension };
+}
+
+// Records/refreshes the snapshot for the current month. Last write in a month wins,
+// so the value always reflects the latest known balances for that month.
+function recordSnapshot() {
+  const now = new Date();
+  const ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const snap = currentWealthSnapshot();
+  if (snap.wealth === 0 && snap.pension === 0) return;  // nothing to record yet
+  const existing = history.find(h => h.ym === ym);
+  if (existing) { existing.wealth = snap.wealth; existing.pension = snap.pension; }
+  else history.push({ ym, wealth: snap.wealth, pension: snap.pension });
+  history = history.slice(-60);  // keep last 5 years
+  store.set(HISTORY_KEY, JSON.stringify(history));
+}
+
+// Renders a simple SVG line chart. series = [{points:[v,...], color, label}]
+function renderHistoryChart(containerId, labels, series) {
+  const el = $(containerId);
+  if (!el) return;
+  const n = labels.length;
+  if (n < 2) {
+    el.innerHTML = '<div class="hist-empty">Verlauf erscheint ab dem zweiten Monat. Aktualisiere deine Stände regelmäßig.</div>';
+    return;
+  }
+  const W = 300, H = 90, padL = 4, padR = 4, padT = 8, padB = 4;
+  const all = series.flatMap(s => s.points).filter(v => v != null);
+  const max = Math.max(...all), min = Math.min(...all, 0);
+  const range = max - min || 1;
+  const xAt = i => padL + (i / (n - 1)) * (W - padL - padR);
+  const yAt = v => padT + (1 - (v - min) / range) * (H - padT - padB);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="hist-svg">`;
+  series.forEach(s => {
+    const pts = s.points.map((v,i) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ');
+    svg += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    svg += `<circle cx="${xAt(n-1).toFixed(1)}" cy="${yAt(s.points[n-1]).toFixed(1)}" r="2.6" fill="${s.color}"/>`;
+  });
+  svg += `</svg>`;
+  const legend = series.map(s => {
+    const last = s.points[n-1], first = s.points[0];
+    const delta = last - first;
+    const deltaTxt = (delta >= 0 ? '+' : '') + fmtShort(delta);
+    const deltaCls = delta >= 0 ? 'hist-up' : 'hist-down';
+    return `<div class="hist-leg-row"><span class="legend-dot" style="background:${s.color}"></span><span class="hist-leg-name">${s.label}</span><span class="hist-leg-val">${fmtShort(last)}</span><span class="hist-leg-delta ${deltaCls}">${deltaTxt}</span></div>`;
+  }).join('');
+  el.innerHTML = `${svg}<div class="hist-range">${labels[0]} – ${labels[n-1]}</div><div class="hist-legend">${legend}</div>`;
+}
+
+function ymLabel(ym) {
+  const [y,m] = ym.split('-');
+  return ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][parseInt(m)-1] + ' ' + y.slice(2);
+}
+
 // Adjust a nominal future value to its inflation-adjusted value (purchasing power today).
 // Taxes are intentionally NOT modelled (too individual); values are after inflation, before tax.
 function toRealValue(nominal) {
@@ -1008,6 +1093,7 @@ function updateIncome() {
 
 // Monthly total of a specific category within a section
 function renderDashboard() {
+  recordSnapshot();
   const tV = sectionMonthlyTotal('v');
   const tB = sectionMonthlyTotal('b');
   const tA = sectionMonthlyTotal('a');
@@ -1071,6 +1157,42 @@ function renderDashboard() {
   } else {
     wEl.textContent = '–';
     wSub.textContent = 'Stände eintragen';
+  }
+
+  // Sparquoten: Anteil vom Netto-Einkommen, getrennt für AV / Sparen / Urlaub
+  const srWrap = $('dash-saverates');
+  const srBars = $('saverate-bars');
+  if (income > 0) {
+    const avMonthly = data.a.reduce((s,e) => s + toMonthly(e.amount, e.period), 0);
+    const sparMonthly = data.b.reduce((s,e) => s + (e.extra === 'Girokonto' ? 0 : toMonthly(e.amount, e.period)), 0);
+    const urlaubMonthly = urlaubBudget / 12;
+    const rows = [
+      { name: 'Altersvorsorge', val: avMonthly, color: COLORS.a },
+      { name: 'Sparen',         val: sparMonthly, color: COLORS.b },
+      { name: 'Urlaub',         val: urlaubMonthly, color: '#f0c060' }
+    ].filter(r => r.val > 0);
+    if (rows.length) {
+      srWrap.style.display = '';
+      srBars.innerHTML = rows.map(r => {
+        const pct = Math.round(r.val / income * 100);
+        return `<div class="acct-row"><span class="acct-row-name"><span class="legend-dot" style="background:${r.color};margin-right:7px"></span>${r.name}</span><span class="acct-row-val">${fmt(r.val)}</span><span class="acct-row-pct">${pct}%</span></div>`;
+      }).join('');
+    } else {
+      srWrap.style.display = 'none';
+    }
+  } else {
+    srWrap.style.display = 'none';
+  }
+
+  // Vermögensverlauf (history)
+  const whWrap = $('dash-wealth-hist');
+  if (history.length >= 2) {
+    whWrap.style.display = '';
+    renderHistoryChart('wealth-hist-chart', history.map(h => ymLabel(h.ym)), [
+      { points: history.map(h => h.wealth), color: COLORS.a, label: 'Gesamtvermögen' }
+    ]);
+  } else {
+    whWrap.style.display = 'none';
   }
 
   // Expenses by account (across all sections)
@@ -1159,6 +1281,7 @@ function renderAvDash() {
   dash.style.display = '';
   if (!entries.length) {
     $('av-table').innerHTML = '<div class="av-empty">Noch keine Altersvorsorge-Einträge. Lege unten in der Altersvorsorge-Sektion welche an.</div>';
+    renderPensionHistory();
     return;
   }
 
@@ -1292,7 +1415,22 @@ function renderAvDash() {
   $('av-table').innerHTML = `<div class="av-cards">${gesamtCard}${groups}</div><div class="av-legend">(m) = monatlich · (e) = einmalig</div>`;
   // Init scenario display
   updateAvScenario();
+  renderPensionHistory();
 }
+
+function renderPensionHistory() {
+  const phWrap = $('dash-pension-hist');
+  if (!phWrap) return;
+  if (history.length >= 2 && data.a.length) {
+    phWrap.style.display = '';
+    renderHistoryChart('pension-hist-chart', history.map(h => ymLabel(h.ym)), [
+      { points: history.map(h => h.pension), color: '#30d158', label: 'Vorsorge gesamt' }
+    ]);
+  } else {
+    phWrap.style.display = 'none';
+  }
+}
+
 
 function updateAvScenario() {
   const sel = $('av-scenario-sel');
@@ -1434,6 +1572,7 @@ function onUrlaubBudgetInput() {
   urlaubBudget = parseMoney($('urlaub-budget-input').value) || 0;
   store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
   renderUrlaube();
+  renderDashboard();
 }
 
 function renderUrlaube() {
@@ -1796,7 +1935,10 @@ function exportData() {
     sections: { v: data.v, b: data.b, a: data.a },
     bonus: bonus,
     urlaube: urlaube,
-    urlaubBudget: urlaubBudget
+    urlaubBudget: urlaubBudget,
+    avAssumptions: avAssumptions,
+    avViewMode: avViewMode,
+    history: history
   };
   const text = JSON.stringify(payload, null, 2);
   const stamp = new Date().toISOString().slice(0,10);
@@ -1861,6 +2003,18 @@ async function applyBackup(rawText) {
     urlaubBudget = parsed.urlaubBudget;
     store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
     $('urlaub-budget-input').value = urlaubBudget > 0 ? fmt(urlaubBudget).replace(' €','') : '';
+  }
+  if (parsed.avAssumptions && typeof parsed.avAssumptions === 'object') {
+    avAssumptions = { ...AV_DEFAULTS, ...parsed.avAssumptions };
+    saveAvAssumptions();
+  }
+  if (parsed.avViewMode === 'nominal' || parsed.avViewMode === 'real') {
+    avViewMode = parsed.avViewMode;
+    store.set('av_view_mode_v1', avViewMode);
+  }
+  if (Array.isArray(parsed.history)) {
+    history = parsed.history;
+    store.set(HISTORY_KEY, JSON.stringify(history));
   }
   renderAll();
   notify('Backup erfolgreich wiederhergestellt.', 'Fertig');
