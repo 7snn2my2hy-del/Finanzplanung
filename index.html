@@ -129,21 +129,21 @@
   .saverate-val { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; color: var(--green); font-variant-numeric: tabular-nums; display: block; }
   .saverate-eur { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 3px; }
   .dash-legend { display: flex; flex-direction: column; gap: 5px; }
-  .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.74rem; }
+  .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; }
   .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
   .legend-name { color: var(--muted); flex: 1; min-width: 0; }
-  .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; width: 92px; text-align: right; flex-shrink: 0; }
+  .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
   .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; width: 40px; text-align: right; flex-shrink: 0; }
   .dash-accounts { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke); }
   .acct-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 0.82rem; }
   .acct-row-name { flex: 1; min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .acct-row-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
   .acct-row-pct { width: 40px; text-align: right; color: var(--muted-2); font-variant-numeric: tabular-nums; flex-shrink: 0; }
-  .bal-acct-row { margin-bottom: 10px; }
+  .bal-acct-row { margin-bottom: 10px; padding-left: 16px; }
   .bal-acct-head { display: flex; justify-content: space-between; align-items: baseline; }
-  .bal-acct-name { font-size: 0.8rem; font-weight: 600; }
-  .bal-acct-total { font-size: 0.8rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
-  .bal-acct-break { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+  .bal-acct-name { font-size: 0.82rem; font-weight: 600; }
+  .bal-acct-total { font-size: 0.82rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+  .bal-acct-break { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
   .balance-box { padding: 14px 16px; margin-bottom: 6px; }
   .bb-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--stroke); }
   .bb-head span:first-child { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); }
@@ -432,7 +432,7 @@
             <div id="wealth-hist-chart"></div>
           </div>
           <div class="dash-accounts" id="dash-saverates" style="display:none">
-            <div class="dash-sub-label">Sparquoten (Anteil vom Netto)</div>
+            <div class="dash-sub-label">Sparquoten</div>
             <div id="saverate-bars"></div>
           </div>
           <div class="dash-accounts" id="dash-categories">
@@ -1159,13 +1159,14 @@ function renderDashboard() {
     wSub.textContent = 'Stände eintragen';
   }
 
-  // Sparquoten: Anteil vom Netto-Einkommen, getrennt für AV / Sparen / Urlaub
+  // Sparquoten: Anteil vom Netto-Einkommen, konsistent je Kategorie abgeleitet (AV / Sparen / Urlaub)
   const srWrap = $('dash-saverates');
   const srBars = $('saverate-bars');
   if (income > 0) {
+    const isGiro = e => e.extra === 'Girokonto';
     const avMonthly = data.a.reduce((s,e) => s + toMonthly(e.amount, e.period), 0);
-    const sparMonthly = data.b.reduce((s,e) => s + (e.extra === 'Girokonto' ? 0 : toMonthly(e.amount, e.period)), 0);
-    const urlaubMonthly = urlaubBudget / 12;
+    const sparMonthly = data.b.reduce((s,e) => s + (isGiro(e) || e.cat !== 'Sparen' ? 0 : toMonthly(e.amount, e.period)), 0);
+    const urlaubMonthly = data.b.reduce((s,e) => s + (isGiro(e) || e.cat !== 'Urlaub' ? 0 : toMonthly(e.amount, e.period)), 0);
     const rows = [
       { name: 'Altersvorsorge', val: avMonthly, color: COLORS.a },
       { name: 'Sparen',         val: sparMonthly, color: COLORS.b },
@@ -1209,7 +1210,7 @@ function renderDashboard() {
     accWrap.style.display = '';
     barsEl.innerHTML = accRows.map(([name,val]) => {
       const pct = accTotal > 0 ? Math.round(val/accTotal*100) : 0;
-      return `<div class="acct-row"><span class="acct-row-name">${esc(name)}</span><span class="acct-row-val">${fmt(val)}</span><span class="acct-row-pct">${pct}%</span></div>`;
+      return `<div class="acct-row"><span class="acct-row-name"><span class="legend-dot" style="background:transparent;margin-right:7px"></span>${esc(name)}</span><span class="acct-row-val">${fmt(val)}</span><span class="acct-row-pct">${pct}%</span></div>`;
     }).join('');
   } else {
     accWrap.style.display = 'none';
