@@ -128,7 +128,7 @@
   .dash-saverate { }
   .saverate-val { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; color: var(--green); font-variant-numeric: tabular-nums; display: block; }
   .saverate-eur { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 3px; }
-  .dash-legend { display: flex; flex-direction: column; gap: 5px; }
+  .dash-legend { display: flex; flex-direction: column; gap: 8px; }
   .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; }
   .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; display: inline-block; vertical-align: middle; }
   .legend-name { color: var(--muted); flex: 1; min-width: 0; }
@@ -139,7 +139,7 @@
   .acct-row-name { flex: 1; min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .acct-row-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
   .acct-row-pct { width: 40px; text-align: right; color: var(--muted-2); font-variant-numeric: tabular-nums; flex-shrink: 0; }
-  .bal-acct-row { margin-bottom: 10px; padding-left: 16px; }
+  .bal-acct-row { margin-bottom: 8px; padding-left: 16px; }
   .bal-acct-head { display: flex; justify-content: space-between; align-items: baseline; }
   .bal-acct-name { font-size: 0.82rem; font-weight: 600; }
   .bal-acct-total { font-size: 0.82rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
@@ -423,13 +423,13 @@
               </div>
             </div>
           </div>
+          <div class="dash-accounts" id="dash-wealth-hist" style="display:none">
+            <div class="dash-sub-label">Gesamtvermögensverlauf</div>
+            <div id="wealth-hist-chart"></div>
+          </div>
           <div class="dash-accounts" id="dash-balances">
             <div class="dash-sub-label">Kontostände</div>
             <div id="balance-bars"></div>
-          </div>
-          <div class="dash-accounts" id="dash-wealth-hist" style="display:none">
-            <div class="dash-sub-label">Vermögensverlauf</div>
-            <div id="wealth-hist-chart"></div>
           </div>
           <div class="dash-accounts" id="dash-saverates" style="display:none">
             <div class="dash-sub-label">Sparquoten</div>
@@ -449,10 +449,6 @@
         <div class="av-dash glass" id="av-dash">
           <div class="dash-title">Altersvorsorge</div>
           <div id="av-table"></div>
-          <div id="dash-pension-hist" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--stroke)">
-            <div class="dash-sub-label">Vorsorgeverlauf</div>
-            <div id="pension-hist-chart"></div>
-          </div>
         </div>
       </div>
     </div>
@@ -916,11 +912,16 @@ function currentWealthSnapshot() {
 function recordSnapshot() {
   const now = new Date();
   const ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const date = ym + '-01';  // jeder Monatswert ist fest auf den 1. des Monats verankert
   const snap = currentWealthSnapshot();
   if (snap.wealth === 0 && snap.pension === 0) return;  // nothing to record yet
   const existing = history.find(h => h.ym === ym);
-  if (existing) { existing.wealth = snap.wealth; existing.pension = snap.pension; }
-  else history.push({ ym, wealth: snap.wealth, pension: snap.pension });
+  if (existing) {
+    // laufender Monat: bis zum Monatswechsel mit den aktuellen Ständen aktualisieren
+    existing.wealth = snap.wealth; existing.pension = snap.pension; existing.date = date;
+  } else {
+    history.push({ ym, date, wealth: snap.wealth, pension: snap.pension });
+  }
   history = history.slice(-60);  // keep last 5 years
   store.set(HISTORY_KEY, JSON.stringify(history));
 }
@@ -1185,7 +1186,7 @@ function renderDashboard() {
     srWrap.style.display = 'none';
   }
 
-  // Vermögensverlauf (history)
+  // Gesamtvermögensverlauf (history)
   const whWrap = $('dash-wealth-hist');
   if (history.length >= 1) {
     whWrap.style.display = '';
@@ -1413,7 +1414,11 @@ function renderAvDash() {
     </div>`;
   }).join('');
 
-  $('av-table').innerHTML = `<div class="av-cards">${gesamtCard}${groups}</div><div class="av-legend">(m) = monatlich · (e) = einmalig</div>`;
+  const pensionHistBlock = `<div id="dash-pension-hist" style="display:none">
+      <div class="dash-sub-label">Altersvorsorgeverlauf</div>
+      <div id="pension-hist-chart"></div>
+    </div>`;
+  $('av-table').innerHTML = `<div class="av-cards">${gesamtCard}${pensionHistBlock}${groups}</div><div class="av-legend">(m) = monatlich · (e) = einmalig</div>`;
   // Init scenario display
   updateAvScenario();
   renderPensionHistory();
