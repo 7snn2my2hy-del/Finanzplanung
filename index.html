@@ -240,7 +240,7 @@
   .entry-pension .pv-end { color: var(--green); }
   .entry-pension .pv-date { color: var(--muted); }
   .growth-auto-note { font-size: 0.72rem; color: var(--muted); line-height: 1.4; background: rgba(255,255,255,0.03); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px 10px; }
-  .av-dash { padding: 14px 16px; margin-bottom: 14px; }
+  .av-dash { padding: 18px; margin-bottom: 14px; }
   .av-cards { display: flex; flex-direction: column; gap: 10px; }
   .av-group { display: flex; flex-direction: column; gap: 8px; }
   .av-group-head { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 2px 0; }
@@ -643,7 +643,7 @@
     </div>
     <div id="f-values"></div>
     <div class="field" id="f-projtype" style="display:none">
-      <label>Art des Renteneintritt-Betrags</label>
+      <label>Art der Beträge (Rente & Szenarien)</label>
       <select id="f-projtype-select">
         <option value="einmal">Einmalbetrag</option>
         <option value="monatlich">monatlich</option>
@@ -770,7 +770,6 @@ const SECTIONS = {
       { key:'growth2', label:'bei 2 %', placeholder:'z.B. 85.000', display:'2 %' },
       { key:'growth3', label:'bei 3 %', placeholder:'z.B. 100.000', display:'3 %' }
     ],
-    growthTypeField: true,
     ids: { list:'list-a', empty:'empty-a', month:'sum-month-a', year:'sum-year-a', count:'sum-count-a' }
   }
 };
@@ -870,37 +869,20 @@ function projectValue(current, monthlyContribution, annualRate, months) {
 
 // Returns [{rate, value}] scenarios for a private-pension entry
 
-// --- Inflation & tax assumptions (editable, persisted) ---
+// --- Inflation assumption (editable, persisted) ---
 const AV_ASSUMPTIONS_KEY = 'av_assumptions_v1';
-const AV_DEFAULTS = { inflation: 2.0, taxGesetzlich: 25, taxBetrieblich: 30, taxPrivatGain: 18.5 };
+const AV_DEFAULTS = { inflation: 2.0 };
 let avAssumptions = { ...AV_DEFAULTS, ...(JSON.parse(store.get(AV_ASSUMPTIONS_KEY) || '{}')) };
 let avViewMode = store.get('av_view_mode_v1') || 'nominal';  // 'nominal' | 'real'
 
 function saveAvAssumptions() { store.set(AV_ASSUMPTIONS_KEY, JSON.stringify(avAssumptions)); }
 
-// Adjust a nominal future value to a real (after inflation + tax) value.
-// invested = sum actually paid in (to tax only the gain for Privat). For Gesetzlich/Betrieblich invested is ignored.
-function toRealValue(nominal, cat, invested) {
+// Adjust a nominal future value to its inflation-adjusted value (purchasing power today).
+// Taxes are intentionally NOT modelled (too individual); values are after inflation, before tax.
+function toRealValue(nominal) {
   if (avViewMode !== 'real' || !nominal) return nominal;
   const years = monthsToRetirement() / 12;
-  // 1) Tax (schicht-specific)
-  let afterTax;
-  if (cat === 'Privat') {
-    const gain = Math.max(0, nominal - (invested || 0));
-    afterTax = nominal - gain * (avAssumptions.taxPrivatGain / 100);
-  } else if (cat === 'Gesetzlich') {
-    afterTax = nominal * (1 - avAssumptions.taxGesetzlich / 100);
-  } else { // Betrieblich
-    afterTax = nominal * (1 - avAssumptions.taxBetrieblich / 100);
-  }
-  // 2) Inflation (purchasing power today)
-  const real = afterTax / Math.pow(1 + avAssumptions.inflation / 100, years);
-  return real;
-}
-
-// Total invested for a Privat entry by retirement (current + all monthly contributions, no growth)
-function investedPrivat(e) {
-  return (e.current || 0) + toMonthly(e.amount || 0, e.period) * monthsToRetirement();
+  return nominal / Math.pow(1 + avAssumptions.inflation / 100, years);
 }
 
 const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
@@ -1189,9 +1171,9 @@ function renderAvDash() {
   entries.forEach(e => {
     let proj, ptype;
     if (e.cat === 'Privat') {
-      proj = toRealValue((e.current||0) + toMonthly(e.amount||0, e.period) * mo, 'Privat', investedPrivat(e));
+      proj = toRealValue((e.current||0) + toMonthly(e.amount||0, e.period) * mo);
       ptype = 'einmal';
-    } else { proj = toRealValue(e.projected, e.cat, 0); ptype = e.cat === 'Gesetzlich' ? 'monatlich' : e.projectedType; }
+    } else { proj = toRealValue(e.projected); ptype = e.cat === 'Gesetzlich' ? 'monatlich' : e.projectedType; }
     if (!proj) return;
     if (ptype === 'monatlich') totalBaseM += proj;
     else totalBaseE += proj;
@@ -1216,7 +1198,7 @@ function renderAvDash() {
     </div>
     <div class="av-mode-toggle">
       <button class="av-mode-btn ${avViewMode==='nominal'?'active':''}" onclick="setAvViewMode('nominal')">Nominal</button>
-      <button class="av-mode-btn ${avViewMode==='real'?'active':''}" onclick="setAvViewMode('real')">Real</button>
+      <button class="av-mode-btn ${avViewMode==='real'?'active':''}" onclick="setAvViewMode('real')">Inflation</button>
     </div>
     <div class="av-card-total-scenario">
       <select class="av-scenario-select" id="av-scenario-sel" onchange="updateAvScenario()">
@@ -1227,22 +1209,10 @@ function renderAvDash() {
     ${avViewMode==='real' ? `
     <div class="av-assumptions">
       <div class="av-assum-row">
-        <label>Inflation</label>
+        <label>Inflationsrate p.a.</label>
         <div class="av-assum-input"><input type="number" step="0.1" value="${a.inflation}" onchange="setAvAssumption('inflation',this.value)"><span>%</span></div>
       </div>
-      <div class="av-assum-row">
-        <label>Steuer gesetzlich</label>
-        <div class="av-assum-input"><input type="number" step="1" value="${a.taxGesetzlich}" onchange="setAvAssumption('taxGesetzlich',this.value)"><span>%</span></div>
-      </div>
-      <div class="av-assum-row">
-        <label>Steuer betrieblich</label>
-        <div class="av-assum-input"><input type="number" step="1" value="${a.taxBetrieblich}" onchange="setAvAssumption('taxBetrieblich',this.value)"><span>%</span></div>
-      </div>
-      <div class="av-assum-row">
-        <label>Steuer privat (auf Gewinn)</label>
-        <div class="av-assum-input"><input type="number" step="0.5" value="${a.taxPrivatGain}" onchange="setAvAssumption('taxPrivatGain',this.value)"><span>%</span></div>
-      </div>
-      <div class="av-assum-note">Schätzung nach Steuern & Inflation (Kaufkraft heute). Keine Steuerberatung – Annahmen anpassbar.</div>
+      <div class="av-assum-note">Werte in heutiger Kaufkraft (nach Inflation), aber <strong>vor Steuern</strong>. Die individuelle Besteuerung im Alter ist hier nicht berücksichtigt.</div>
     </div>` : ''}
   </div>`;
 
@@ -1266,10 +1236,10 @@ function renderAvDash() {
     let baseAmt = '–', baseType = '';
     if (isPrivat) {
       const v = (e.current||0) + toMonthly(e.amount||0, e.period) * mo;
-      if (v > 0) { baseAmt = fmtShort(toRealValue(v, cat, investedPrivat(e))); baseType = '(e)'; }
+      if (v > 0) { baseAmt = fmtShort(toRealValue(v)); baseType = '(e)'; }
     } else if (e.projected != null) {
       const ptype = cat === 'Gesetzlich' ? 'monatlich' : e.projectedType;
-      baseAmt = fmtShort(toRealValue(e.projected, cat, 0));
+      baseAmt = fmtShort(toRealValue(e.projected));
       baseType = ptype === 'monatlich' ? '(m)' : '(e)';
     }
 
@@ -1278,16 +1248,16 @@ function renderAvDash() {
     let s1label, s2label, s3label;
     if (isPrivat) {
       s1label='2 %'; s2label='4 %'; s3label='6 %'; sType='(e)';
-      const cu=e.current||0, mon=toMonthly(e.amount||0,e.period), inv=investedPrivat(e);
-      s1amt=fmtShort(toRealValue(projectValue(cu,mon,0.02,mo), cat, inv));
-      s2amt=fmtShort(toRealValue(projectValue(cu,mon,0.04,mo), cat, inv));
-      s3amt=fmtShort(toRealValue(projectValue(cu,mon,0.06,mo), cat, inv));
+      const cu=e.current||0, mon=toMonthly(e.amount||0,e.period);
+      s1amt=fmtShort(toRealValue(projectValue(cu,mon,0.02,mo)));
+      s2amt=fmtShort(toRealValue(projectValue(cu,mon,0.04,mo)));
+      s3amt=fmtShort(toRealValue(projectValue(cu,mon,0.06,mo)));
     } else {
       s1label='1 %'; s2label='2 %'; s3label='3 %';
       sType = cat === 'Gesetzlich' ? '(m)' : (e.growthType === 'monatlich' ? '(m)' : '(e)');
-      if (e.growth1) s1amt = fmtShort(toRealValue(e.growth1, cat, 0));
-      if (e.growth2) s2amt = fmtShort(toRealValue(e.growth2, cat, 0));
-      if (e.growth3) s3amt = fmtShort(toRealValue(e.growth3, cat, 0));
+      if (e.growth1) s1amt = fmtShort(toRealValue(e.growth1));
+      if (e.growth2) s2amt = fmtShort(toRealValue(e.growth2));
+      if (e.growth3) s3amt = fmtShort(toRealValue(e.growth3));
     }
 
     return `<div class="av-card">
@@ -1334,8 +1304,8 @@ function updateAvScenario() {
   if (pct === 'base') {
     data.a.forEach(e => {
       let proj, ptype;
-      if (e.cat === 'Privat') { proj=toRealValue((e.current||0)+toMonthly(e.amount||0,e.period)*mo,'Privat',investedPrivat(e)); ptype='einmal'; }
-      else { proj=toRealValue(e.projected, e.cat, 0); ptype = e.cat === 'Gesetzlich' ? 'monatlich' : e.projectedType; }
+      if (e.cat === 'Privat') { proj=toRealValue((e.current||0)+toMonthly(e.amount||0,e.period)*mo); ptype='einmal'; }
+      else { proj=toRealValue(e.projected); ptype = e.cat === 'Gesetzlich' ? 'monatlich' : e.projectedType; }
       if (!proj) return;
       if (ptype==='monatlich') monthly+=proj; else einmal+=proj;
     });
@@ -1344,14 +1314,14 @@ function updateAvScenario() {
     data.a.forEach(e => {
       if (e.cat === 'Privat') {
         const rate = p >= 6 ? 0.06 : p >= 4 ? 0.04 : 0.02;
-        einmal += toRealValue(projectValue(e.current||0, toMonthly(e.amount||0,e.period), rate, mo), 'Privat', investedPrivat(e));
+        einmal += toRealValue(projectValue(e.current||0, toMonthly(e.amount||0,e.period), rate, mo));
       } else {
         // Gesetzlich is always monthly; Betrieblich uses its stored type
         const gtype = e.cat === 'Gesetzlich' ? 'monatlich' : (e.growthType || 'einmal');
         const g1=e.growth1||0, g2=e.growth2||0, g3=e.growth3||0;
         const vRaw = p >= 3 ? (g3||g2||g1) : p === 2 ? (g2||g1) : g1;
         if (!vRaw) return;
-        const v = toRealValue(vRaw, e.cat, 0);
+        const v = toRealValue(vRaw);
         if (gtype==='monatlich') monthly+=v; else einmal+=v;
       }
     });
@@ -1632,24 +1602,14 @@ function renderGrowthArea(sec, vEntry) {
       `<div class="growth-auto-note">„Bei Renteneintritt" wird automatisch berechnet (aktueller Wert + Monatsbetrag bis 67) und in der Übersicht angezeigt. Die Renditeszenarien siehst du im Dashboard.</div>`;
     return;
   }
-  // Gesetzlich -> always monthly, no type selector; Betrieblich -> type selector
-  const isGesetzlich = cat === 'Gesetzlich';
-  const vType = vEntry ? (vEntry.growthType || (isGesetzlich ? 'monatlich' : 'einmal')) : (isGesetzlich ? 'monatlich' : 'einmal');
-  const typeSelectorHtml = isGesetzlich ? '' : `
-    <div class="field">
-      <label>Art der Szenario-Beträge</label>
-      <select id="gf-growthType">
-        <option value="einmal">Einmalig</option>
-        <option value="monatlich">Monatlich</option>
-      </select>
-    </div>`;
-  el.innerHTML = `<div class="field-group-label">Szenarien</div>${typeSelectorHtml}
+  // No separate scenario-type selector: scenarios follow the single "Art des Renteneintritt-Betrags" choice.
+  // Gesetzlich is always monthly.
+  el.innerHTML = `<div class="field-group-label">Szenarien</div>
     <div class="field field-row">` +
     gf.map(f =>
       `<div><label>${f.label} (€)</label><input type="text" id="gf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
     ).join('') +
     `</div>`;
-  if (!isGesetzlich) $('gf-growthType').value = vType;
   gf.forEach(f => {
     const inp = $('gf-' + f.key);
     const v = vEntry ? vEntry[f.key] : null;
@@ -1770,18 +1730,19 @@ function saveEntry() {
     (cfg.growthFields || []).forEach(f => { fields[f.key] = null; if (f.typeKey) fields[f.typeKey] = null; });
     fields.growthType = null;
   } else {
-    if (cfg.projectedTypeField) {
+    let projType = 'einmal';
+    if (cat === 'Gesetzlich') projType = 'monatlich';
+    else if (cfg.projectedTypeField) {
       const pt = $('f-projtype-select');
-      if (pt) fields.projectedType = pt.value;
+      if (pt) projType = pt.value;
     }
+    fields.projectedType = projType;
     (cfg.growthFields || []).forEach(f => {
       const inp = $('gf-' + f.key);
       fields[f.key] = inp ? parseMoney(inp.value) : null;
     });
-    if (cfg.growthTypeField) {
-      const sel = $('gf-growthType');
-      fields.growthType = sel ? sel.value : (cat === 'Gesetzlich' ? 'monatlich' : 'einmal');
-    }
+    // Scenario type mirrors the single projected-type choice
+    fields.growthType = projType;
   }
 
   if (editId) {
