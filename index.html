@@ -129,17 +129,18 @@
   .saverate-val { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; color: var(--green); font-variant-numeric: tabular-nums; display: block; }
   .saverate-eur { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 3px; }
   .dash-legend { display: flex; flex-direction: column; gap: 8px; }
-  .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; }
+  .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; line-height: 1.4; }
   .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; display: inline-block; vertical-align: middle; }
   .legend-name { color: var(--muted); flex: 1; min-width: 0; }
   .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
   .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; width: 40px; text-align: right; flex-shrink: 0; }
   .dash-accounts { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke); }
-  .acct-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 0.82rem; }
+  .acct-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; line-height: 1.4; }
   .acct-row-name { flex: 1; min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .acct-row-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
   .acct-row-pct { width: 40px; text-align: right; color: var(--muted-2); font-variant-numeric: tabular-nums; flex-shrink: 0; }
-  .bal-acct-row { margin-bottom: 8px; padding-left: 16px; }
+  .bal-acct-row { padding-left: 16px; }
+  #saverate-bars, #account-bars, #balance-bars { display: flex; flex-direction: column; gap: 8px; }
   .bal-acct-head { display: flex; justify-content: space-between; align-items: baseline; }
   .bal-acct-name { font-size: 0.82rem; font-weight: 600; }
   .bal-acct-total { font-size: 0.82rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
@@ -262,6 +263,7 @@
   .av-card-metric.s3 .av-card-metric-val  { color: var(--accent); }
   .av-card-metric.s4 .av-card-metric-val  { color: var(--green); }
   .av-card-total { background: rgba(255,255,255,0.06); border-color: var(--stroke-hi); }
+  .av-hist-block { border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke); padding: 14px 0; }
   .av-legend { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 10px; }
   .av-empty { font-size: 0.82rem; color: var(--muted-2); text-align: center; padding: 30px 12px; line-height: 1.5; }
   .hist-svg { width: 100%; height: 90px; display: block; }
@@ -931,8 +933,21 @@ function renderHistoryChart(containerId, labels, series) {
   const el = $(containerId);
   if (!el) return;
   const n = labels.length;
-  if (n < 2) {
-    el.innerHTML = '<div class="hist-empty">Verlauf erscheint ab dem zweiten Monat. Aktualisiere deine Stände regelmäßig.</div>';
+  if (n < 1) {
+    el.innerHTML = '<div class="hist-empty">Noch kein Stand erfasst. Trage deine Kontostände bzw. aktuellen Vorsorgewerte ein.</div>';
+    return;
+  }
+  if (n === 1) {
+    // Einzelner Startwert: Punkt + aktueller Betrag; echter Verlauf folgt ab dem 2. Monat
+    const W = 300, H = 90, yMid = H / 2;
+    let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="hist-svg">`;
+    svg += `<line x1="0" y1="${yMid}" x2="${W}" y2="${yMid}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+    series.forEach(s => { svg += `<circle cx="${(W/2).toFixed(1)}" cy="${yMid}" r="3" fill="${s.color}"/>`; });
+    svg += `</svg>`;
+    const legend = series.map(s =>
+      `<div class="hist-leg-row"><span class="legend-dot" style="background:${s.color}"></span><span class="hist-leg-name">${s.label}</span><span class="hist-leg-val">${fmtShort(s.points[0])}</span><span class="hist-leg-delta">Start</span></div>`
+    ).join('');
+    el.innerHTML = `${svg}<div class="hist-range">Startwert ${labels[0]} · Verlauf ab dem 2. Monat</div><div class="hist-legend">${legend}</div>`;
     return;
   }
   const W = 300, H = 90, padL = 4, padR = 4, padT = 8, padB = 4;
@@ -1414,7 +1429,7 @@ function renderAvDash() {
     </div>`;
   }).join('');
 
-  const pensionHistBlock = `<div id="dash-pension-hist" style="display:none">
+  const pensionHistBlock = `<div id="dash-pension-hist" class="av-hist-block" style="display:none">
       <div class="dash-sub-label">Altersvorsorgeverlauf</div>
       <div id="pension-hist-chart"></div>
     </div>`;
