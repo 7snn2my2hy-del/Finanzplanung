@@ -303,6 +303,14 @@
   .uy-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--violet)); transition: width 0.3s; }
   .uy-bar-fill.over { background: var(--danger); }
   .uy-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+  .uy-phase { display: flex; justify-content: space-between; gap: 8px; font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 7px; }
+  .uy-strip { margin-top: 10px; }
+  .uy-strip-svg { width: 100%; height: 54px; display: block; }
+  .uy-strip-cap { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 3px; }
+  .ustat { font-weight: 600; }
+  .ustat.done { color: var(--muted-2); }
+  .ustat.ok { color: var(--green); }
+  .ustat.short { color: var(--danger); }
 
   .entry-actions { display: flex; gap: 2px; }
   .btn-icon { background: none; border: none; cursor: pointer; color: var(--muted-2); width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; transition: color 0.15s, background 0.15s; }
@@ -1586,6 +1594,36 @@ function onUrlaubBudgetInput() {
   renderDashboard();
 }
 
+const MONTH_ABBR = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+
+function urlaubMonthNum(monthStr) {
+  const m = String(monthStr || '').match(/^(\d{1,2})\./);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  return (n >= 1 && n <= 12) ? n : null;
+}
+
+// Mini-Balkenstreifen: laufender Topf-Stand (Liquidität) pro Monat Jan–Dez
+function urlaubStripSVG(bal, markerMonth) {
+  const vals = [];
+  for (let m = 1; m <= 12; m++) vals.push(bal[m] || 0);
+  const maxAbs = Math.max(1, ...vals.map(v => Math.abs(v)));
+  const W = 300, H = 54, mid = H / 2, bw = W / 12, gap = bw * 0.24;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="uy-strip-svg">`;
+  svg += `<line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>`;
+  vals.forEach((v, i) => {
+    const x = i * bw + gap / 2, w = bw - gap;
+    const h = Math.max(1, (Math.abs(v) / maxAbs) * (mid - 3));
+    const y = v >= 0 ? mid - h : mid;
+    const fill = v >= 0 ? '#30d158' : '#ff453a';
+    const isMark = markerMonth && (i + 1) === markerMonth;
+    svg += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="${fill}" opacity="${isMark ? 1 : 0.6}"/>`;
+    if (isMark) svg += `<rect x="${(x-1).toFixed(1)}" y="2" width="${(w+2).toFixed(1)}" height="${H-4}" rx="2.5" fill="none" stroke="#0a84ff" stroke-width="1" opacity="0.55"/>`;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
 function renderUrlaube() {
   const wrap = $('urlaub-years');
   const empty = $('empty-urlaub');
@@ -1607,38 +1645,97 @@ function renderUrlaube() {
     return a.localeCompare(b);
   });
 
+  const nowD = new Date();
+  const nowYear = nowD.getFullYear();
+  const nowMonth = nowD.getMonth() + 1;
+  const rate = yearlyBudget / 12;
+
   years.forEach(y => {
     const items = groups[y].slice().sort((a,b) => (a.month||'').localeCompare(b.month||''));
     const spent = items.reduce((s,u) => s + (u.cost || 0), 0);
-    const hasBudget = y !== 'ohne';
-    const remaining = yearlyBudget - spent;
     const yearLabel = y === 'ohne' ? 'Ohne Jahr' : y;
-
     const head = document.createElement('div');
     head.className = 'urlaub-year-head';
-    if (hasBudget) {
-      head.innerHTML = `
-        <div class="uy-top">
-          <span class="uy-year">${yearLabel}</span>
-          <span class="uy-remaining ${remaining < 0 ? 'negative' : ''}">${fmt(remaining)} übrig</span>
-        </div>
-        <div class="uy-bar"><div class="uy-bar-fill ${remaining < 0 ? 'over' : ''}" style="width:${yearlyBudget > 0 ? Math.min(100, Math.round(spent/yearlyBudget*100)) : (spent>0?100:0)}%"></div></div>
-        <div class="uy-meta"><span>Budget: ${fmt(yearlyBudget)}</span><span>Geplant: ${fmt(spent)}</span></div>`;
-    } else {
+    const status = {};
+
+    if (y === 'ohne' || yearlyBudget <= 0) {
+      const hint = y === 'ohne'
+        ? 'Diese Urlaube haben kein erkennbares Jahr (Format MM.JJJJ).'
+        : 'Lege oben ein Jahresbudget fest, um Verfügbarkeit & Deckung zu sehen.';
       head.innerHTML = `
         <div class="uy-top">
           <span class="uy-year">${yearLabel}</span>
           <span class="uy-remaining">Geplant: ${fmt(spent)}</span>
         </div>
-        <div class="uy-meta"><span>Diese Urlaube haben kein erkennbares Jahr (Format MM.JJJJ).</span></div>`;
+        <div class="uy-meta"><span>${hint}</span></div>`;
+    } else {
+      const yNum = parseInt(y, 10);
+      const isPast = yNum < nowYear;
+      const isCurrent = yNum === nowYear;
+      const annualRemaining = yearlyBudget - spent;
+
+      // Monatsbuckets (unbekannter Monat -> Dezember)
+      const byMonth = {};
+      items.forEach(u => { const m = urlaubMonthNum(u.month) || 12; (byMonth[m] = byMonth[m] || []).push(u); });
+
+      // Laufender Topf-Stand pro Monat + Deckung je Urlaub
+      const bal = [];
+      let b = 0;
+      for (let m = 1; m <= 12; m++) {
+        b += rate;
+        (byMonth[m] || []).forEach(u => {
+          const cost = u.cost || 0;
+          const done = isPast || (isCurrent && m < nowMonth);
+          if (done) status[u.id] = { type: 'done' };
+          else if (cost <= Math.max(0, b) + 1e-6) status[u.id] = { type: 'ok' };
+          else status[u.id] = { type: 'short', amount: cost - Math.max(0, b) };
+          b -= cost;
+        });
+        bal[m] = b;
+      }
+
+      // Kopfzeile: zeitanteilig im laufenden Jahr, sonst Jahresübersicht
+      let topRight, phaseLine = '';
+      if (isCurrent) {
+        const accrued = rate * nowMonth;
+        const spentPast = items.reduce((s,u) => { const m = urlaubMonthNum(u.month) || 12; return s + (m < nowMonth ? (u.cost||0) : 0); }, 0);
+        const availNow = accrued - spentPast;
+        topRight = `<span class="uy-remaining ${availNow < 0 ? 'negative' : ''}">${fmt(availNow)} verfügbar</span>`;
+        phaseLine = `<div class="uy-phase"><span>Bis ${MONTH_ABBR[nowMonth-1]} angespart: ${fmt(accrued)}</span><span>ausgegeben: ${fmt(spentPast)}</span></div>`;
+      } else if (isPast) {
+        topRight = `<span class="uy-remaining ${annualRemaining < 0 ? 'negative' : ''}">abgeschlossen</span>`;
+      } else {
+        topRight = `<span class="uy-remaining ${annualRemaining < 0 ? 'negative' : ''}">${fmt(annualRemaining)} übrig</span>`;
+      }
+
+      const fillPct = Math.min(100, Math.round(spent / yearlyBudget * 100));
+      const strip = urlaubStripSVG(bal, isCurrent ? nowMonth : null);
+
+      head.innerHTML = `
+        <div class="uy-top">
+          <span class="uy-year">${yearLabel}</span>
+          ${topRight}
+        </div>
+        <div class="uy-bar"><div class="uy-bar-fill ${annualRemaining < 0 ? 'over' : ''}" style="width:${fillPct}%"></div></div>
+        <div class="uy-meta"><span>Budget: ${fmt(yearlyBudget)}</span><span>Geplant: ${fmt(spent)} · Jahr: ${fmt(annualRemaining)}</span></div>
+        ${phaseLine}
+        <div class="uy-strip">${strip}<div class="uy-strip-cap">Topf-Stand pro Monat (Jan–Dez)</div></div>`;
     }
     wrap.appendChild(head);
 
     items.forEach(u => {
       const div = document.createElement('div');
       div.className = 'entry glass';
+      const st = status[u.id];
+      let statusHtml = '';
+      if (st) {
+        if (st.type === 'done') statusHtml = `<span class="ustat done">erledigt</span>`;
+        else if (st.type === 'ok') statusHtml = `<span class="ustat ok">gedeckt</span>`;
+        else statusHtml = `<span class="ustat short">fehlen ${fmt(st.amount)}</span>`;
+      }
       const sub = [];
       if (u.month) sub.push(esc(u.month));
+      if (statusHtml) sub.push(statusHtml);
       div.innerHTML = `
         <div>
           <div class="entry-name">${esc(u.name)}</div>
