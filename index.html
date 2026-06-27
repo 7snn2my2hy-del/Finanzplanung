@@ -225,7 +225,6 @@
   .cat-Abonnement   { background: rgba(191,90,242,0.16);  color: #d9a0f7; }
   .cat-Versicherung { background: rgba(10,132,255,0.16);  color: #6cb6ff; }
   .cat-Verein       { background: rgba(48,209,88,0.16);   color: #5fe085; }
-  .cat-Finanzen     { background: rgba(255,159,10,0.16);  color: #ffc066; }
   .cat-Vertrag      { background: rgba(255,159,10,0.16);  color: #ffc066; }
   .cat-Sparen       { background: rgba(48,209,88,0.16);   color: #5fe085; }
   .cat-Urlaub       { background: rgba(10,132,255,0.16);  color: #6cb6ff; }
@@ -238,8 +237,6 @@
   .entry-period { font-size: 0.7rem; color: var(--muted-2); text-align: right; margin-top: 2px; }
   .entry-yearly { font-size: 0.7rem; color: var(--green); text-align: right; margin-top: 3px; font-variant-numeric: tabular-nums; }
   .entry-pension { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 0.72rem; font-variant-numeric: tabular-nums; }
-  .entry-pension .pv-now { color: #6cb6ff; }
-  .entry-pension .pv-end { color: var(--green); }
   .entry-pension .pv-date { color: var(--muted); }
   .growth-auto-note { font-size: 0.72rem; color: var(--muted); line-height: 1.4; background: rgba(255,255,255,0.03); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px 10px; }
   .av-dash { padding: 18px; margin-bottom: 14px; }
@@ -262,7 +259,6 @@
   .av-card-metric.s1 .av-card-metric-val  { color: #b88fe0; }
   .av-card-metric.s2 .av-card-metric-val  { color: #f0c060; }
   .av-card-metric.s3 .av-card-metric-val  { color: var(--accent); }
-  .av-card-metric.s4 .av-card-metric-val  { color: var(--green); }
   .av-card-total { background: rgba(255,255,255,0.06); border-color: var(--stroke-hi); }
   .av-hist-block { border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke); padding: 14px 0; }
   .av-legend { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 10px; }
@@ -883,6 +879,7 @@ const SECTIONS = {
 };
 
 const ACCOUNTS = ['DB Giro','DB Spar','DB ROBIN','DKB Giro','Scalable Broker','Scalable Wealth (Weltreise)','Scalable Tagesgeld','EquatePlus'];
+const isGiro = e => e.extra === 'Girokonto';   // Girokonto = am Eintrag markiert (aus Vermögen & Sparquote ausgenommen)
 const INCOME_KEY = 'income_v1';
 const BONUS_KEY = 'bonus_v1';
 const URLAUB_KEY = 'urlaube_v1';
@@ -993,8 +990,7 @@ const HISTORY_KEY = 'history_v1';
 let history = JSON.parse(store.get(HISTORY_KEY) || '[]');  // [{ ym:'2026-06', wealth, pension }]
 
 function currentWealthSnapshot() {
-  const GIRO = ['DB Giro','DKB Giro'];
-  const wealth = data.b.reduce((s,e) => s + (GIRO.includes(e.account) ? 0 : (e.balance || 0)), 0)
+  const wealth = data.b.reduce((s,e) => s + (isGiro(e) ? 0 : (e.balance || 0)), 0)
                + data.a.reduce((s,e) => s + (e.cat === 'Privat' ? (e.current || 0) : 0), 0);
   const pension = data.a.reduce((s,e) => s + (e.current || 0), 0);
   return { wealth, pension };
@@ -1244,8 +1240,7 @@ function renderDashboard() {
   }
 
   // Gesamtvermögen = Kontostände (außer Girokonten) + private Altersvorsorge
-  const GIRO_ACCOUNTS = ['DB Giro','DKB Giro'];
-  const balanceSum = data.b.reduce((s,e) => s + (GIRO_ACCOUNTS.includes(e.account) ? 0 : (e.balance || 0)), 0);
+  const balanceSum = data.b.reduce((s,e) => s + (isGiro(e) ? 0 : (e.balance || 0)), 0);
   const pensionSum = data.a.reduce((s,e) => s + (e.cat === 'Privat' ? (e.current || 0) : 0), 0);
   const wealth = balanceSum + pensionSum;
   const wEl = $('wealth-val');
@@ -1265,7 +1260,6 @@ function renderDashboard() {
   const srWrap = $('dash-saverates');
   const srBars = $('saverate-bars');
   if (income > 0) {
-    const isGiro = e => e.extra === 'Girokonto';
     const avMonthly = data.a.reduce((s,e) => s + toMonthly(e.amount, e.period), 0);
     const sparMonthly = data.b.reduce((s,e) => s + (isGiro(e) || e.cat !== 'Sparen' ? 0 : toMonthly(e.amount, e.period)), 0);
     const urlaubMonthly = data.b.reduce((s,e) => s + (isGiro(e) || e.cat !== 'Urlaub' ? 0 : toMonthly(e.amount, e.period)), 0);
