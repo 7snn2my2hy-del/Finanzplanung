@@ -381,8 +381,9 @@
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   #urlaub-payments { display: flex; flex-direction: column; gap: 8px; }
   .pay-row { display: flex; gap: 8px; align-items: center; }
-  .pay-row input { width: auto; padding: 10px 12px; font-size: 0.95rem; }
-  .pay-row .pay-month { flex: 0 0 64px; text-align: center; }
+  .pay-row input { padding: 10px 10px; font-size: 0.95rem; }
+  .pay-row .pay-month { flex: 0 0 52px; width: 52px; text-align: center; }
+  .pay-row .pay-year { flex: 0 0 64px; width: 64px; text-align: center; }
   .pay-row .pay-amount { flex: 1 1 auto; min-width: 0; text-align: right; font-variant-numeric: tabular-nums; }
   .pay-del { flex: 0 0 auto; background: none; border: none; color: var(--muted-2); padding: 6px; cursor: pointer; border-radius: 8px; line-height: 0; }
   .pay-del:hover { color: var(--danger); }
@@ -754,9 +755,9 @@
       <input type="text" id="urlaub-cost" placeholder="z.B. 3.500" autocomplete="off" oninput="updatePayHint()">
     </div>
     <div class="field">
-      <label>Abbuchungen (optional)</label>
+      <label>Anzahlungen (optional)</label>
       <div id="urlaub-payments"></div>
-      <button type="button" class="btn-add-pay" onclick="addPaymentRow()">+ Abbuchung hinzufügen</button>
+      <button type="button" class="btn-add-pay" onclick="addPaymentRow()">+ Anzahlung hinzufügen</button>
       <div class="pay-hint" id="urlaub-pay-hint"></div>
     </div>
     <div class="modal-actions">
@@ -1674,23 +1675,28 @@ function tripCost(u) {
   return 0;
 }
 
-// Tatsächliche Abbuchungen pro Monat [{m,amount}] – explizite Raten + Rest im Reisemonat.
-// Summe ist immer = tripCost(u), damit der Streifen-Endstand der Jahresbilanz entspricht.
-function tripDebits(u) {
+// Abbuchungen mit Jahr [{y,m,amount}] – Anzahlung kann in einem anderen Jahr als das Reisejahr liegen.
+// Rest (Gesamtkosten − Anzahlungen) fällt im Reisejahr/Reisemonat an. Summe = tripCost(u).
+function tripDebitsDated(u) {
   const total = tripCost(u);
-  const byM = {};
+  const baseYear = parseInt(tripYear(u), 10);
+  const baseMonth = tripMonthNum(u);
+  const out = [];
   let explicit = 0;
   if (Array.isArray(u.payments)) {
     u.payments.forEach(p => {
       const m = (typeof p.m === 'number') ? p.m : (urlaubMonthNum(p.month) || parseMonthOnly(p.month));
       const a = p.amount || 0;
-      if (m >= 1 && m <= 12 && a) { byM[m] = (byM[m] || 0) + a; explicit += a; }
+      if (m >= 1 && m <= 12 && a) {
+        const y = (p.y && /^\d{4}$/.test(String(p.y))) ? parseInt(p.y, 10) : baseYear;
+        out.push({ y, m, amount: a });
+        explicit += a;
+      }
     });
   }
-  const restM = tripMonthNum(u);
   const rest = total - explicit;
-  if (Math.abs(rest) > 0.005) byM[restM] = (byM[restM] || 0) + rest;
-  return Object.keys(byM).map(m => ({ m: +m, amount: byM[m] }));
+  if (Math.abs(rest) > 0.005 && baseYear) out.push({ y: baseYear, m: baseMonth, amount: rest });
+  return out;
 }
 
 // Mini-Balkenstreifen: laufender Topf-Stand (Liquidität) pro Monat Jan–Dez
@@ -1729,7 +1735,7 @@ function urlaubItems(group) {
 function tripList(items) {
   if (!items.length) return '';
   const rows = items.map(u =>
-    `<div class="uy-trip"><span class="uy-trip-name">${esc(u.name)}</span><span class="uy-trip-meta">${MONTH_ABBR[tripMonthNum(u)-1]} · ${fmt(tripCost(u))}</span></div>`
+    `<div class="uy-trip"><span class="uy-trip-name">${esc(u.name)}</span><span class="uy-trip-meta">${MONTH_FULL[tripMonthNum(u)-1]} | ${fmt(tripCost(u))}</span></div>`
   ).join('');
   return `<div class="uy-trips">${rows}</div>`;
 }
@@ -1751,40 +1757,81 @@ function renderUrlaubeDash() {
   const konto = data.b.reduce((s,e) => s + (e.name && e.name.trim() === 'Urlaub I' ? (e.balance || 0) : 0), 0);
   let html = `<div class="uy-konto-head"><span>Aktueller Kontostand</span><b>${fmt(konto)}</b></div>`;
 
-  years.forEach(y => {
-    const items = urlaubItems(groups[y]);
-    const spent = items.reduce((s,u) => s + tripCost(u), 0);
-    const yearLabel = y === 'ohne' ? 'Ohne Jahr' : y;
+  // --- Aggregate über alle Jahre ---
+  // Abbuchungen nach Jahr/Monat (Liquidität, Anzahlung zählt im Abbuchungsjahr)
+  const debByYM = {}, debByYear = {};
+  // Ausgaben nach Reisejahr (für die +/- Bilanz; ganze Reise zählt zum Reisejahr)
+  const expByYear = {};
+  urlaube.forEach(u => {
+    const ry = parseInt(tripYear(u), 10);
+    if (ry) expByYear[ry] = (expByYear[ry] || 0) + tripCost(u);
+    tripDebitsDated(u).forEach(d => {
+      (debByYM[d.y] = debByYM[d.y] || {});
+      debByYM[d.y][d.m] = (debByYM[d.y][d.m] || 0) + d.amount;
+      debByYear[d.y] = (debByYear[d.y] || 0) + d.amount;
+    });
+  });
 
-    if (y === 'ohne' || yearlyBudget <= 0) {
-      const hint = y === 'ohne'
-        ? 'Diese Urlaube haben kein Reisejahr. Setze im Eintrag ein Jahr (JJJJ).'
-        : 'Lege unten ein Jahresbudget fest, um die Jahresbilanz zu sehen.';
-      html += `<div class="urlaub-year-head"><div class="uy-top"><span class="uy-year">${yearLabel}</span><span class="uy-remaining">Geplant: ${fmt(spent)}</span></div><div class="uy-meta"><span>${hint}</span></div>${tripList(items)}</div>`;
-      return;
+  // Relevante Jahre (mit Reise oder Abbuchung) – Übertrag läuft auch über Lückenjahre auf
+  const numYears = Array.from(new Set([
+    ...years.filter(y => y !== 'ohne').map(Number),
+    ...Object.keys(debByYM).map(Number)
+  ])).filter(Boolean).sort((a,b) => a - b);
+
+  if (yearlyBudget > 0 && numYears.length) {
+    const minY = numYears[0], maxY = numYears[numYears.length - 1];
+    const stripCarryIn = {}, budgetCarryIn = {};
+    let sc = 0, bc = 0;
+    for (let y = minY; y <= maxY; y++) {
+      stripCarryIn[y] = sc; budgetCarryIn[y] = bc;
+      sc += yearlyBudget - (debByYear[y] || 0);   // Liquidität: nach tatsächlicher Abbuchung
+      bc += yearlyBudget - (expByYear[y] || 0);   // Bilanz: nach Ausgaben (Reisejahr)
     }
 
-    const yNum = parseInt(y, 10);
-    const isCurrent = yNum === nowYear;
-    const annualRemaining = yearlyBudget - spent;
-    const remTxt = annualRemaining >= 0 ? `${fmt(annualRemaining)} übrig` : `${fmt(Math.abs(annualRemaining))} fehlen`;
+    numYears.forEach(y => {
+      const items = urlaubItems(groups[String(y)] || []);
+      const expenses = expByYear[y] || 0;
+      const available = budgetCarryIn[y] + yearlyBudget;        // Übertrag + Budget
+      const balance = available - expenses;                      // große +/- Zahl
+      const isCurrent = y === nowYear;
+      const carry = budgetCarryIn[y];
 
-    // Budget-Stand pro Monat: +Rate je Monat, −Abbuchungen (Raten + Rest im Reisemonat)
-    const byMonth = {};
-    items.forEach(u => tripDebits(u).forEach(p => { byMonth[p.m] = (byMonth[p.m] || 0) + p.amount; }));
-    const bal = []; let b = 0;
-    for (let m = 1; m <= 12; m++) { b += rate - (byMonth[m] || 0); bal[m] = b; }
+      const remTxt = balance >= 0 ? `${fmt(balance)} übrig` : `${fmt(Math.abs(balance))} fehlen`;
+      const fillPct = available > 0 ? Math.min(100, Math.round(expenses / available * 100)) : (expenses > 0 ? 100 : 0);
 
-    const fillPct = Math.min(100, Math.round(spent / yearlyBudget * 100));
-    const strip = urlaubStripSVG(bal, isCurrent ? nowMonth : null);
+      // Budget-Stand-Streifen: Start = Vorjahres-Endstand, +Rate, −Abbuchungen des Jahres
+      const byMonth = debByYM[y] || {};
+      const bal = []; let b = stripCarryIn[y];
+      for (let m = 1; m <= 12; m++) { b += rate - (byMonth[m] || 0); bal[m] = b; }
+      const strip = urlaubStripSVG(bal, isCurrent ? nowMonth : null);
 
-    html += `<div class="urlaub-year-head">
-        <div class="uy-top"><span class="uy-year">${yearLabel}</span><span class="uy-remaining ${annualRemaining < 0 ? 'negative' : ''}">${remTxt}</span></div>
-        <div class="uy-bar"><div class="uy-bar-fill ${annualRemaining < 0 ? 'over' : ''}" style="width:${fillPct}%"></div></div>
-        <div class="uy-meta"><span>Budget: ${fmt(yearlyBudget)}</span><span>Geplant: ${fmt(spent)}</span></div>
-        <div class="uy-strip">${strip}<div class="uy-strip-cap">Budget-Stand</div></div>
-        ${tripList(items)}</div>`;
-  });
+      const budgetMeta = carry !== 0
+        ? `Budget: ${fmt(yearlyBudget)} · Übertrag: ${fmt(carry)}`
+        : `Budget: ${fmt(yearlyBudget)}`;
+
+      html += `<div class="urlaub-year-head">
+          <div class="uy-top"><span class="uy-year">${y}</span><span class="uy-remaining ${balance < 0 ? 'negative' : ''}">${remTxt}</span></div>
+          <div class="uy-bar"><div class="uy-bar-fill ${balance < 0 ? 'over' : ''}" style="width:${fillPct}%"></div></div>
+          <div class="uy-meta"><span>${budgetMeta}</span><span>Ausgaben: ${fmt(expenses)}</span></div>
+          <div class="uy-strip">${strip}<div class="uy-strip-cap">Budget-Stand</div></div>
+          ${tripList(items)}</div>`;
+    });
+  } else {
+    // Kein Budget gesetzt: nur Ausgaben je Jahr anzeigen
+    numYears.forEach(y => {
+      const items = urlaubItems(groups[String(y)] || []);
+      const spent = items.reduce((s,u) => s + tripCost(u), 0);
+      html += `<div class="urlaub-year-head"><div class="uy-top"><span class="uy-year">${y}</span><span class="uy-remaining">Geplant: ${fmt(spent)}</span></div><div class="uy-meta"><span>Lege unten ein Jahresbudget fest, um die Jahresbilanz zu sehen.</span></div>${tripList(items)}</div>`;
+    });
+  }
+
+  // Urlaube ohne Reisejahr ans Ende
+  if (groups['ohne']) {
+    const items = urlaubItems(groups['ohne']);
+    const spent = items.reduce((s,u) => s + tripCost(u), 0);
+    html += `<div class="urlaub-year-head"><div class="uy-top"><span class="uy-year">Ohne Jahr</span><span class="uy-remaining">Geplant: ${fmt(spent)}</span></div><div class="uy-meta"><span>Diese Urlaube haben kein Reisejahr. Setze im Eintrag ein Jahr (JJJJ).</span></div>${tripList(items)}</div>`;
+  }
+
   body.innerHTML = html;
 }
 
@@ -1810,9 +1857,14 @@ function renderUrlaube() {
       const monthName = MONTH_FULL[tripMonthNum(u) - 1];
       let sched = '';
       if (Array.isArray(u.payments) && u.payments.length) {
+        const ry = tripYear(u);
         sched = u.payments.slice()
           .sort((a,b) => (a.m||0)-(b.m||0))
-          .map(p => `${MONTH_ABBR[(p.m||tripMonthNum(u))-1]}: ${fmt(p.amount||0)}`)
+          .map(p => {
+            const mm = MONTH_ABBR[(p.m||tripMonthNum(u))-1];
+            const yy = (p.y && p.y !== ry) ? ` ${p.y}` : '';
+            return `${mm}${yy}: ${fmt(p.amount||0)}`;
+          })
           .join(' · ');
       }
       div.innerHTML = `
@@ -1835,18 +1887,20 @@ function renderUrlaube() {
 
 function renderUrlaubeAll() { renderUrlaubeDash(); renderUrlaube(); }
 
-function urlaubPaymentRowHTML(m, amount) {
+function urlaubPaymentRowHTML(m, amount, y) {
   const a = (amount != null && amount !== '') ? fmt(amount).replace(' €','') : '';
   const mv = (m != null && m !== '') ? String(m).padStart(2,'0') : '';
+  const yv = (y != null && y !== '') ? String(y) : '';
   return `<div class="pay-row">
     <input type="text" class="pay-month" placeholder="MM" inputmode="numeric" value="${esc(mv)}" autocomplete="off" oninput="updatePayHint()">
+    <input type="text" class="pay-year" placeholder="JJJJ" inputmode="numeric" value="${esc(yv)}" autocomplete="off" oninput="updatePayHint()">
     <input type="text" class="pay-amount" placeholder="Betrag" value="${a ? esc(a) : ''}" autocomplete="off" oninput="updatePayHint()">
-    <button type="button" class="pay-del" aria-label="Abbuchung entfernen" onclick="removePaymentRow(this)">${ICON_DEL}</button>
+    <button type="button" class="pay-del" aria-label="Anzahlung entfernen" onclick="removePaymentRow(this)">${ICON_DEL}</button>
   </div>`;
 }
 
-function addPaymentRow(m, amount) {
-  $('urlaub-payments').insertAdjacentHTML('beforeend', urlaubPaymentRowHTML((m != null ? m : ''), (amount != null ? amount : '')));
+function addPaymentRow(m, amount, y) {
+  $('urlaub-payments').insertAdjacentHTML('beforeend', urlaubPaymentRowHTML((m != null ? m : ''), (amount != null ? amount : ''), (y != null ? y : '')));
   updatePayHint();
 }
 
@@ -1857,28 +1911,32 @@ function removePaymentRow(btn) {
 }
 
 function readUrlaubPayments() {
-  return [...$('urlaub-payments').querySelectorAll('.pay-row')].map(r => ({
-    m: parseMonthOnly(r.querySelector('.pay-month').value),
-    amount: parseMoney(r.querySelector('.pay-amount').value) || 0
-  }));
+  return [...$('urlaub-payments').querySelectorAll('.pay-row')].map(r => {
+    const ym = String(r.querySelector('.pay-year').value).match(/\d{4}/);
+    return {
+      m: parseMonthOnly(r.querySelector('.pay-month').value),
+      y: ym ? ym[0] : '',
+      amount: parseMoney(r.querySelector('.pay-amount').value) || 0
+    };
+  });
 }
 
-// Zeigt, was nach den Raten als Rest im Reisemonat fällig wird
+// Zeigt, was nach den Anzahlungen als Rest im Reisemonat fällig wird
 function updatePayHint() {
   const hint = $('urlaub-pay-hint');
   if (!hint) return;
   const cost = parseMoney($('urlaub-cost').value) || 0;
   const month = parseMonthOnly($('urlaub-month').value);
   const explicit = readUrlaubPayments().reduce((s,p) => s + (p.amount || 0), 0);
-  if (explicit <= 0) { hint.textContent = 'Ohne Abbuchungen wird der Gesamtbetrag im Reisemonat fällig.'; hint.classList.remove('over'); return; }
+  if (explicit <= 0) { hint.textContent = 'Ohne Anzahlung wird der Gesamtbetrag im Reisemonat fällig.'; hint.classList.remove('over'); return; }
   const rest = cost - explicit;
   const mName = month ? MONTH_FULL[month-1] : 'Reisemonat';
   if (rest < -0.005) {
     hint.classList.add('over');
-    hint.innerHTML = `Verplant: <b>${fmt(explicit)}</b> – das sind <b>${fmt(Math.abs(rest))}</b> mehr als die Gesamtkosten.`;
+    hint.innerHTML = `Angezahlt: <b>${fmt(explicit)}</b> – das sind <b>${fmt(Math.abs(rest))}</b> mehr als die Gesamtkosten.`;
   } else {
     hint.classList.remove('over');
-    hint.innerHTML = `Verplant: <b>${fmt(explicit)}</b> · Rest im ${mName}: <b>${fmt(rest)}</b>`;
+    hint.innerHTML = `Angezahlt: <b>${fmt(explicit)}</b> · Rest im ${mName}: <b>${fmt(rest)}</b>`;
   }
 }
 
@@ -1894,7 +1952,7 @@ function openUrlaubModal(id) {
   if (e && Array.isArray(e.payments)) {
     e.payments.slice().sort((a,b) => (a.m||0)-(b.m||0)).forEach(p => {
       const m = (typeof p.m === 'number') ? p.m : (urlaubMonthNum(p.month) || parseMonthOnly(p.month));
-      if (m && p.amount) addPaymentRow(m, p.amount);
+      if (m && p.amount) addPaymentRow(m, p.amount, p.y || '');
     });
   }
   updatePayHint();
@@ -1914,8 +1972,12 @@ function saveUrlaub() {
   if (!month) { notify('Bitte einen Reisemonat (1–12) angeben.'); return; }
   if (cost <= 0) { notify('Bitte die Gesamtkosten eingeben.'); return; }
   const raw = readUrlaubPayments();
-  if (raw.some(p => (p.amount > 0) !== !!p.m)) { notify('Bitte für jede Abbuchung Monat und Betrag angeben (oder die Zeile entfernen).'); return; }
-  const payments = raw.filter(p => p.m && p.amount > 0).map(p => ({ m: p.m, amount: p.amount }));
+  if (raw.some(p => (p.amount > 0) !== !!p.m)) { notify('Bitte für jede Anzahlung Monat und Betrag angeben (oder die Zeile entfernen).'); return; }
+  const payments = raw.filter(p => p.m && p.amount > 0).map(p => {
+    const row = { m: p.m, amount: p.amount };
+    if (p.y && p.y !== year) row.y = p.y;   // Jahr nur speichern, wenn es vom Reisejahr abweicht
+    return row;
+  });
   const obj = { name, year, month, cost };
   if (payments.length) obj.payments = payments;
   if (editUrlaubId) {
