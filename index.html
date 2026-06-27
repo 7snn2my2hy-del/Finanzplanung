@@ -118,7 +118,7 @@
 
   .dashboard { padding: 18px; margin: 40px 0 0; }
   .dash-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted-2); font-weight: 600; margin-bottom: 14px; }
-  .dash-grid { display: flex; gap: 14px; align-items: flex-start; }
+  .dash-grid { display: flex; gap: 16px; align-items: center; }
   .dash-donut { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
   .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; padding: 0 4px; }
   .donut-center-label { font-size: 0.52rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); }
@@ -128,12 +128,12 @@
   .dash-saverate { }
   .saverate-val { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); font-variant-numeric: tabular-nums; display: block; }
   .saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; }
-  .dash-legend { display: flex; flex-direction: column; gap: 5px; }
-  .legend-row { display: flex; align-items: center; gap: 6px; font-size: 0.74rem; line-height: 1.35; }
-  .legend-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
+  .dash-legend { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+  .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.78rem; line-height: 1.35; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
   .legend-name { color: var(--muted); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; flex-shrink: 0; }
-  .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; width: 32px; text-align: right; flex-shrink: 0; }
+  .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; width: 34px; text-align: right; flex-shrink: 0; }
   .dash-accounts { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke); }
   .acct-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; line-height: 1.4; }
   .acct-row-name { flex: 1; min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -444,6 +444,11 @@
       <div class="dash-page">
         <div class="dashboard glass" id="dashboard">
           <div class="dash-title">Übersicht</div>
+          <div class="dash-saverate" style="margin-bottom:12px">
+            <span class="dash-sub-label">Gesamtvermögen</span>
+            <span class="saverate-val" id="wealth-val">–</span>
+            <span class="saverate-eur" id="wealth-sub"></span>
+          </div>
           <div class="dash-grid">
             <div class="dash-donut">
               <svg viewBox="0 0 120 120" id="donut-svg" width="100" height="100"></svg>
@@ -452,14 +457,7 @@
                 <span class="donut-center-val" id="donut-center-val">–</span>
               </div>
             </div>
-            <div class="dash-side">
-              <div class="dash-saverate">
-                <span class="dash-sub-label">Gesamtvermögen</span>
-                <span class="saverate-val" id="wealth-val">–</span>
-                <span class="saverate-eur" id="wealth-sub"></span>
-              </div>
-              <div class="dash-legend" id="dash-legend"></div>
-            </div>
+            <div class="dash-legend" id="dash-legend"></div>
           </div>
           <div class="dash-accounts" id="dash-wealth-hist" style="display:none">
             <div class="dash-sub-label">Gesamtvermögensverlauf</div>
