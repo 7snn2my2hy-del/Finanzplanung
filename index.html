@@ -170,9 +170,9 @@
   .account-filter:focus { border-color: var(--accent); }
   .account-filter option { background: #1c1c1e; color: var(--text); }
   .stat-value { font-size: 1.05rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-  .stat-value.year  { color: var(--violet); }
-  .stat-value.count { color: var(--green); }
-  .stat-value.month { color: var(--accent); }
+  .stat-value.year  { color: var(--text); }
+  .stat-value.count { color: var(--text); }
+  .stat-value.month { color: var(--text); }
 
   .section-label {
     font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em;
@@ -222,16 +222,16 @@
   .entry-paysched { font-size: 0.74rem; color: var(--muted-2); margin-top: 2px; font-variant-numeric: tabular-nums; }
 
   .cat-pill { display: inline-block; font-size: 0.66rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-top: 6px; letter-spacing: 0.02em; }
-  .cat-Abonnement   { background: rgba(191,90,242,0.16);  color: #d9a0f7; }
-  .cat-Versicherung { background: rgba(10,132,255,0.16);  color: #6cb6ff; }
-  .cat-Verein       { background: rgba(48,209,88,0.16);   color: #5fe085; }
-  .cat-Vertrag      { background: rgba(255,159,10,0.16);  color: #ffc066; }
-  .cat-Sparen       { background: rgba(48,209,88,0.16);   color: #5fe085; }
-  .cat-Urlaub       { background: rgba(10,132,255,0.16);  color: #6cb6ff; }
-  .cat-Konsum       { background: rgba(255,159,10,0.16);  color: #ffc066; }
-  .cat-Gesetzlich   { background: rgba(10,132,255,0.16);  color: #6cb6ff; }
-  .cat-Betrieblich  { background: rgba(48,209,88,0.16);   color: #5fe085; }
-  .cat-Privat       { background: rgba(191,90,242,0.16);  color: #d9a0f7; }
+  .cat-Abonnement   { background: rgba(176,110,235,0.16); color: #c39bf0; }
+  .cat-Versicherung { background: rgba(55,195,230,0.16);  color: #3fc8e6; }
+  .cat-Verein       { background: rgba(255,150,50,0.16);  color: #ff9f43; }
+  .cat-Vertrag      { background: rgba(235,95,195,0.16);  color: #f06fce; }
+  .cat-Sparen       { background: rgba(150,175,210,0.16); color: #97b0d4; }
+  .cat-Urlaub       { background: rgba(235,190,75,0.16);  color: #ecc24f; }
+  .cat-Konsum       { background: rgba(125,130,250,0.16); color: #8f95ff; }
+  .cat-Gesetzlich   { background: rgba(200,160,100,0.16); color: #c9a46a; }
+  .cat-Betrieblich  { background: rgba(45,195,175,0.16);  color: #34c8b4; }
+  .cat-Privat       { background: rgba(255,125,160,0.16); color: #ff8fae; }
 
   .entry-amount { font-weight: 600; font-size: 0.97rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .entry-period { font-size: 0.7rem; color: var(--muted-2); text-align: right; margin-top: 2px; }
@@ -709,7 +709,7 @@
     </div>
     <div id="f-values"></div>
     <div class="field f-toggle" id="f-autogrow-wrap" style="display:none">
-      <label class="f-toggle-lab" for="f-autogrow">Stand am Monatsersten automatisch um die Rate erhöhen</label>
+      <label class="f-toggle-lab" for="f-autogrow">Stand monatlich automatisch erhöhen</label>
       <input type="checkbox" id="f-autogrow" class="f-toggle-cb">
     </div>
     <div class="field" id="f-projtype" style="display:none">
@@ -1870,6 +1870,8 @@ function renderUrlaube() {
     lbl.textContent = y === 'ohne' ? 'Ohne Jahr' : y;
     wrap.appendChild(lbl);
 
+    const list = document.createElement('div');
+    list.className = 'list';
     items.forEach(u => {
       const div = document.createElement('div');
       div.className = 'entry glass';
@@ -1898,8 +1900,9 @@ function renderUrlaube() {
           <button class="btn-icon edit" aria-label="Bearbeiten" onclick="openUrlaubModal('${u.id}')">${ICON_EDIT}</button>
           <button class="btn-icon del" aria-label="Löschen" onclick="deleteUrlaub('${u.id}')">${ICON_DEL}</button>
         </div>`;
-      wrap.appendChild(div);
+      list.appendChild(div);
     });
+    wrap.appendChild(list);
   });
 }
 
