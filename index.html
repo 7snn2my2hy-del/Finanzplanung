@@ -384,6 +384,9 @@
   .field input:focus, .field select:focus { border-color: var(--accent); background: rgba(10,132,255,0.08); }
   .field select option { background: #1c1c1e; color: var(--text); }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .f-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .f-toggle-lab { font-size: 0.85rem; color: var(--text); line-height: 1.35; }
+  .f-toggle-cb { width: 22px; height: 22px; accent-color: var(--accent); flex: 0 0 auto; cursor: pointer; margin: 0; }
   #urlaub-payments { display: flex; flex-direction: column; gap: 8px; }
   .pay-row { display: flex; gap: 8px; align-items: center; }
   .pay-row input { padding: 10px 10px; font-size: 0.95rem; }
@@ -705,6 +708,10 @@
       </div>
     </div>
     <div id="f-values"></div>
+    <div class="field f-toggle" id="f-autogrow-wrap" style="display:none">
+      <label class="f-toggle-lab" for="f-autogrow">Stand am Monatsersten automatisch um die Rate erhöhen</label>
+      <input type="checkbox" id="f-autogrow" class="f-toggle-cb">
+    </div>
     <div class="field" id="f-projtype" style="display:none">
       <label>Art der Beträge (Rente & Szenarien)</label>
       <select id="f-projtype-select">
@@ -849,6 +856,7 @@ const SECTIONS = {
     extra: { kind: 'select', label: 'Typ', options: ['Aktien/ ETF','Sparkonto','Girokonto','Robo-Advisor'] },
     namePlaceholder: 'z.B. Notgroschen',
     showYearlyPerEntry: true,
+    autoGrowOption: true,        // Schalter „Stand monatlich automatisch erhöhen" anbieten
     valueFields: [
       { key:'balance', label:'Aktueller Stand (€)', placeholder:'z.B. 3.000', display:'Stand', color:'now' }
     ],
@@ -1122,6 +1130,7 @@ function renderSection(sec) {
     if (e.account) sub.push(esc(e.account));
     const extraVal = e.extra ?? e.contract;
     if (extraVal) sub.push(esc(extraVal));
+    if (e.autoGrow) sub.push('↻ auto +Rate/Monat');
     const yearly = cfg.showYearlyPerEntry
       ? `<div class="entry-yearly">${fmt(toMonthly(e.amount, e.period) * 12)} / Jahr</div>`
       : '';
@@ -1342,6 +1351,23 @@ function onIncomeInput() {
   income = parseMoney($('income-input').value) || 0;
   store.set(INCOME_KEY, String(income));
   updateIncome();
+}
+
+// Stand ausgewählter Sparen-Einträge am Monatsersten einmalig um die Rate erhöhen.
+// Aktueller (ggf. manuell korrigierter) Stand + Monatsrate. Verpasste Monate werden nicht nachgebucht.
+function applyAutoGrow() {
+  const ymNow = new Date().getFullYear() * 12 + new Date().getMonth();
+  let changed = false;
+  (data.b || []).forEach(e => {
+    if (!e.autoGrow) return;
+    if (e.autoGrowYM == null) { e.autoGrowYM = ymNow; changed = true; return; }  // verankern, nicht buchen
+    if (ymNow > e.autoGrowYM) {
+      e.balance = (e.balance || 0) + toMonthly(e.amount || 0, e.period || 'monatlich');
+      e.autoGrowYM = ymNow;        // nur einmal pro Monat, keine Mehrfach-Nachbuchung
+      changed = true;
+    }
+  });
+  if (changed) store.set(SECTIONS.b.storageKey, JSON.stringify(data.b));
 }
 
 function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderAvDash(); renderBonus(); renderUrlaubeAll(); updateIncome(); }
@@ -2187,6 +2213,16 @@ function openModal(sec, id) {
   buildValueFields(sec, vEntry);
   renderGrowthArea(sec, vEntry);
 
+  // Auto-Erhöhung-Schalter (nur Sparen)
+  const agWrap = $('f-autogrow-wrap');
+  if (cfg.autoGrowOption) {
+    agWrap.style.display = '';
+    $('f-autogrow').checked = !!(vEntry && vEntry.autoGrow);
+  } else {
+    agWrap.style.display = 'none';
+    $('f-autogrow').checked = false;
+  }
+
   // React to category changes (section a only)
   if (sec === 'a') {
     $('f-cat').onchange = () => { buildValueFields(sec, vEntry); renderGrowthArea(sec, vEntry); };
@@ -2224,6 +2260,20 @@ function saveEntry() {
   (cfg.textFields || []).forEach(f => {
     fields[f.key] = $('tf-' + f.key).value.trim();
   });
+
+  // Auto-Erhöhung: Flag + Monats-Anker (beim Aktivieren auf aktuellen Monat, kein Nachbuchen)
+  if (cfg.autoGrowOption) {
+    const on = $('f-autogrow').checked;
+    fields.autoGrow = on;
+    if (on) {
+      const prev = editId ? data[sec].find(x => x.id === editId) : null;
+      fields.autoGrowYM = (prev && prev.autoGrow && prev.autoGrowYM != null)
+        ? prev.autoGrowYM
+        : (new Date().getFullYear() * 12 + new Date().getMonth());
+    } else {
+      fields.autoGrowYM = null;
+    }
+  }
 
   // Section a, Privat: auto-compute "Bei Renteneintritt" = current + months×monthly (no return)
   if (sec === 'a' && cat === 'Privat') {
@@ -2411,6 +2461,7 @@ if (!store.persistent) $('notice').style.display = 'block';
 if (income > 0) $('income-input').value = income.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
 if (urlaubBudget > 0) $('urlaub-budget-input').value = urlaubBudget.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
 populateFilters();
+applyAutoGrow();
 renderAll();
 applyCollapsedStates();
 initDashSwipe();
