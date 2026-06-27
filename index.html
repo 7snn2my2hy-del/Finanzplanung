@@ -295,8 +295,6 @@
   #urlaub-budget-input:focus { border-bottom-color: var(--accent); }
   #urlaub-budget-input::placeholder { color: var(--muted-2); }
   .ub-eur { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
-  .ub-select { background: rgba(255,255,255,0.06); border: 1px solid var(--stroke); border-radius: 10px; color: var(--text); font: inherit; font-size: 0.9rem; padding: 8px 10px; max-width: 62%; outline: none; }
-  .ub-select option { background: #1c1c1e; color: var(--text); }
   .uy-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
   .uy-year { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
   .uy-remaining { font-size: 0.95rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
@@ -578,10 +576,6 @@
       <span class="ub-eur">€</span>
     </div>
   </div>
-  <div class="urlaub-budget-box glass">
-    <span class="ub-label">Kontostand-Quelle</span>
-    <select id="urlaub-bal-select" class="ub-select" onchange="onUrlaubBalSelect()"></select>
-  </div>
   <div id="urlaub-years"></div>
   <div class="empty" id="empty-urlaub" style="display:none">Noch keine Urlaube geplant. Tippe unten, um zu beginnen.</div>
 
@@ -822,7 +816,6 @@ const INCOME_KEY = 'income_v1';
 const BONUS_KEY = 'bonus_v1';
 const URLAUB_KEY = 'urlaube_v1';
 const URLAUB_BUDGET_KEY = 'urlaub_budget_v1';
-const URLAUB_BAL_KEY = 'urlaub_bal_account_v1';
 
 let data = {
   v: JSON.parse(store.get(SECTIONS.v.storageKey) || '[]'),
@@ -835,7 +828,6 @@ let bonus = JSON.parse(store.get(BONUS_KEY) || '[]');
 let editBonusId = null;
 let urlaube = JSON.parse(store.get(URLAUB_KEY) || '[]');
 let urlaubBudget = parseFloat(store.get(URLAUB_BUDGET_KEY) || '0') || 0;
-let urlaubBalId = store.get(URLAUB_BAL_KEY) || '';
 let editUrlaubId = null;
 
 let editId = null;
@@ -1616,24 +1608,6 @@ function onUrlaubBudgetInput() {
   renderDashboard();
 }
 
-// Auswahl der fest zugeordneten Kontostand-Quelle (ein Sparen-Eintrag)
-function populateUrlaubBalSelect() {
-  const sel = $('urlaub-bal-select');
-  if (!sel) return;
-  const opts = ['<option value="">— keine —</option>'];
-  data.b.filter(e => e.balance != null).forEach(e => {
-    opts.push(`<option value="${e.id}">${esc(e.name)} – ${fmt(e.balance)}</option>`);
-  });
-  sel.innerHTML = opts.join('');
-  sel.value = urlaubBalId || '';
-}
-
-function onUrlaubBalSelect() {
-  urlaubBalId = $('urlaub-bal-select').value || '';
-  store.set(URLAUB_BAL_KEY, urlaubBalId);
-  renderUrlaube();
-}
-
 const MONTH_ABBR = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
 
 function urlaubMonthNum(monthStr) {
@@ -1691,7 +1665,6 @@ function urlaubStripSVG(bal, markerMonth) {
 function renderUrlaube() {
   const wrap = $('urlaub-years');
   const empty = $('empty-urlaub');
-  populateUrlaubBalSelect();
   wrap.innerHTML = '';
   empty.style.display = urlaube.length ? 'none' : 'block';
 
@@ -1769,8 +1742,7 @@ function renderUrlaube() {
       const topRight = `<span class="uy-remaining ${annualRemaining < 0 ? 'negative' : ''}">${fmt(annualRemaining)} übrig</span>`;
       let kontoLine = '';
       if (isCurrent) {
-        const src = data.b.find(e => e.id === urlaubBalId);
-        const konto = src ? (src.balance || 0) : 0;
+        const konto = data.b.reduce((s,e) => s + (e.name && e.name.trim() === 'Urlaub I' ? (e.balance || 0) : 0), 0);
         kontoLine = `<div class="uy-konto"><span>Auf dem Konto</span><b>${fmt(konto)}</b></div>`;
       }
 
@@ -2151,7 +2123,6 @@ function exportData() {
     bonus: bonus,
     urlaube: urlaube,
     urlaubBudget: urlaubBudget,
-    urlaubBalId: urlaubBalId,
     avAssumptions: avAssumptions,
     avViewMode: avViewMode,
     history: history
@@ -2219,10 +2190,6 @@ async function applyBackup(rawText) {
     urlaubBudget = parsed.urlaubBudget;
     store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
     $('urlaub-budget-input').value = urlaubBudget > 0 ? fmt(urlaubBudget).replace(' €','') : '';
-  }
-  if (typeof parsed.urlaubBalId === 'string') {
-    urlaubBalId = parsed.urlaubBalId;
-    store.set(URLAUB_BAL_KEY, urlaubBalId);
   }
   if (parsed.avAssumptions && typeof parsed.avAssumptions === 'object') {
     avAssumptions = { ...AV_DEFAULTS, ...parsed.avAssumptions };
