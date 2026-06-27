@@ -373,7 +373,7 @@
   #urlaub-payments { display: flex; flex-direction: column; gap: 8px; }
   .pay-row { display: flex; gap: 8px; align-items: center; }
   .pay-row input { width: auto; padding: 10px 12px; font-size: 0.95rem; }
-  .pay-row .pay-month { flex: 0 0 104px; text-align: center; }
+  .pay-row .pay-month { flex: 0 0 64px; text-align: center; }
   .pay-row .pay-amount { flex: 1 1 auto; min-width: 0; text-align: right; font-variant-numeric: tabular-nums; }
   .pay-del { flex: 0 0 auto; background: none; border: none; color: var(--muted-2); padding: 6px; cursor: pointer; border-radius: 8px; line-height: 0; }
   .pay-del:hover { color: var(--danger); }
@@ -558,24 +558,6 @@
 
   <div class="group-divider"></div>
 
-  <header class="sub-header" onclick="toggleSection('bonus')">
-    <div class="sub-header-text">
-      <h1>Bonusprogramme</h1>
-      <p>Punkte, Meilen &amp; Verfall im Blick</p>
-    </div>
-    <span class="section-chevron" id="chev-bonus">⌄</span>
-  </header>
-
-  <div class="section-body" id="body-bonus">
-  <div class="section-label">Bonusprogramme</div>
-  <div class="list" id="list-bonus"></div>
-  <div class="empty" id="empty-bonus" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
-
-  <button class="add-btn" onclick="openBonusModal()">＋ Eintrag hinzufügen</button>
-  </div>
-
-  <div class="group-divider"></div>
-
   <header class="sub-header" onclick="toggleSection('urlaub')">
     <div class="sub-header-text">
       <h1>Urlaube</h1>
@@ -597,6 +579,24 @@
   <div class="empty" id="empty-urlaub" style="display:none">Noch keine Urlaube geplant. Tippe unten, um zu beginnen.</div>
 
   <button class="add-btn" onclick="openUrlaubModal()">＋ Urlaub hinzufügen</button>
+  </div>
+
+  <div class="group-divider"></div>
+
+  <header class="sub-header" onclick="toggleSection('bonus')">
+    <div class="sub-header-text">
+      <h1>Bonusprogramme</h1>
+      <p>Punkte, Meilen &amp; Verfall im Blick</p>
+    </div>
+    <span class="section-chevron" id="chev-bonus">⌄</span>
+  </header>
+
+  <div class="section-body" id="body-bonus">
+  <div class="section-label">Bonusprogramme</div>
+  <div class="list" id="list-bonus"></div>
+  <div class="empty" id="empty-bonus" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
+
+  <button class="add-btn" onclick="openBonusModal()">＋ Eintrag hinzufügen</button>
   </div>
 
   <div class="group-divider"></div>
@@ -724,8 +724,8 @@
       <input type="text" id="urlaub-name" placeholder="z.B. Namibia" autocomplete="off">
     </div>
     <div class="field">
-      <label>Monat (MM.JJJJ)</label>
-      <input type="text" id="urlaub-month" placeholder="z.B. 08.2026" autocomplete="off">
+      <label>Reisejahr (JJJJ)</label>
+      <input type="text" id="urlaub-year" placeholder="z.B. 2026" autocomplete="off" inputmode="numeric">
     </div>
     <div class="field">
       <label>Zahlungen (Monat · Betrag)</label>
@@ -1616,12 +1616,28 @@ function urlaubMonthNum(monthStr) {
   return (n >= 1 && n <= 12) ? n : null;
 }
 
-// Zahlungsplan eines Urlaubs als [{m:1-12, amount}] (Fallback: einmalige Zahlung im Reisemonat)
-function urlaubPlan(u) {
-  const list = (Array.isArray(u.payments) && u.payments.length)
-    ? u.payments
-    : [{ month: u.month, amount: u.cost || 0 }];
-  return list.map(p => ({ m: urlaubMonthNum(p.month) || urlaubMonthNum(u.month) || 12, amount: p.amount || 0 }));
+// Monatszahl 1-12 aus freier Eingabe ("3", "03")
+function parseMonthOnly(s) {
+  const m = String(s || '').match(/(\d{1,2})/);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  return (n >= 1 && n <= 12) ? n : null;
+}
+
+// Reisejahr eines Urlaubs (neu: u.year, alt: aus u.month MM.JJJJ)
+function tripYear(u) {
+  if (u.year) { const m = String(u.year).match(/\d{4}/); return m ? m[0] : null; }
+  return urlaubYear(u.month);
+}
+
+// Zahlungsplan als [{m:1-12, amount}] – verträgt neues (m), altes (month MM.JJJJ) und Legacy (cost)
+function tripPayments(u) {
+  const list = (Array.isArray(u.payments) && u.payments.length) ? u.payments : [{ amount: u.cost || 0 }];
+  return list.map(p => {
+    let m = (p.m != null) ? p.m : (urlaubMonthNum(p.month) || urlaubMonthNum(u.month));
+    if (!(m >= 1 && m <= 12)) m = 12;
+    return { m, amount: p.amount || 0 };
+  });
 }
 
 // Mini-Balkenstreifen: laufender Topf-Stand (Liquidität) pro Monat Jan–Dez
@@ -1657,7 +1673,7 @@ function renderUrlaube() {
   // Group by year (null year -> 'ohne Jahr')
   const groups = {};
   urlaube.forEach(u => {
-    const y = urlaubYear(u.month) || 'ohne';
+    const y = tripYear(u) || 'ohne';
     (groups[y] = groups[y] || []).push(u);
   });
   // Sort years ascending, 'ohne' last
@@ -1672,8 +1688,8 @@ function renderUrlaube() {
   const rate = yearlyBudget / 12;
 
   years.forEach(y => {
-    const items = groups[y].slice().sort((a,b) => (a.month||'').localeCompare(b.month||''));
-    const spent = items.reduce((s,u) => s + (u.cost || 0), 0);
+    const items = groups[y].slice().sort((a,b) => Math.min(...tripPayments(a).map(p=>p.m)) - Math.min(...tripPayments(b).map(p=>p.m)));
+    const spent = items.reduce((s,u) => s + tripPayments(u).reduce((ss,p) => ss + p.amount, 0), 0);
     const yearLabel = y === 'ohne' ? 'Ohne Jahr' : y;
     const head = document.createElement('div');
     head.className = 'urlaub-year-head';
@@ -1681,7 +1697,7 @@ function renderUrlaube() {
 
     if (y === 'ohne' || yearlyBudget <= 0) {
       const hint = y === 'ohne'
-        ? 'Diese Urlaube haben kein erkennbares Jahr (Format MM.JJJJ).'
+        ? 'Diese Urlaube haben kein Reisejahr. Setze im Eintrag ein Jahr (JJJJ).'
         : 'Lege oben ein Jahresbudget fest, um Verfügbarkeit & Deckung zu sehen.';
       head.innerHTML = `
         <div class="uy-top">
@@ -1697,7 +1713,7 @@ function renderUrlaube() {
 
       // Zahlungen je Monat bucketen (Zahlungsplan; unbekannter Monat -> Dezember)
       const byMonth = {};
-      items.forEach(u => urlaubPlan(u).forEach(p => { (byMonth[p.m] = byMonth[p.m] || []).push({ uid: u.id, amount: p.amount }); }));
+      items.forEach(u => tripPayments(u).forEach(p => { (byMonth[p.m] = byMonth[p.m] || []).push({ uid: u.id, amount: p.amount }); }));
 
       // Laufender Topf-Stand pro Monat + Fehlbetrag je Urlaub (über alle Zahlungen)
       const bal = [];
@@ -1716,7 +1732,7 @@ function renderUrlaube() {
 
       // Status je Urlaub: erledigt (alle Zahlungen vergangen), sonst gedeckt / fehlt
       items.forEach(u => {
-        const allPast = urlaubPlan(u).every(p => isPast || (isCurrent && p.m < nowMonth));
+        const allPast = tripPayments(u).every(p => isPast || (isCurrent && p.m < nowMonth));
         const short = tripShort[u.id] || 0;
         status[u.id] = allPast ? { type: 'done' } : (short > 1e-6 ? { type: 'short', amount: short } : { type: 'ok' });
       });
@@ -1725,7 +1741,7 @@ function renderUrlaube() {
       let topRight, phaseLine = '';
       if (isCurrent) {
         const accrued = rate * nowMonth;
-        const spentPast = items.reduce((s,u) => s + urlaubPlan(u).reduce((ss,p) => ss + (p.m < nowMonth ? p.amount : 0), 0), 0);
+        const spentPast = items.reduce((s,u) => s + tripPayments(u).reduce((ss,p) => ss + (p.m < nowMonth ? p.amount : 0), 0), 0);
         const availNow = accrued - spentPast;
         topRight = `<span class="uy-remaining ${availNow < 0 ? 'negative' : ''}">${fmt(availNow)} verfügbar</span>`;
         phaseLine = `<div class="uy-phase"><span>Bis ${MONTH_ABBR[nowMonth-1]} angespart: ${fmt(accrued)}</span><span>ausgegeben: ${fmt(spentPast)}</span></div>`;
@@ -1760,18 +1776,20 @@ function renderUrlaube() {
         else if (st.type === 'ok') statusHtml = `<span class="ustat ok">gedeckt</span>`;
         else statusHtml = `<span class="ustat short">fehlen ${fmt(st.amount)}</span>`;
       }
-      const sub = [];
-      if (u.month) sub.push(esc(u.month));
-      const planLen = urlaubPlan(u).length;
-      if (planLen > 1) sub.push(`${planLen} Zahlungen`);
+      const pays = tripPayments(u).slice().sort((a,b) => a.m - b.m);
+      const total = pays.reduce((s,p) => s + p.amount, 0);
+      const schedule = pays.length > 1
+        ? pays.map(p => `${MONTH_ABBR[p.m-1]}: ${fmt(p.amount)}`).join(' · ')
+        : `fällig ${MONTH_ABBR[(pays[0] ? pays[0].m : 12) - 1]}`;
+      const sub = [schedule];
       if (statusHtml) sub.push(statusHtml);
       div.innerHTML = `
         <div>
           <div class="entry-name">${esc(u.name)}</div>
-          ${sub.length ? `<div class="entry-sub">${sub.join(' · ')}</div>` : ''}
+          <div class="entry-sub">${sub.join(' · ')}</div>
         </div>
         <div>
-          <div class="entry-amount">${fmt(u.cost || 0)}</div>
+          <div class="entry-amount">${fmt(total)}</div>
         </div>
         <div class="entry-actions">
           <button class="btn-icon edit" aria-label="Bearbeiten" onclick="openUrlaubModal('${u.id}')">${ICON_EDIT}</button>
@@ -1782,17 +1800,18 @@ function renderUrlaube() {
   });
 }
 
-function urlaubPaymentRowHTML(month, amount) {
+function urlaubPaymentRowHTML(m, amount) {
   const a = (amount != null && amount !== '') ? fmt(amount).replace(' €','') : '';
+  const mv = (m != null && m !== '') ? String(m).padStart(2,'0') : '';
   return `<div class="pay-row">
-    <input type="text" class="pay-month" placeholder="MM.JJJJ" value="${month ? esc(String(month)) : ''}" autocomplete="off" oninput="updateUrlaubTotal()">
+    <input type="text" class="pay-month" placeholder="MM" inputmode="numeric" value="${mv}" autocomplete="off" oninput="updateUrlaubTotal()">
     <input type="text" class="pay-amount" placeholder="Betrag" value="${a ? esc(a) : ''}" autocomplete="off" oninput="updateUrlaubTotal()">
     <button type="button" class="pay-del" aria-label="Zahlung entfernen" onclick="removePaymentRow(this)">${ICON_DEL}</button>
   </div>`;
 }
 
-function addPaymentRow(month, amount) {
-  $('urlaub-payments').insertAdjacentHTML('beforeend', urlaubPaymentRowHTML(month || '', (amount != null ? amount : '')));
+function addPaymentRow(m, amount) {
+  $('urlaub-payments').insertAdjacentHTML('beforeend', urlaubPaymentRowHTML((m != null ? m : ''), (amount != null ? amount : '')));
   updateUrlaubTotal();
 }
 
@@ -1806,7 +1825,7 @@ function removePaymentRow(btn) {
 
 function readUrlaubPayments() {
   return [...$('urlaub-payments').querySelectorAll('.pay-row')].map(r => ({
-    month: normalizeMonth(r.querySelector('.pay-month').value),
+    m: parseMonthOnly(r.querySelector('.pay-month').value),
     amount: parseMoney(r.querySelector('.pay-amount').value) || 0
   }));
 }
@@ -1820,13 +1839,11 @@ function openUrlaubModal(id) {
   editUrlaubId = id || null;
   $('urlaub-title').textContent = id ? 'Urlaub bearbeiten' : 'Neuer Urlaub';
   const e = id ? urlaube.find(x => x.id === id) : null;
-  $('urlaub-name').value  = e ? e.name : '';
-  $('urlaub-month').value = e ? (e.month || '') : '';
+  $('urlaub-name').value = e ? e.name : '';
+  $('urlaub-year').value = e ? (tripYear(e) || '') : String(new Date().getFullYear());
   $('urlaub-payments').innerHTML = '';
-  if (e && Array.isArray(e.payments) && e.payments.length) {
-    e.payments.forEach(p => addPaymentRow(p.month || e.month || '', p.amount));
-  } else if (e) {
-    addPaymentRow(e.month || '', e.cost != null ? e.cost : '');
+  if (e) {
+    tripPayments(e).forEach(p => addPaymentRow(p.m, p.amount));
   } else {
     addPaymentRow('', '');
   }
@@ -1837,29 +1854,22 @@ function openUrlaubModal(id) {
 
 function closeUrlaubModal(){ $('urlaub-overlay').classList.remove('open'); }
 
-function normalizeMonth(s) {
-  s = String(s || '').trim();
-  if (!s) return '';
-  // 6 digits like 082026 -> 08.2026
-  let m = s.match(/^(\d{1,2})\.?(\d{4})$/);
-  if (m) return m[1].padStart(2,'0') + '.' + m[2];
-  // already MM.JJJJ or other text: leave as-is
-  return s;
-}
-
 function saveUrlaub() {
-  const name  = $('urlaub-name').value.trim();
-  let month   = normalizeMonth($('urlaub-month').value);
+  const name = $('urlaub-name').value.trim();
+  const ym = String($('urlaub-year').value).match(/\d{4}/);
+  const year = ym ? ym[0] : '';
   if (!name) { notify('Bitte ein Reiseziel eingeben.'); return; }
-  const payments = readUrlaubPayments().filter(p => p.amount > 0);
-  if (!payments.length) { notify('Bitte mindestens eine Zahlung mit Betrag eingeben.'); return; }
+  const rows = readUrlaubPayments().filter(p => p.amount > 0);
+  if (!rows.length) { notify('Bitte mindestens eine Zahlung mit Betrag eingeben.'); return; }
+  if (rows.some(p => !p.m)) { notify('Bitte für jede Zahlung einen Monat (1–12) angeben.'); return; }
+  const payments = rows.map(p => ({ m: p.m, amount: p.amount }));
   const cost = payments.reduce((s,p) => s + p.amount, 0);
-  if (!month) month = payments[payments.length - 1].month || '';  // Reisemonat -> letzte Zahlung
   if (editUrlaubId) {
     const i = urlaube.findIndex(x => x.id === editUrlaubId);
-    urlaube[i] = { ...urlaube[i], name, month, cost, payments };
+    const { month, ...rest } = urlaube[i];  // alten Reisemonat verwerfen
+    urlaube[i] = { ...rest, name, year, cost, payments };
   } else {
-    urlaube.push({ id: Date.now().toString(), name, month, cost, payments });
+    urlaube.push({ id: Date.now().toString(), name, year, cost, payments });
   }
   store.set(URLAUB_KEY, JSON.stringify(urlaube));
   closeUrlaubModal();
