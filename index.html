@@ -126,7 +126,7 @@
   .dash-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
   .dash-sub-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); display: block; margin-bottom: 4px; }
   .dash-saverate { }
-  .saverate-val { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; color: var(--green); font-variant-numeric: tabular-nums; display: block; }
+  .saverate-val { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); font-variant-numeric: tabular-nums; display: block; }
   .saverate-eur { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 3px; }
   .dash-legend { display: flex; flex-direction: column; gap: 8px; }
   .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; line-height: 1.4; }
@@ -244,6 +244,9 @@
   .av-group { display: flex; flex-direction: column; gap: 8px; }
   .av-group-head { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 2px 0; }
   .av-group-cat { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+  .av-group-cat[data-cat="Gesetzlich"]  { color: #c9a46a; }
+  .av-group-cat[data-cat="Betrieblich"] { color: #34c8b4; }
+  .av-group-cat[data-cat="Privat"]      { color: #ff8fae; }
   .av-group-cur { font-size: 0.7rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
   .av-card { background: rgba(255,255,255,0.04); border: 1px solid var(--stroke); border-radius: 14px; padding: 12px 14px; }
   .av-card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
@@ -256,9 +259,9 @@
   .av-card-metric-val { font-size: 0.8rem; font-weight: 700; font-variant-numeric: tabular-nums; display: block; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
   .av-card-metric-type { font-size: 0.58rem; color: var(--muted-2); display: block; margin-top: 2px; }
   .av-card-metric.base .av-card-metric-val { color: var(--text); }
-  .av-card-metric.s1 .av-card-metric-val  { color: #b88fe0; }
-  .av-card-metric.s2 .av-card-metric-val  { color: #f0c060; }
-  .av-card-metric.s3 .av-card-metric-val  { color: var(--accent); }
+  .av-card-metric.s1 .av-card-metric-val  { color: var(--text); }
+  .av-card-metric.s2 .av-card-metric-val  { color: var(--text); }
+  .av-card-metric.s3 .av-card-metric-val  { color: var(--text); }
   .av-card-total { background: rgba(255,255,255,0.06); border-color: var(--stroke-hi); }
   .av-hist-block { border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke); padding: 14px 0; }
   .av-legend { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 10px; }
@@ -455,6 +458,7 @@
                 <span class="saverate-val" id="wealth-val">–</span>
                 <span class="saverate-eur" id="wealth-sub"></span>
               </div>
+              <div class="dash-legend" id="dash-legend"></div>
             </div>
           </div>
           <div class="dash-accounts" id="dash-wealth-hist" style="display:none">
@@ -468,10 +472,6 @@
           <div class="dash-accounts" id="dash-saverates" style="display:none">
             <div class="dash-sub-label">Sparquoten</div>
             <div id="saverate-bars"></div>
-          </div>
-          <div class="dash-accounts" id="dash-categories">
-            <div class="dash-sub-label">Ausgaben nach Kategorie</div>
-            <div class="dash-legend" id="dash-legend"></div>
           </div>
           <div class="dash-accounts" id="dash-accounts">
             <div class="dash-sub-label">Ausgaben nach Konto</div>
@@ -1245,10 +1245,10 @@ function renderDashboard() {
   if (donutBase > 0) {
     legend.innerHTML = segs.filter(s => s.val > 0).map(s => {
       const pct = Math.round(s.val / donutBase * 100);
-      return `<div class="legend-row"><span class="legend-dot" style="background:${s.color}"></span><span class="legend-name">${s.name}</span><span class="legend-val">${fmt(s.val)}</span><span class="legend-pct">${pct}%</span></div>`;
+      return `<div class="legend-row"><span class="legend-name">${s.name}</span><span class="legend-val">${fmt(s.val)}</span><span class="legend-pct">${pct}%</span></div>`;
     }).join('');
     if (income > 0 && totalExpenses > income) {
-      legend.innerHTML += `<div class="legend-row" style="margin-top:2px"><span class="legend-dot" style="background:var(--danger)"></span><span class="legend-name" style="color:var(--danger)">Über Budget</span><span class="legend-val" style="color:var(--danger)">${fmt(totalExpenses - income)}</span><span class="legend-pct"></span></div>`;
+      legend.innerHTML += `<div class="legend-row" style="margin-top:2px"><span class="legend-name" style="color:var(--danger)">Über Budget</span><span class="legend-val" style="color:var(--danger)">${fmt(totalExpenses - income)}</span><span class="legend-pct"></span></div>`;
     }
   } else {
     legend.innerHTML = '<div class="dash-empty">Noch keine Daten.</div>';
@@ -1287,7 +1287,7 @@ function renderDashboard() {
       srWrap.style.display = '';
       srBars.innerHTML = rows.map(r => {
         const pct = Math.round(r.val / income * 100);
-        return `<div class="acct-row"><span class="acct-row-name"><span class="legend-dot" style="background:${r.color};margin-right:7px"></span>${r.name}</span><span class="acct-row-val">${fmt(r.val)}</span><span class="acct-row-pct">${pct}%</span></div>`;
+        return `<div class="acct-row"><span class="acct-row-name">${r.name}</span><span class="acct-row-val">${fmt(r.val)}</span><span class="acct-row-pct">${pct}%</span></div>`;
       }).join('');
     } else {
       srWrap.style.display = 'none';
@@ -1321,7 +1321,7 @@ function renderDashboard() {
     accWrap.style.display = '';
     barsEl.innerHTML = accRows.map(([name,val]) => {
       const pct = accTotal > 0 ? Math.round(val/accTotal*100) : 0;
-      return `<div class="acct-row"><span class="acct-row-name"><span class="legend-dot" style="background:transparent;margin-right:7px"></span>${esc(name)}</span><span class="acct-row-val">${fmt(val)}</span><span class="acct-row-pct">${pct}%</span></div>`;
+      return `<div class="acct-row"><span class="acct-row-name">${esc(name)}</span><span class="acct-row-val">${fmt(val)}</span><span class="acct-row-pct">${pct}%</span></div>`;
     }).join('');
   } else {
     accWrap.style.display = 'none';
@@ -1534,7 +1534,7 @@ function renderAvDash() {
     const positionCards = es.map(buildPositionCard).join('');
     return `<div class="av-group">
       <div class="av-group-head">
-        <span class="av-group-cat">${cat}</span>
+        <span class="av-group-cat" data-cat="${cat}">${cat}</span>
         <span class="av-group-cur">Aktuell: ${fmtShort(catCur)}</span>
       </div>
       ${positionCards}
