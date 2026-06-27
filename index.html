@@ -303,7 +303,8 @@
   .uy-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--violet)); transition: width 0.3s; }
   .uy-bar-fill.over { background: var(--danger); }
   .uy-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
-  .uy-phase { display: flex; justify-content: space-between; gap: 8px; font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 7px; }
+  .uy-konto { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.8rem; color: var(--muted); margin-top: 7px; }
+  .uy-konto b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
   .uy-strip { margin-top: 10px; }
   .uy-strip-svg { width: 100%; height: 54px; display: block; }
   .uy-strip-cap { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 3px; }
@@ -1737,18 +1738,12 @@ function renderUrlaube() {
         status[u.id] = allPast ? { type: 'done' } : (short > 1e-6 ? { type: 'short', amount: short } : { type: 'ok' });
       });
 
-      // Kopfzeile: zeitanteilig im laufenden Jahr, sonst Jahresübersicht
-      let topRight, phaseLine = '';
+      // Kopfzeile: große Zahl = Jahresbilanz (kumuliert), darunter aktueller Kontostand (verknüpft)
+      const topRight = `<span class="uy-remaining ${annualRemaining < 0 ? 'negative' : ''}">${fmt(annualRemaining)} übrig</span>`;
+      let kontoLine = '';
       if (isCurrent) {
-        const accrued = rate * nowMonth;
-        const spentPast = items.reduce((s,u) => s + tripPayments(u).reduce((ss,p) => ss + (p.m < nowMonth ? p.amount : 0), 0), 0);
-        const availNow = accrued - spentPast;
-        topRight = `<span class="uy-remaining ${availNow < 0 ? 'negative' : ''}">${fmt(availNow)} verfügbar</span>`;
-        phaseLine = `<div class="uy-phase"><span>Bis ${MONTH_ABBR[nowMonth-1]} angespart: ${fmt(accrued)}</span><span>ausgegeben: ${fmt(spentPast)}</span></div>`;
-      } else if (isPast) {
-        topRight = `<span class="uy-remaining ${annualRemaining < 0 ? 'negative' : ''}">abgeschlossen</span>`;
-      } else {
-        topRight = `<span class="uy-remaining ${annualRemaining < 0 ? 'negative' : ''}">${fmt(annualRemaining)} übrig</span>`;
+        const konto = data.b.reduce((s,e) => s + (e.cat === 'Urlaub' ? (e.balance || 0) : 0), 0);
+        kontoLine = `<div class="uy-konto"><span>Auf dem Konto</span><b>${fmt(konto)}</b></div>`;
       }
 
       const fillPct = Math.min(100, Math.round(spent / yearlyBudget * 100));
@@ -1760,8 +1755,8 @@ function renderUrlaube() {
           ${topRight}
         </div>
         <div class="uy-bar"><div class="uy-bar-fill ${annualRemaining < 0 ? 'over' : ''}" style="width:${fillPct}%"></div></div>
-        <div class="uy-meta"><span>Budget: ${fmt(yearlyBudget)}</span><span>Geplant: ${fmt(spent)} · Jahr: ${fmt(annualRemaining)}</span></div>
-        ${phaseLine}
+        <div class="uy-meta"><span>Budget: ${fmt(yearlyBudget)}</span><span>Geplant: ${fmt(spent)}</span></div>
+        ${kontoLine}
         <div class="uy-strip">${strip}<div class="uy-strip-cap">Topf-Stand pro Monat (Jan–Dez)</div></div>`;
     }
     wrap.appendChild(head);
