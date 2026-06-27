@@ -303,9 +303,13 @@
   .uy-remaining { font-size: 0.95rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
   .uy-remaining.negative { color: var(--danger); }
   .uy-bar { height: 8px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
-  .uy-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--violet)); transition: width 0.3s; }
+  .uy-bar-fill { height: 100%; border-radius: 99px; background: #30d158; transition: width 0.3s; }
   .uy-bar-fill.over { background: var(--danger); }
   .uy-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+  .uy-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; margin-bottom: 2px; }
+  .uy-mc { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.72rem; line-height: 1.3; }
+  .uy-ml { color: var(--muted-2); }
+  .uy-mv { color: var(--muted); font-variant-numeric: tabular-nums; }
   .uy-trips { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--stroke); display: flex; flex-direction: column; gap: 7px; }
   .uy-trip { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.85rem; }
   .uy-trip-name { color: var(--text); }
@@ -1805,14 +1809,17 @@ function renderUrlaubeDash() {
       for (let m = 1; m <= 12; m++) { b += rate - (byMonth[m] || 0); bal[m] = b; }
       const strip = urlaubStripSVG(bal, isCurrent ? nowMonth : null);
 
-      const budgetMeta = carry !== 0
-        ? `Budget: ${fmt(yearlyBudget)} · Übertrag: ${fmt(carry)}`
-        : `Budget: ${fmt(yearlyBudget)}`;
+      const metaGrid = `<div class="uy-meta-grid">
+          <div class="uy-mc"><span class="uy-ml">Budget</span><span class="uy-mv">${fmt(yearlyBudget)}</span></div>
+          <div class="uy-mc"><span class="uy-ml">Übertrag</span><span class="uy-mv">${fmt(carry)}</span></div>
+          <div class="uy-mc"><span class="uy-ml">Verfügbar</span><span class="uy-mv">${fmt(available)}</span></div>
+          <div class="uy-mc"><span class="uy-ml">Ausgaben</span><span class="uy-mv">${fmt(expenses)}</span></div>
+        </div>`;
 
       html += `<div class="urlaub-year-head">
           <div class="uy-top"><span class="uy-year">${y}</span><span class="uy-remaining ${balance < 0 ? 'negative' : ''}">${remTxt}</span></div>
           <div class="uy-bar"><div class="uy-bar-fill ${balance < 0 ? 'over' : ''}" style="width:${fillPct}%"></div></div>
-          <div class="uy-meta"><span>${budgetMeta}</span><span>Ausgaben: ${fmt(expenses)}</span></div>
+          ${metaGrid}
           <div class="uy-strip">${strip}<div class="uy-strip-cap">Budget-Stand</div></div>
           ${tripList(items)}</div>`;
     });
@@ -1861,7 +1868,7 @@ function renderUrlaube() {
         sched = u.payments.slice()
           .sort((a,b) => (a.m||0)-(b.m||0))
           .map(p => {
-            const mm = MONTH_ABBR[(p.m||tripMonthNum(u))-1];
+            const mm = MONTH_FULL[(p.m||tripMonthNum(u))-1];
             const yy = (p.y && p.y !== ry) ? ` ${p.y}` : '';
             return `${mm}${yy}: ${fmt(p.amount||0)}`;
           })
