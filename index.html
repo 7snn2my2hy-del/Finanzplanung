@@ -328,23 +328,6 @@
   .uy-trip-meta { color: var(--muted); font-variant-numeric: tabular-nums; }
   .urlaub-year-label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 12px 2px 6px; }
   .urlaub-year-label:first-child { margin-top: 2px; }
-  .kasse { margin: 10px 0 2px; padding-top: 12px; border-top: 1px solid var(--stroke); }
-  .kasse-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-  .kasse-title { font-size: 0.78rem; color: var(--muted); }
-  .kasse-note { font-size: 0.64rem; color: var(--muted-2); }
-  .kasse-list { display: flex; flex-direction: column; gap: 9px; }
-  .kasse-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-  .kasse-main { min-width: 0; }
-  .kasse-label { font-size: 0.85rem; color: var(--text); }
-  .kasse-when { font-size: 0.7rem; color: var(--muted-2); margin-top: 1px; }
-  .kasse-right { text-align: right; flex: 0 0 auto; }
-  .kasse-amt { font-size: 0.85rem; font-variant-numeric: tabular-nums; }
-  .kasse-amt.out { color: var(--danger); }
-  .kasse-amt.in { color: #30d158; }
-  .kasse-bal { font-size: 0.68rem; color: var(--muted); margin-top: 1px; font-variant-numeric: tabular-nums; }
-  .kasse-bal.neg { color: var(--danger); }
-  .kasse-empty { font-size: 0.78rem; color: var(--muted-2); }
-  .kasse-warn { font-size: 0.7rem; color: var(--danger); margin-top: 8px; }
 
   .entry-actions { display: flex; gap: 2px; }
   .btn-icon { background: none; border: none; cursor: pointer; color: var(--muted-2); width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; transition: color 0.15s, background 0.15s; }
@@ -1739,30 +1722,6 @@ function tripCost(u) {
   return 0;
 }
 
-// Tatsächliche Geldabflüsse einer Reise mit Datum [{y,m,amount,label}]:
-// Anzahlungen zu ihrem Monat/Jahr, Rest (Gesamtkosten − Anzahlungen) im Reisemonat/-jahr.
-function tripCashflows(u) {
-  const total = tripCost(u);
-  const baseYear = parseInt(tripYear(u), 10);
-  const baseMonth = tripMonthNum(u);
-  const out = [];
-  let explicit = 0;
-  if (Array.isArray(u.payments)) {
-    u.payments.forEach(p => {
-      const m = (typeof p.m === 'number') ? p.m : (urlaubMonthNum(p.month) || parseMonthOnly(p.month));
-      const a = p.amount || 0;
-      if (m >= 1 && m <= 12 && a) {
-        const y = (p.y && /^\d{4}$/.test(String(p.y))) ? parseInt(p.y, 10) : baseYear;
-        out.push({ y, m, amount: a, label: u.name + ' (Anzahlung)' });
-        explicit += a;
-      }
-    });
-  }
-  const rest = total - explicit;
-  if (Math.abs(rest) > 0.005 && baseYear) out.push({ y: baseYear, m: baseMonth, amount: rest, label: u.name });
-  return out;
-}
-
 function urlaubGroups() {
   const groups = {};
   urlaube.forEach(u => { const y = tripYear(u) || 'ohne'; (groups[y] = groups[y] || []).push(u); });
@@ -1783,57 +1742,7 @@ function tripList(items) {
   return `<div class="uy-trips">${rows}</div>`;
 }
 
-// Kassenüberblick: laufender Kontostand über die nächsten Zahlungen.
-// Eingänge: monatliche Sparrate (Budget/12) + Einmaleinzahlungen; Ausgänge: Reise-Zahlungen (Anzahlungen + Rest).
-function renderKasse(startBal, yearlyBudget, nowYear, nowMonth) {
-  const rate = yearlyBudget / 12;
-  const startIdx = nowYear * 12 + (nowMonth - 1);
-  const evByIdx = {};
-  const add = (y, m, amount, label, cls) => {
-    if (!(y && m >= 1 && m <= 12) || !amount) return;
-    const idx = y * 12 + (m - 1);
-    if (idx < startIdx) return;            // Vergangenes steckt schon im aktuellen Kontostand
-    (evByIdx[idx] = evByIdx[idx] || []).push({ amount, label, cls });
-  };
-  urlaube.forEach(u => tripCashflows(u).forEach(cf => add(cf.y, cf.m, -cf.amount, cf.label, 'out')));
-  urlaubDeposits.forEach(d => add(parseInt(d.y,10), parseInt(d.m,10), (d.amount || 0), d.note ? `Einzahlung – ${d.note}` : 'Einzahlung', 'in'));
-
-  const idxs = Object.keys(evByIdx).map(Number).sort((a,b) => a - b);
-  if (!idxs.length) {
-    return `<div class="kasse"><div class="kasse-head"><span class="kasse-title">Kassenüberblick</span></div><div class="kasse-empty">Keine anstehenden Zahlungen.</div></div>`;
-  }
-
-  const lastIdx = idxs[idxs.length - 1];
-  let bal = startBal, minBal = startBal, rowsHtml = '';
-  for (let idx = startIdx; idx <= lastIdx; idx++) {
-    bal += rate;                           // monatliches Sparen
-    const evs = evByIdx[idx];
-    if (!evs) continue;
-    const y = Math.floor(idx / 12), m = idx % 12 + 1;
-    evs.forEach(e => {
-      bal += e.amount;
-      if (bal < minBal) minBal = bal;
-      rowsHtml += `<div class="kasse-row">
-          <div class="kasse-main">
-            <div class="kasse-label">${esc(e.label)}</div>
-            <div class="kasse-when">${MONTH_FULL[m-1]} ${y}</div>
-          </div>
-          <div class="kasse-right">
-            <div class="kasse-amt ${e.cls}">${e.amount >= 0 ? '+ ' : '− '}${fmt(Math.abs(e.amount))}</div>
-            <div class="kasse-bal ${bal < 0 ? 'neg' : ''}">Kontostand ${fmt(bal)}</div>
-          </div>
-        </div>`;
-    });
-  }
-  const note = rate > 0 ? `inkl. Sparrate ${fmt(rate)}/Monat` : '';
-  const warn = minBal < -0.005 ? `<div class="kasse-warn">Achtung: Kontostand reicht zwischenzeitlich nicht (Tief ${fmt(minBal)}).</div>` : '';
-  return `<div class="kasse">
-      <div class="kasse-head"><span class="kasse-title">Kassenüberblick</span><span class="kasse-note">${note}</span></div>
-      <div class="kasse-list">${rowsHtml}</div>${warn}
-    </div>`;
-}
-
-// Oben: grafisches Urlaube-Dashboard (Kontostand-Kopf + Kassenüberblick + Jahresübersicht + Reisen)
+// Oben: grafisches Urlaube-Dashboard (Kontostand-Kopf + Jahresübersicht + Reisen)
 function renderUrlaubeDash() {
   const body = $('urlaub-dash-body');
   if (!body) return;
@@ -1843,13 +1752,10 @@ function renderUrlaubeDash() {
   }
   const yearlyBudget = urlaubBudget;
   const { groups, years } = urlaubGroups();
-  const nowD = new Date(), nowYear = nowD.getFullYear(), nowMonth = nowD.getMonth() + 1;
 
   // Aktueller Kontostand (global, einmal oben)
   const konto = data.b.reduce((s,e) => s + (e.name && e.name.trim() === 'Urlaub I' ? (e.balance || 0) : 0), 0);
   let html = `<div class="uy-konto-head"><span>Aktueller Kontostand</span><b>${fmt(konto)}</b></div>`;
-
-  html += renderKasse(konto, yearlyBudget, nowYear, nowMonth);
 
   // --- Aggregate über alle Jahre ---
   // Ausgaben nach Reisejahr (ganze Reise zählt zum Reisejahr)
@@ -1950,13 +1856,12 @@ function renderUrlaube() {
       const monthName = MONTH_FULL[tripMonthNum(u) - 1];
       let sched = '';
       if (Array.isArray(u.payments) && u.payments.length) {
-        const ry = tripYear(u);
         sched = u.payments.slice()
           .sort((a,b) => (a.m||0)-(b.m||0))
           .map(p => {
             const mm = MONTH_FULL[(p.m||tripMonthNum(u))-1];
-            const yy = (p.y && p.y !== ry) ? ` ${p.y}` : '';
-            return `${mm}${yy}: ${fmt(p.amount||0)}`;
+            const py = p.y || tripYear(u) || '';
+            return `${mm} ${py}: ${fmt(p.amount||0)}`.trim();
           })
           .join(' · ');
       }
@@ -2115,7 +2020,7 @@ function openUrlaubModal(id) {
   if (e && Array.isArray(e.payments)) {
     e.payments.slice().sort((a,b) => (a.m||0)-(b.m||0)).forEach(p => {
       const m = (typeof p.m === 'number') ? p.m : (urlaubMonthNum(p.month) || parseMonthOnly(p.month));
-      if (m && p.amount) addPaymentRow(m, p.amount, p.y || '');
+      if (m && p.amount) addPaymentRow(m, p.amount, p.y || tripYear(e) || '');
     });
   }
   updatePayHint();
@@ -2136,11 +2041,7 @@ function saveUrlaub() {
   if (cost <= 0) { notify('Bitte die Gesamtkosten eingeben.'); return; }
   const raw = readUrlaubPayments();
   if (raw.some(p => (p.amount > 0) !== !!p.m)) { notify('Bitte für jede Anzahlung Monat und Betrag angeben (oder die Zeile entfernen).'); return; }
-  const payments = raw.filter(p => p.m && p.amount > 0).map(p => {
-    const row = { m: p.m, amount: p.amount };
-    if (p.y && p.y !== year) row.y = p.y;   // Jahr nur speichern, wenn es vom Reisejahr abweicht
-    return row;
-  });
+  const payments = raw.filter(p => p.m && p.amount > 0).map(p => ({ m: p.m, amount: p.amount, y: p.y || year }));
   const obj = { name, year, month, cost };
   if (payments.length) obj.payments = payments;
   if (editUrlaubId) {
