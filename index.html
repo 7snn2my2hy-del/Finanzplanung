@@ -219,6 +219,7 @@
 
   .entry-name { font-weight: 600; font-size: 0.97rem; letter-spacing: -0.01em; }
   .entry-sub  { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.45; }
+  .entry-paysched { font-size: 0.74rem; color: var(--muted-2); margin-top: 2px; font-variant-numeric: tabular-nums; }
 
   .cat-pill { display: inline-block; font-size: 0.66rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-top: 6px; letter-spacing: 0.02em; }
   .cat-Abonnement   { background: rgba(191,90,242,0.16);  color: #d9a0f7; }
@@ -378,6 +379,18 @@
   .field input:focus, .field select:focus { border-color: var(--accent); background: rgba(10,132,255,0.08); }
   .field select option { background: #1c1c1e; color: var(--text); }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #urlaub-payments { display: flex; flex-direction: column; gap: 8px; }
+  .pay-row { display: flex; gap: 8px; align-items: center; }
+  .pay-row input { width: auto; padding: 10px 12px; font-size: 0.95rem; }
+  .pay-row .pay-month { flex: 0 0 64px; text-align: center; }
+  .pay-row .pay-amount { flex: 1 1 auto; min-width: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  .pay-del { flex: 0 0 auto; background: none; border: none; color: var(--muted-2); padding: 6px; cursor: pointer; border-radius: 8px; line-height: 0; }
+  .pay-del:hover { color: var(--danger); }
+  .pay-del svg { width: 18px; height: 18px; display: block; }
+  .btn-add-pay { background: none; border: none; color: var(--accent); font: inherit; font-size: 0.85rem; font-weight: 600; padding: 8px 2px; cursor: pointer; }
+  .pay-hint { font-size: 0.8rem; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .pay-hint b { color: var(--text); font-weight: 600; }
+  .pay-hint.over b { color: var(--danger); }
 
   .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
   .btn { flex: 1; padding: 13px; border-radius: 14px; font: inherit; font-size: 0.97rem; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s, transform 0.1s; }
@@ -738,7 +751,13 @@
     </div>
     <div class="field">
       <label>Gesamtkosten (€)</label>
-      <input type="text" id="urlaub-cost" placeholder="z.B. 3.500" autocomplete="off">
+      <input type="text" id="urlaub-cost" placeholder="z.B. 3.500" autocomplete="off" oninput="updatePayHint()">
+    </div>
+    <div class="field">
+      <label>Abbuchungen (optional)</label>
+      <div id="urlaub-payments"></div>
+      <button type="button" class="btn-add-pay" onclick="addPaymentRow()">+ Abbuchung hinzufügen</button>
+      <div class="pay-hint" id="urlaub-pay-hint"></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeUrlaubModal()">Abbrechen</button>
@@ -1655,6 +1674,25 @@ function tripCost(u) {
   return 0;
 }
 
+// Tatsächliche Abbuchungen pro Monat [{m,amount}] – explizite Raten + Rest im Reisemonat.
+// Summe ist immer = tripCost(u), damit der Streifen-Endstand der Jahresbilanz entspricht.
+function tripDebits(u) {
+  const total = tripCost(u);
+  const byM = {};
+  let explicit = 0;
+  if (Array.isArray(u.payments)) {
+    u.payments.forEach(p => {
+      const m = (typeof p.m === 'number') ? p.m : (urlaubMonthNum(p.month) || parseMonthOnly(p.month));
+      const a = p.amount || 0;
+      if (m >= 1 && m <= 12 && a) { byM[m] = (byM[m] || 0) + a; explicit += a; }
+    });
+  }
+  const restM = tripMonthNum(u);
+  const rest = total - explicit;
+  if (Math.abs(rest) > 0.005) byM[restM] = (byM[restM] || 0) + rest;
+  return Object.keys(byM).map(m => ({ m: +m, amount: byM[m] }));
+}
+
 // Mini-Balkenstreifen: laufender Topf-Stand (Liquidität) pro Monat Jan–Dez
 function urlaubStripSVG(bal, markerMonth) {
   const vals = [];
@@ -1731,9 +1769,9 @@ function renderUrlaubeDash() {
     const annualRemaining = yearlyBudget - spent;
     const remTxt = annualRemaining >= 0 ? `${fmt(annualRemaining)} übrig` : `${fmt(Math.abs(annualRemaining))} fehlen`;
 
-    // Budget-Stand pro Monat: +Rate je Monat, −Reisekosten im Reisemonat
+    // Budget-Stand pro Monat: +Rate je Monat, −Abbuchungen (Raten + Rest im Reisemonat)
     const byMonth = {};
-    items.forEach(u => { const m = tripMonthNum(u); byMonth[m] = (byMonth[m] || 0) + tripCost(u); });
+    items.forEach(u => tripDebits(u).forEach(p => { byMonth[p.m] = (byMonth[p.m] || 0) + p.amount; }));
     const bal = []; let b = 0;
     for (let m = 1; m <= 12; m++) { b += rate - (byMonth[m] || 0); bal[m] = b; }
 
@@ -1770,10 +1808,18 @@ function renderUrlaube() {
       const div = document.createElement('div');
       div.className = 'entry glass';
       const monthName = MONTH_FULL[tripMonthNum(u) - 1];
+      let sched = '';
+      if (Array.isArray(u.payments) && u.payments.length) {
+        sched = u.payments.slice()
+          .sort((a,b) => (a.m||0)-(b.m||0))
+          .map(p => `${MONTH_ABBR[(p.m||tripMonthNum(u))-1]}: ${fmt(p.amount||0)}`)
+          .join(' · ');
+      }
       div.innerHTML = `
         <div>
           <div class="entry-name">${esc(u.name)}</div>
           <div class="entry-sub">${monthName}</div>
+          ${sched ? `<div class="entry-paysched">${sched}</div>` : ''}
         </div>
         <div>
           <div class="entry-amount">${fmt(tripCost(u))}</div>
@@ -1789,6 +1835,53 @@ function renderUrlaube() {
 
 function renderUrlaubeAll() { renderUrlaubeDash(); renderUrlaube(); }
 
+function urlaubPaymentRowHTML(m, amount) {
+  const a = (amount != null && amount !== '') ? fmt(amount).replace(' €','') : '';
+  const mv = (m != null && m !== '') ? String(m).padStart(2,'0') : '';
+  return `<div class="pay-row">
+    <input type="text" class="pay-month" placeholder="MM" inputmode="numeric" value="${esc(mv)}" autocomplete="off" oninput="updatePayHint()">
+    <input type="text" class="pay-amount" placeholder="Betrag" value="${a ? esc(a) : ''}" autocomplete="off" oninput="updatePayHint()">
+    <button type="button" class="pay-del" aria-label="Abbuchung entfernen" onclick="removePaymentRow(this)">${ICON_DEL}</button>
+  </div>`;
+}
+
+function addPaymentRow(m, amount) {
+  $('urlaub-payments').insertAdjacentHTML('beforeend', urlaubPaymentRowHTML((m != null ? m : ''), (amount != null ? amount : '')));
+  updatePayHint();
+}
+
+function removePaymentRow(btn) {
+  const row = btn.closest('.pay-row');
+  if (row) row.remove();
+  updatePayHint();
+}
+
+function readUrlaubPayments() {
+  return [...$('urlaub-payments').querySelectorAll('.pay-row')].map(r => ({
+    m: parseMonthOnly(r.querySelector('.pay-month').value),
+    amount: parseMoney(r.querySelector('.pay-amount').value) || 0
+  }));
+}
+
+// Zeigt, was nach den Raten als Rest im Reisemonat fällig wird
+function updatePayHint() {
+  const hint = $('urlaub-pay-hint');
+  if (!hint) return;
+  const cost = parseMoney($('urlaub-cost').value) || 0;
+  const month = parseMonthOnly($('urlaub-month').value);
+  const explicit = readUrlaubPayments().reduce((s,p) => s + (p.amount || 0), 0);
+  if (explicit <= 0) { hint.textContent = 'Ohne Abbuchungen wird der Gesamtbetrag im Reisemonat fällig.'; hint.classList.remove('over'); return; }
+  const rest = cost - explicit;
+  const mName = month ? MONTH_FULL[month-1] : 'Reisemonat';
+  if (rest < -0.005) {
+    hint.classList.add('over');
+    hint.innerHTML = `Verplant: <b>${fmt(explicit)}</b> – das sind <b>${fmt(Math.abs(rest))}</b> mehr als die Gesamtkosten.`;
+  } else {
+    hint.classList.remove('over');
+    hint.innerHTML = `Verplant: <b>${fmt(explicit)}</b> · Rest im ${mName}: <b>${fmt(rest)}</b>`;
+  }
+}
+
 function openUrlaubModal(id) {
   editUrlaubId = id || null;
   $('urlaub-title').textContent = id ? 'Urlaub bearbeiten' : 'Neuer Urlaub';
@@ -1797,6 +1890,14 @@ function openUrlaubModal(id) {
   $('urlaub-year').value = e ? (tripYear(e) || '') : String(new Date().getFullYear());
   $('urlaub-month').value = e ? String(tripMonthNum(e)) : '';
   $('urlaub-cost').value = e ? fmt(tripCost(e)).replace(' €','') : '';
+  $('urlaub-payments').innerHTML = '';
+  if (e && Array.isArray(e.payments)) {
+    e.payments.slice().sort((a,b) => (a.m||0)-(b.m||0)).forEach(p => {
+      const m = (typeof p.m === 'number') ? p.m : (urlaubMonthNum(p.month) || parseMonthOnly(p.month));
+      if (m && p.amount) addPaymentRow(m, p.amount);
+    });
+  }
+  updatePayHint();
   $('urlaub-overlay').classList.add('open');
   setTimeout(() => $('urlaub-name').focus(), 60);
 }
@@ -1812,12 +1913,17 @@ function saveUrlaub() {
   if (!name) { notify('Bitte ein Reiseziel eingeben.'); return; }
   if (!month) { notify('Bitte einen Reisemonat (1–12) angeben.'); return; }
   if (cost <= 0) { notify('Bitte die Gesamtkosten eingeben.'); return; }
+  const raw = readUrlaubPayments();
+  if (raw.some(p => (p.amount > 0) !== !!p.m)) { notify('Bitte für jede Abbuchung Monat und Betrag angeben (oder die Zeile entfernen).'); return; }
+  const payments = raw.filter(p => p.m && p.amount > 0).map(p => ({ m: p.m, amount: p.amount }));
+  const obj = { name, year, month, cost };
+  if (payments.length) obj.payments = payments;
   if (editUrlaubId) {
     const i = urlaube.findIndex(x => x.id === editUrlaubId);
-    const { payments, ...rest } = urlaube[i];  // alten Zahlungsplan verwerfen
-    urlaube[i] = { ...rest, name, year, month, cost };
+    const { payments: _old, month: _m, ...rest } = urlaube[i];
+    urlaube[i] = { ...rest, ...obj };
   } else {
-    urlaube.push({ id: Date.now().toString(), name, year, month, cost });
+    urlaube.push({ id: Date.now().toString(), ...obj });
   }
   store.set(URLAUB_KEY, JSON.stringify(urlaube));
   closeUrlaubModal();
