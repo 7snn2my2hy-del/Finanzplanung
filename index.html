@@ -305,6 +305,11 @@
   .uy-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
   .uy-konto { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.8rem; color: var(--muted); margin-top: 7px; }
   .uy-konto b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .uy-trips { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--stroke); display: flex; flex-direction: column; gap: 7px; }
+  .uy-trip { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.85rem; }
+  .uy-trip-name { color: var(--text); }
+  .urlaub-year-label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 12px 2px 6px; }
+  .urlaub-year-label:first-child { margin-top: 2px; }
   .uy-strip { margin-top: 10px; }
   .uy-strip-svg { width: 100%; height: 54px; display: block; }
   .uy-strip-cap { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 3px; }
@@ -463,6 +468,12 @@
         </div>
       </div>
       <div class="dash-page">
+        <div class="av-dash glass" id="urlaub-dash">
+          <div class="dash-title">Urlaube</div>
+          <div id="urlaub-dash-body"></div>
+        </div>
+      </div>
+      <div class="dash-page">
         <div class="av-dash glass" id="av-dash">
           <div class="dash-title">Altersvorsorge</div>
           <div id="av-table"></div>
@@ -472,6 +483,7 @@
     <div class="dash-dots" id="dash-dots">
       <span class="dash-dot active" onclick="goDashPage(0)"></span>
       <span class="dash-dot" onclick="goDashPage(1)"></span>
+      <span class="dash-dot" onclick="goDashPage(2)"></span>
     </div>
   </div>
 
@@ -532,6 +544,31 @@
 
   <div class="group-divider"></div>
 
+  <header class="sub-header" onclick="toggleSection('urlaub')">
+    <div class="sub-header-text">
+      <h1>Urlaube</h1>
+      <p>Geplante Reisen &amp; Jahresbudget im Blick</p>
+    </div>
+    <span class="section-chevron" id="chev-urlaub">⌄</span>
+  </header>
+
+  <div class="section-body" id="body-urlaub">
+  <div class="section-label">Urlaube</div>
+  <div class="urlaub-budget-box glass">
+    <span class="ub-label">Jahresbudget (pro Jahr)</span>
+    <div class="ub-input-wrap">
+      <input type="text" id="urlaub-budget-input" placeholder="0,00" oninput="onUrlaubBudgetInput()">
+      <span class="ub-eur">€</span>
+    </div>
+  </div>
+  <div id="urlaub-years"></div>
+  <div class="empty" id="empty-urlaub" style="display:none">Noch keine Urlaube geplant. Tippe unten, um zu beginnen.</div>
+
+  <button class="add-btn" onclick="openUrlaubModal()">＋ Urlaub hinzufügen</button>
+  </div>
+
+  <div class="group-divider"></div>
+
   <header class="sub-header" onclick="toggleSection('a')">
     <div class="sub-header-text">
       <h1>Altersvorsorge</h1>
@@ -555,31 +592,6 @@
   <div class="empty" id="empty-a" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
 
   <button class="add-btn" onclick="openModal('a')">＋ Eintrag hinzufügen</button>
-  </div>
-
-  <div class="group-divider"></div>
-
-  <header class="sub-header" onclick="toggleSection('urlaub')">
-    <div class="sub-header-text">
-      <h1>Urlaube</h1>
-      <p>Geplante Reisen &amp; Jahresbudget im Blick</p>
-    </div>
-    <span class="section-chevron" id="chev-urlaub">⌄</span>
-  </header>
-
-  <div class="section-body" id="body-urlaub">
-  <div class="section-label">Urlaube</div>
-  <div class="urlaub-budget-box glass">
-    <span class="ub-label">Jahresbudget (pro Jahr)</span>
-    <div class="ub-input-wrap">
-      <input type="text" id="urlaub-budget-input" placeholder="0,00" oninput="onUrlaubBudgetInput()">
-      <span class="ub-eur">€</span>
-    </div>
-  </div>
-  <div id="urlaub-years"></div>
-  <div class="empty" id="empty-urlaub" style="display:none">Noch keine Urlaube geplant. Tippe unten, um zu beginnen.</div>
-
-  <button class="add-btn" onclick="openUrlaubModal()">＋ Urlaub hinzufügen</button>
   </div>
 
   <div class="group-divider"></div>
@@ -783,7 +795,7 @@ const SECTIONS = {
     namePlaceholder: 'z.B. Notgroschen',
     showYearlyPerEntry: true,
     valueFields: [
-      { key:'balance', label:'Gesamtbetrag / aktueller Stand (€)', placeholder:'z.B. 3.000', display:'Stand', color:'now' }
+      { key:'balance', label:'Aktueller Stand (€)', placeholder:'z.B. 3.000', display:'Stand', color:'now' }
     ],
     ids: { list:'list-b', empty:'empty-b', month:'sum-month-b', year:'sum-year-b', count:'sum-count-b' }
   },
@@ -1276,7 +1288,7 @@ function onIncomeInput() {
   updateIncome();
 }
 
-function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderAvDash(); renderBonus(); renderUrlaube(); updateIncome(); }
+function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderAvDash(); renderBonus(); renderUrlaubeAll(); updateIncome(); }
 
 let currentDashPage = 0;
 function goDashPage(i) {
@@ -1604,7 +1616,7 @@ function urlaubYear(monthStr) {
 function onUrlaubBudgetInput() {
   urlaubBudget = parseMoney($('urlaub-budget-input').value) || 0;
   store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
-  renderUrlaube();
+  renderUrlaubeAll();
   renderDashboard();
 }
 
@@ -1662,126 +1674,123 @@ function urlaubStripSVG(bal, markerMonth) {
   return svg;
 }
 
-function renderUrlaube() {
-  const wrap = $('urlaub-years');
-  const empty = $('empty-urlaub');
-  wrap.innerHTML = '';
-  empty.style.display = urlaube.length ? 'none' : 'block';
-
-  // Annual vacation budget = manually entered value (per year)
-  const yearlyBudget = urlaubBudget;
-
-  // Group by year (null year -> 'ohne Jahr')
+function urlaubGroups() {
   const groups = {};
-  urlaube.forEach(u => {
-    const y = tripYear(u) || 'ohne';
-    (groups[y] = groups[y] || []).push(u);
-  });
-  // Sort years ascending, 'ohne' last
-  const years = Object.keys(groups).sort((a,b) => {
-    if (a === 'ohne') return 1; if (b === 'ohne') return -1;
-    return a.localeCompare(b);
-  });
+  urlaube.forEach(u => { const y = tripYear(u) || 'ohne'; (groups[y] = groups[y] || []).push(u); });
+  const years = Object.keys(groups).sort((a,b) => { if (a === 'ohne') return 1; if (b === 'ohne') return -1; return a.localeCompare(b); });
+  return { groups, years };
+}
 
-  const nowD = new Date();
-  const nowYear = nowD.getFullYear();
-  const nowMonth = nowD.getMonth() + 1;
+function urlaubItems(group) {
+  return group.slice().sort((a,b) => Math.min(...tripPayments(a).map(p=>p.m)) - Math.min(...tripPayments(b).map(p=>p.m)));
+}
+
+// Deckungs-Status je Reise als kompakte Liste (fürs Dashboard)
+function tripStatusList(items, status) {
+  if (!items.length) return '';
+  const rows = items.map(u => {
+    const st = status[u.id];
+    let badge = '';
+    if (st) {
+      if (st.type === 'done') badge = `<span class="ustat done">erledigt</span>`;
+      else if (st.type === 'ok') badge = `<span class="ustat ok">gedeckt</span>`;
+      else badge = `<span class="ustat short">fehlen ${fmt(st.amount)}</span>`;
+    }
+    return `<div class="uy-trip"><span class="uy-trip-name">${esc(u.name)}</span>${badge}</div>`;
+  }).join('');
+  return `<div class="uy-trips">${rows}</div>`;
+}
+
+// Oben: grafisches Urlaube-Dashboard (Jahresübersicht + Liquidität + Status pro Reise)
+function renderUrlaubeDash() {
+  const body = $('urlaub-dash-body');
+  if (!body) return;
+  if (!urlaube.length) {
+    body.innerHTML = '<div class="av-empty">Noch keine Urlaube geplant. Lege unten in der Urlaube-Sektion welche an.</div>';
+    return;
+  }
+  const yearlyBudget = urlaubBudget;
+  const { groups, years } = urlaubGroups();
+  const nowD = new Date(), nowYear = nowD.getFullYear(), nowMonth = nowD.getMonth() + 1;
   const rate = yearlyBudget / 12;
+  let html = '';
 
   years.forEach(y => {
-    const items = groups[y].slice().sort((a,b) => Math.min(...tripPayments(a).map(p=>p.m)) - Math.min(...tripPayments(b).map(p=>p.m)));
+    const items = urlaubItems(groups[y]);
     const spent = items.reduce((s,u) => s + tripPayments(u).reduce((ss,p) => ss + p.amount, 0), 0);
     const yearLabel = y === 'ohne' ? 'Ohne Jahr' : y;
-    const head = document.createElement('div');
-    head.className = 'urlaub-year-head';
-    const status = {};
 
     if (y === 'ohne' || yearlyBudget <= 0) {
       const hint = y === 'ohne'
         ? 'Diese Urlaube haben kein Reisejahr. Setze im Eintrag ein Jahr (JJJJ).'
-        : 'Lege oben ein Jahresbudget fest, um Verfügbarkeit & Deckung zu sehen.';
-      head.innerHTML = `
-        <div class="uy-top">
-          <span class="uy-year">${yearLabel}</span>
-          <span class="uy-remaining">Geplant: ${fmt(spent)}</span>
-        </div>
-        <div class="uy-meta"><span>${hint}</span></div>`;
-    } else {
-      const yNum = parseInt(y, 10);
-      const isPast = yNum < nowYear;
-      const isCurrent = yNum === nowYear;
-      const annualRemaining = yearlyBudget - spent;
+        : 'Lege unten ein Jahresbudget fest, um Verfügbarkeit & Deckung zu sehen.';
+      html += `<div class="urlaub-year-head"><div class="uy-top"><span class="uy-year">${yearLabel}</span><span class="uy-remaining">Geplant: ${fmt(spent)}</span></div><div class="uy-meta"><span>${hint}</span></div>${tripStatusList(items, {})}</div>`;
+      return;
+    }
 
-      // Zahlungen je Monat bucketen (Zahlungsplan; unbekannter Monat -> Dezember)
-      const byMonth = {};
-      items.forEach(u => tripPayments(u).forEach(p => { (byMonth[p.m] = byMonth[p.m] || []).push({ uid: u.id, amount: p.amount }); }));
+    const yNum = parseInt(y, 10);
+    const isPast = yNum < nowYear, isCurrent = yNum === nowYear;
+    const annualRemaining = yearlyBudget - spent;
 
-      // Laufender Topf-Stand pro Monat + Fehlbetrag je Urlaub (über alle Zahlungen)
-      const bal = [];
-      const tripShort = {};
-      let b = 0;
-      for (let m = 1; m <= 12; m++) {
-        b += rate;
-        (byMonth[m] || []).forEach(p => {
-          const avail = Math.max(0, b);
-          const short = p.amount - avail;
-          if (short > 1e-6) tripShort[p.uid] = (tripShort[p.uid] || 0) + short;
-          b -= p.amount;
-        });
-        bal[m] = b;
-      }
+    const byMonth = {};
+    items.forEach(u => tripPayments(u).forEach(p => { (byMonth[p.m] = byMonth[p.m] || []).push({ uid: u.id, amount: p.amount }); }));
+    const bal = []; const tripShort = {}; let b = 0;
+    for (let m = 1; m <= 12; m++) {
+      b += rate;
+      (byMonth[m] || []).forEach(p => { const avail = Math.max(0, b); const short = p.amount - avail; if (short > 1e-6) tripShort[p.uid] = (tripShort[p.uid] || 0) + short; b -= p.amount; });
+      bal[m] = b;
+    }
+    const status = {};
+    items.forEach(u => { const allPast = tripPayments(u).every(p => isPast || (isCurrent && p.m < nowMonth)); const short = tripShort[u.id] || 0; status[u.id] = allPast ? { type: 'done' } : (short > 1e-6 ? { type: 'short', amount: short } : { type: 'ok' }); });
 
-      // Status je Urlaub: erledigt (alle Zahlungen vergangen), sonst gedeckt / fehlt
-      items.forEach(u => {
-        const allPast = tripPayments(u).every(p => isPast || (isCurrent && p.m < nowMonth));
-        const short = tripShort[u.id] || 0;
-        status[u.id] = allPast ? { type: 'done' } : (short > 1e-6 ? { type: 'short', amount: short } : { type: 'ok' });
-      });
+    const topRight = `<span class="uy-remaining ${annualRemaining < 0 ? 'negative' : ''}">${fmt(annualRemaining)} übrig</span>`;
+    let kontoLine = '';
+    if (isCurrent) {
+      const konto = data.b.reduce((s,e) => s + (e.name && e.name.trim() === 'Urlaub I' ? (e.balance || 0) : 0), 0);
+      kontoLine = `<div class="uy-konto"><span>Auf dem Konto</span><b>${fmt(konto)}</b></div>`;
+    }
+    const fillPct = Math.min(100, Math.round(spent / yearlyBudget * 100));
+    const strip = urlaubStripSVG(bal, isCurrent ? nowMonth : null);
 
-      // Kopfzeile: große Zahl = Jahresbilanz (kumuliert), darunter aktueller Kontostand (verknüpft)
-      const topRight = `<span class="uy-remaining ${annualRemaining < 0 ? 'negative' : ''}">${fmt(annualRemaining)} übrig</span>`;
-      let kontoLine = '';
-      if (isCurrent) {
-        const konto = data.b.reduce((s,e) => s + (e.name && e.name.trim() === 'Urlaub I' ? (e.balance || 0) : 0), 0);
-        kontoLine = `<div class="uy-konto"><span>Auf dem Konto</span><b>${fmt(konto)}</b></div>`;
-      }
-
-      const fillPct = Math.min(100, Math.round(spent / yearlyBudget * 100));
-      const strip = urlaubStripSVG(bal, isCurrent ? nowMonth : null);
-
-      head.innerHTML = `
-        <div class="uy-top">
-          <span class="uy-year">${yearLabel}</span>
-          ${topRight}
-        </div>
+    html += `<div class="urlaub-year-head">
+        <div class="uy-top"><span class="uy-year">${yearLabel}</span>${topRight}</div>
         <div class="uy-bar"><div class="uy-bar-fill ${annualRemaining < 0 ? 'over' : ''}" style="width:${fillPct}%"></div></div>
         <div class="uy-meta"><span>Budget: ${fmt(yearlyBudget)}</span><span>Geplant: ${fmt(spent)}</span></div>
         ${kontoLine}
-        <div class="uy-strip">${strip}<div class="uy-strip-cap">Topf-Stand pro Monat (Jan–Dez)</div></div>`;
-    }
-    wrap.appendChild(head);
+        <div class="uy-strip">${strip}<div class="uy-strip-cap">Topf-Stand pro Monat (Jan–Dez)</div></div>
+        ${tripStatusList(items, status)}</div>`;
+  });
+  body.innerHTML = html;
+}
+
+// Unten: schlichte Einträgeliste (nach Jahr gruppiert, ohne Grafik/Status)
+function renderUrlaube() {
+  const wrap = $('urlaub-years');
+  const empty = $('empty-urlaub');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (empty) empty.style.display = urlaube.length ? 'none' : 'block';
+  const { groups, years } = urlaubGroups();
+
+  years.forEach(y => {
+    const items = urlaubItems(groups[y]);
+    const lbl = document.createElement('div');
+    lbl.className = 'urlaub-year-label';
+    lbl.textContent = y === 'ohne' ? 'Ohne Jahr' : y;
+    wrap.appendChild(lbl);
 
     items.forEach(u => {
       const div = document.createElement('div');
       div.className = 'entry glass';
-      const st = status[u.id];
-      let statusHtml = '';
-      if (st) {
-        if (st.type === 'done') statusHtml = `<span class="ustat done">erledigt</span>`;
-        else if (st.type === 'ok') statusHtml = `<span class="ustat ok">gedeckt</span>`;
-        else statusHtml = `<span class="ustat short">fehlen ${fmt(st.amount)}</span>`;
-      }
       const pays = tripPayments(u).slice().sort((a,b) => a.m - b.m);
       const total = pays.reduce((s,p) => s + p.amount, 0);
       const schedule = pays.length > 1
         ? pays.map(p => `${MONTH_ABBR[p.m-1]}: ${fmt(p.amount)}`).join(' · ')
         : `fällig ${MONTH_ABBR[(pays[0] ? pays[0].m : 12) - 1]}`;
-      const sub = [schedule];
-      if (statusHtml) sub.push(statusHtml);
       div.innerHTML = `
         <div>
           <div class="entry-name">${esc(u.name)}</div>
-          <div class="entry-sub">${sub.join(' · ')}</div>
+          <div class="entry-sub">${schedule}</div>
         </div>
         <div>
           <div class="entry-amount">${fmt(total)}</div>
@@ -1794,6 +1803,8 @@ function renderUrlaube() {
     });
   });
 }
+
+function renderUrlaubeAll() { renderUrlaubeDash(); renderUrlaube(); }
 
 function urlaubPaymentRowHTML(m, amount) {
   const a = (amount != null && amount !== '') ? fmt(amount).replace(' €','') : '';
@@ -1868,7 +1879,7 @@ function saveUrlaub() {
   }
   store.set(URLAUB_KEY, JSON.stringify(urlaube));
   closeUrlaubModal();
-  renderUrlaube();
+  renderUrlaubeAll();
 }
 
 async function deleteUrlaub(id) {
@@ -1876,7 +1887,7 @@ async function deleteUrlaub(id) {
   if (!ok) return;
   urlaube = urlaube.filter(x => x.id !== id);
   store.set(URLAUB_KEY, JSON.stringify(urlaube));
-  renderUrlaube();
+  renderUrlaubeAll();
 }
 
 function buildValueFields(sec, vEntry) {
