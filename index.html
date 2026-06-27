@@ -118,22 +118,22 @@
 
   .dashboard { padding: 18px; margin: 40px 0 0; }
   .dash-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted-2); font-weight: 600; margin-bottom: 14px; }
-  .dash-grid { display: flex; gap: 18px; align-items: center; }
-  .dash-donut { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
-  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; padding: 0 6px; }
-  .donut-center-label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); }
-  .donut-center-val { font-size: 0.82rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 2px; max-width: 84px; text-align: center; line-height: 1.15; }
-  .dash-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  .dash-grid { display: flex; gap: 14px; align-items: flex-start; }
+  .dash-donut { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; padding: 0 4px; }
+  .donut-center-label { font-size: 0.52rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); }
+  .donut-center-val { font-size: 0.75rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 2px; max-width: 72px; text-align: center; line-height: 1.15; }
+  .dash-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
   .dash-sub-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); display: block; margin-bottom: 4px; }
   .dash-saverate { }
-  .saverate-val { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); font-variant-numeric: tabular-nums; display: block; }
-  .saverate-eur { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 3px; }
-  .dash-legend { display: flex; flex-direction: column; gap: 8px; }
-  .legend-row { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; line-height: 1.4; }
-  .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; display: inline-block; vertical-align: middle; }
-  .legend-name { color: var(--muted); flex: 1; min-width: 0; }
-  .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
-  .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; width: 40px; text-align: right; flex-shrink: 0; }
+  .saverate-val { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); font-variant-numeric: tabular-nums; display: block; }
+  .saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; }
+  .dash-legend { display: flex; flex-direction: column; gap: 5px; }
+  .legend-row { display: flex; align-items: center; gap: 6px; font-size: 0.74rem; line-height: 1.35; }
+  .legend-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
+  .legend-name { color: var(--muted); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; flex-shrink: 0; }
+  .legend-pct { color: var(--muted-2); font-variant-numeric: tabular-nums; width: 32px; text-align: right; flex-shrink: 0; }
   .dash-accounts { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke); }
   .acct-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; line-height: 1.4; }
   .acct-row-name { flex: 1; min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -446,7 +446,7 @@
           <div class="dash-title">Übersicht</div>
           <div class="dash-grid">
             <div class="dash-donut">
-              <svg viewBox="0 0 120 120" id="donut-svg" width="120" height="120"></svg>
+              <svg viewBox="0 0 120 120" id="donut-svg" width="100" height="100"></svg>
               <div class="donut-center">
                 <span class="donut-center-label">Netto</span>
                 <span class="donut-center-val" id="donut-center-val">–</span>
@@ -1245,10 +1245,10 @@ function renderDashboard() {
   if (donutBase > 0) {
     legend.innerHTML = segs.filter(s => s.val > 0).map(s => {
       const pct = Math.round(s.val / donutBase * 100);
-      return `<div class="legend-row"><span class="legend-name">${s.name}</span><span class="legend-val">${fmt(s.val)}</span><span class="legend-pct">${pct}%</span></div>`;
+      return `<div class="legend-row"><span class="legend-dot" style="background:${s.color}"></span><span class="legend-name">${s.name}</span><span class="legend-val">${fmt(s.val)}</span><span class="legend-pct">${pct}%</span></div>`;
     }).join('');
     if (income > 0 && totalExpenses > income) {
-      legend.innerHTML += `<div class="legend-row" style="margin-top:2px"><span class="legend-name" style="color:var(--danger)">Über Budget</span><span class="legend-val" style="color:var(--danger)">${fmt(totalExpenses - income)}</span><span class="legend-pct"></span></div>`;
+      legend.innerHTML += `<div class="legend-row" style="margin-top:2px"><span class="legend-dot" style="background:var(--danger)"></span><span class="legend-name" style="color:var(--danger)">Über Budget</span><span class="legend-val" style="color:var(--danger)">${fmt(totalExpenses - income)}</span><span class="legend-pct"></span></div>`;
     }
   } else {
     legend.innerHTML = '<div class="dash-empty">Noch keine Daten.</div>';
