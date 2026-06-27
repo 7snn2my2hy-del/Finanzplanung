@@ -298,6 +298,17 @@
   #urlaub-budget-input:focus { border-bottom-color: var(--accent); }
   #urlaub-budget-input::placeholder { color: var(--muted-2); }
   .ub-eur { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
+  .urlaub-deposits { padding: 12px 16px; margin-bottom: 12px; }
+  .ud-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .ud-add { background: none; border: none; color: var(--accent); font: inherit; font-size: 0.85rem; font-weight: 600; padding: 2px 0; cursor: pointer; }
+  #deposit-list { display: flex; flex-direction: column; }
+  #deposit-list:not(:empty) { margin-top: 10px; gap: 8px; }
+  .depo-row { display: flex; align-items: center; gap: 10px; }
+  .depo-main { flex: 1 1 auto; min-width: 0; }
+  .depo-when { font-size: 0.9rem; color: var(--text); font-variant-numeric: tabular-nums; }
+  .depo-note { font-size: 0.74rem; color: var(--muted-2); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .depo-amount { font-size: 0.95rem; font-weight: 600; color: #30d158; font-variant-numeric: tabular-nums; }
+  .depo-actions { display: flex; gap: 2px; flex: 0 0 auto; }
   .uy-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
   .uy-year { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
   .uy-remaining { font-size: 0.95rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
@@ -308,6 +319,7 @@
   .uy-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
   .uy-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; margin-bottom: 2px; }
   .uy-mc { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.72rem; line-height: 1.3; }
+  .uy-mc-wide { grid-column: 1 / -1; }
   .uy-ml { color: var(--muted-2); }
   .uy-mv { color: var(--muted); font-variant-numeric: tabular-nums; }
   .uy-trips { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--stroke); display: flex; flex-direction: column; gap: 7px; }
@@ -569,6 +581,13 @@
       <span class="ub-eur">€</span>
     </div>
   </div>
+  <div class="urlaub-deposits glass">
+    <div class="ud-head">
+      <span class="ub-label">Einmaleinzahlungen</span>
+      <button class="ud-add" onclick="openDepositModal()">＋ Einzahlung</button>
+    </div>
+    <div id="deposit-list"></div>
+  </div>
   <div id="urlaub-years"></div>
   <div class="empty" id="empty-urlaub" style="display:none">Noch keine Urlaube geplant. Tippe unten, um zu beginnen.</div>
 
@@ -771,6 +790,35 @@
   </div>
 </div>
 
+<div class="overlay" id="deposit-overlay" onclick="if(event.target===this)closeDepositModal()">
+  <div class="modal">
+    <div class="grabber"></div>
+    <h2 id="deposit-title">Neue Einzahlung</h2>
+    <div class="field field-row">
+      <div>
+        <label>Jahr (JJJJ)</label>
+        <input type="text" id="deposit-year" placeholder="z.B. 2026" autocomplete="off" inputmode="numeric">
+      </div>
+      <div>
+        <label>Monat (MM)</label>
+        <input type="text" id="deposit-month" placeholder="z.B. 6" autocomplete="off" inputmode="numeric">
+      </div>
+    </div>
+    <div class="field">
+      <label>Betrag (€)</label>
+      <input type="text" id="deposit-amount" placeholder="z.B. 2.000" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Notiz (optional)</label>
+      <input type="text" id="deposit-note" placeholder="z.B. Bonus, Defizitausgleich" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeDepositModal()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveDeposit()">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const store = (() => {
   let memory = {}, usable = false;
@@ -846,6 +894,7 @@ const INCOME_KEY = 'income_v1';
 const BONUS_KEY = 'bonus_v1';
 const URLAUB_KEY = 'urlaube_v1';
 const URLAUB_BUDGET_KEY = 'urlaub_budget_v1';
+const URLAUB_DEPOSITS_KEY = 'urlaub_deposits_v1';
 
 let data = {
   v: JSON.parse(store.get(SECTIONS.v.storageKey) || '[]'),
@@ -858,7 +907,9 @@ let bonus = JSON.parse(store.get(BONUS_KEY) || '[]');
 let editBonusId = null;
 let urlaube = JSON.parse(store.get(URLAUB_KEY) || '[]');
 let urlaubBudget = parseFloat(store.get(URLAUB_BUDGET_KEY) || '0') || 0;
+let urlaubDeposits = JSON.parse(store.get(URLAUB_DEPOSITS_KEY) || '[]');
 let editUrlaubId = null;
+let editDepositId = null;
 
 let editId = null;
 let activeSection = 'v';
@@ -1776,10 +1827,22 @@ function renderUrlaubeDash() {
     });
   });
 
-  // Relevante Jahre (mit Reise oder Abbuchung) – Übertrag läuft auch über Lückenjahre auf
+  // Einmaleinzahlungen nach Jahr/Monat (Zufluss in Streifen UND Bilanz)
+  const depoByYM = {}, depoByYear = {};
+  urlaubDeposits.forEach(d => {
+    const y = parseInt(String(d.y), 10), m = parseInt(String(d.m), 10), a = d.amount || 0;
+    if (y && m >= 1 && m <= 12 && a) {
+      (depoByYM[y] = depoByYM[y] || {});
+      depoByYM[y][m] = (depoByYM[y][m] || 0) + a;
+      depoByYear[y] = (depoByYear[y] || 0) + a;
+    }
+  });
+
+  // Relevante Jahre (mit Reise, Abbuchung oder Einzahlung) – Übertrag läuft auch über Lückenjahre auf
   const numYears = Array.from(new Set([
     ...years.filter(y => y !== 'ohne').map(Number),
-    ...Object.keys(debByYM).map(Number)
+    ...Object.keys(debByYM).map(Number),
+    ...Object.keys(depoByYM).map(Number)
   ])).filter(Boolean).sort((a,b) => a - b);
 
   if (yearlyBudget > 0 && numYears.length) {
@@ -1788,33 +1851,40 @@ function renderUrlaubeDash() {
     let sc = 0, bc = 0;
     for (let y = minY; y <= maxY; y++) {
       stripCarryIn[y] = sc; budgetCarryIn[y] = bc;
-      sc += yearlyBudget - (debByYear[y] || 0);   // Liquidität: nach tatsächlicher Abbuchung
-      bc += yearlyBudget - (expByYear[y] || 0);   // Bilanz: nach Ausgaben (Reisejahr)
+      sc += yearlyBudget + (depoByYear[y] || 0) - (debByYear[y] || 0);   // Liquidität: +Budget +Einzahlung −Abbuchung
+      bc += yearlyBudget + (depoByYear[y] || 0) - (expByYear[y] || 0);   // Bilanz: +Budget +Einzahlung −Ausgaben
     }
 
     numYears.forEach(y => {
       const items = urlaubItems(groups[String(y)] || []);
       const expenses = expByYear[y] || 0;
-      const available = budgetCarryIn[y] + yearlyBudget;        // Übertrag + Budget
+      const deposits = depoByYear[y] || 0;
+      const carry = budgetCarryIn[y];
+      const available = carry + yearlyBudget + deposits;        // Übertrag + Budget + Einzahlungen
       const balance = available - expenses;                      // große +/- Zahl
       const isCurrent = y === nowYear;
-      const carry = budgetCarryIn[y];
 
       const remTxt = balance >= 0 ? `${fmt(balance)} übrig` : `${fmt(Math.abs(balance))} fehlen`;
       const fillPct = available > 0 ? Math.min(100, Math.round(expenses / available * 100)) : (expenses > 0 ? 100 : 0);
 
-      // Budget-Stand-Streifen: Start = Vorjahres-Endstand, +Rate, −Abbuchungen des Jahres
+      // Budget-Stand-Streifen: Start = Vorjahres-Endstand, +Rate +Einzahlung −Abbuchung
       const byMonth = debByYM[y] || {};
+      const inMonth = depoByYM[y] || {};
       const bal = []; let b = stripCarryIn[y];
-      for (let m = 1; m <= 12; m++) { b += rate - (byMonth[m] || 0); bal[m] = b; }
+      for (let m = 1; m <= 12; m++) { b += rate + (inMonth[m] || 0) - (byMonth[m] || 0); bal[m] = b; }
       const strip = urlaubStripSVG(bal, isCurrent ? nowMonth : null);
 
-      const metaGrid = `<div class="uy-meta-grid">
-          <div class="uy-mc"><span class="uy-ml">Budget</span><span class="uy-mv">${fmt(yearlyBudget)}</span></div>
-          <div class="uy-mc"><span class="uy-ml">Übertrag</span><span class="uy-mv">${fmt(carry)}</span></div>
-          <div class="uy-mc"><span class="uy-ml">Verfügbar</span><span class="uy-mv">${fmt(available)}</span></div>
-          <div class="uy-mc"><span class="uy-ml">Ausgaben</span><span class="uy-mv">${fmt(expenses)}</span></div>
-        </div>`;
+      const cells = [
+        ['Budget', fmt(yearlyBudget)],
+        ['Übertrag', fmt(carry)]
+      ];
+      if (deposits) cells.push(['Einzahlung', fmt(deposits)]);
+      cells.push(['Ausgaben', fmt(expenses)]);
+      const cellHTML = cells.map((c, i) => {
+        const wide = (i === cells.length - 1 && cells.length % 2 === 1) ? ' uy-mc-wide' : '';
+        return `<div class="uy-mc${wide}"><span class="uy-ml">${c[0]}</span><span class="uy-mv">${c[1]}</span></div>`;
+      }).join('');
+      const metaGrid = `<div class="uy-meta-grid">${cellHTML}</div>`;
 
       html += `<div class="urlaub-year-head">
           <div class="uy-top"><span class="uy-year">${y}</span><span class="uy-remaining ${balance < 0 ? 'negative' : ''}">${remTxt}</span></div>
@@ -1892,7 +1962,77 @@ function renderUrlaube() {
   });
 }
 
-function renderUrlaubeAll() { renderUrlaubeDash(); renderUrlaube(); }
+function renderUrlaubeAll() { renderUrlaubeDash(); renderUrlaube(); renderDeposits(); }
+
+// Liste der Einmaleinzahlungen (unter dem Budget)
+function renderDeposits() {
+  const wrap = $('deposit-list');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  const list = urlaubDeposits.slice().sort((a,b) =>
+    (parseInt(b.y,10)-parseInt(a.y,10)) || (parseInt(b.m,10)-parseInt(a.m,10))
+  );
+  list.forEach(d => {
+    const m = parseInt(d.m, 10);
+    const when = `${m >= 1 && m <= 12 ? MONTH_FULL[m-1] : '–'} ${d.y || ''}`.trim();
+    const row = document.createElement('div');
+    row.className = 'depo-row';
+    row.innerHTML = `
+      <div class="depo-main">
+        <div class="depo-when">${esc(when)}</div>
+        ${d.note ? `<div class="depo-note">${esc(d.note)}</div>` : ''}
+      </div>
+      <div class="depo-amount">+ ${fmt(d.amount || 0)}</div>
+      <div class="depo-actions">
+        <button class="btn-icon edit" aria-label="Bearbeiten" onclick="openDepositModal('${d.id}')">${ICON_EDIT}</button>
+        <button class="btn-icon del" aria-label="Löschen" onclick="deleteDeposit('${d.id}')">${ICON_DEL}</button>
+      </div>`;
+    wrap.appendChild(row);
+  });
+}
+
+function openDepositModal(id) {
+  editDepositId = id || null;
+  $('deposit-title').textContent = id ? 'Einzahlung bearbeiten' : 'Neue Einzahlung';
+  const e = id ? urlaubDeposits.find(x => x.id === id) : null;
+  $('deposit-year').value = e ? (e.y || '') : String(new Date().getFullYear());
+  $('deposit-month').value = e ? String(e.m || '') : String(new Date().getMonth() + 1);
+  $('deposit-amount').value = e ? fmt(e.amount || 0).replace(' €','') : '';
+  $('deposit-note').value = e ? (e.note || '') : '';
+  $('deposit-overlay').classList.add('open');
+  setTimeout(() => $('deposit-amount').focus(), 60);
+}
+
+function closeDepositModal(){ $('deposit-overlay').classList.remove('open'); }
+
+function saveDeposit() {
+  const ym = String($('deposit-year').value).match(/\d{4}/);
+  const year = ym ? ym[0] : '';
+  const month = parseMonthOnly($('deposit-month').value);
+  const amount = parseMoney($('deposit-amount').value) || 0;
+  const note = $('deposit-note').value.trim();
+  if (!year) { notify('Bitte ein Jahr (JJJJ) angeben.'); return; }
+  if (!month) { notify('Bitte einen Monat (1–12) angeben.'); return; }
+  if (amount <= 0) { notify('Bitte einen Betrag eingeben.'); return; }
+  const obj = { y: year, m: month, amount, note };
+  if (editDepositId) {
+    const i = urlaubDeposits.findIndex(x => x.id === editDepositId);
+    urlaubDeposits[i] = { ...urlaubDeposits[i], ...obj };
+  } else {
+    urlaubDeposits.push({ id: Date.now().toString(), ...obj });
+  }
+  store.set(URLAUB_DEPOSITS_KEY, JSON.stringify(urlaubDeposits));
+  closeDepositModal();
+  renderUrlaubeAll();
+}
+
+async function deleteDeposit(id) {
+  const ok = await showDialog('Einzahlung wirklich löschen?', { title: 'Löschen', okText: 'Löschen' });
+  if (!ok) return;
+  urlaubDeposits = urlaubDeposits.filter(x => x.id !== id);
+  store.set(URLAUB_DEPOSITS_KEY, JSON.stringify(urlaubDeposits));
+  renderUrlaubeAll();
+}
 
 function urlaubPaymentRowHTML(m, amount, y) {
   const a = (amount != null && amount !== '') ? fmt(amount).replace(' €','') : '';
@@ -2251,6 +2391,7 @@ function exportData() {
     bonus: bonus,
     urlaube: urlaube,
     urlaubBudget: urlaubBudget,
+    urlaubDeposits: urlaubDeposits,
     avAssumptions: avAssumptions,
     avViewMode: avViewMode,
     history: history
@@ -2318,6 +2459,10 @@ async function applyBackup(rawText) {
     urlaubBudget = parsed.urlaubBudget;
     store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
     $('urlaub-budget-input').value = urlaubBudget > 0 ? fmt(urlaubBudget).replace(' €','') : '';
+  }
+  if (Array.isArray(parsed.urlaubDeposits)) {
+    urlaubDeposits = parsed.urlaubDeposits;
+    store.set(URLAUB_DEPOSITS_KEY, JSON.stringify(urlaubDeposits));
   }
   if (parsed.avAssumptions && typeof parsed.avAssumptions === 'object') {
     avAssumptions = { ...AV_DEFAULTS, ...parsed.avAssumptions };
