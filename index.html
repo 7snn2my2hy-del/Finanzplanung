@@ -319,7 +319,7 @@
   .uy-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
   .uy-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; margin-bottom: 2px; }
   .uy-mc { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.72rem; line-height: 1.3; }
-  .uy-mc-wide { grid-column: 1 / -1; }
+  .uy-strip-meta { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--muted-2); margin-top: 2px; font-variant-numeric: tabular-nums; }
   .uy-ml { color: var(--muted-2); }
   .uy-mv { color: var(--muted); font-variant-numeric: tabular-nums; }
   .uy-trips { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--stroke); display: flex; flex-direction: column; gap: 7px; }
@@ -1754,25 +1754,46 @@ function tripDebitsDated(u) {
   return out;
 }
 
-// Mini-Balkenstreifen: laufender Topf-Stand (Liquidität) pro Monat Jan–Dez
+// Verlaufskurve: laufender Topf-Stand (Liquidität) Jan–Dez, Fläche grün über / rot unter Null
 function urlaubStripSVG(bal, markerMonth) {
   const vals = [];
   for (let m = 1; m <= 12; m++) vals.push(bal[m] || 0);
+  const n = vals.length;
   const maxAbs = Math.max(1, ...vals.map(v => Math.abs(v)));
-  const W = 300, H = 54, mid = H / 2, bw = W / 12, gap = bw * 0.24;
-  let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="uy-strip-svg">`;
-  svg += `<line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>`;
-  vals.forEach((v, i) => {
-    const x = i * bw + gap / 2, w = bw - gap;
-    const h = Math.max(1, (Math.abs(v) / maxAbs) * (mid - 3));
-    const y = v >= 0 ? mid - h : mid;
-    const fill = v >= 0 ? '#30d158' : '#ff453a';
-    const isMark = markerMonth && (i + 1) === markerMonth;
-    svg += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="${fill}" opacity="${isMark ? 1 : 0.6}"/>`;
-    if (isMark) svg += `<rect x="${(x-1).toFixed(1)}" y="2" width="${(w+2).toFixed(1)}" height="${H-4}" rx="2.5" fill="none" stroke="#0a84ff" stroke-width="1" opacity="0.55"/>`;
-  });
-  svg += `</svg>`;
-  return svg;
+  const W = 300, H = 54, pad = 5, mid = H / 2;
+  const X = i => (n === 1 ? W / 2 : (i / (n - 1)) * W);
+  const Y = v => mid - (v / maxAbs) * (mid - pad);
+  const zeroY = mid;
+
+  // Farbflächen zwischen aufeinanderfolgenden Punkten, an Nulldurchgängen geteilt
+  let areas = '';
+  const tri = (xa, ya, xb, yb, col) =>
+    `<path d="M${xa.toFixed(1)},${zeroY} L${xa.toFixed(1)},${ya.toFixed(1)} L${xb.toFixed(1)},${yb.toFixed(1)} L${xb.toFixed(1)},${zeroY} Z" fill="${col}" opacity="0.26"/>`;
+  for (let i = 0; i < n - 1; i++) {
+    const v0 = vals[i], v1 = vals[i+1], x0 = X(i), x1 = X(i+1), y0 = Y(v0), y1 = Y(v1);
+    if ((v0 >= 0 && v1 >= 0) || (v0 <= 0 && v1 <= 0)) {
+      areas += tri(x0, y0, x1, y1, (v0 + v1) >= 0 ? '#30d158' : '#ff453a');
+    } else {
+      const t = v0 / (v0 - v1), xc = x0 + (x1 - x0) * t;
+      areas += `<path d="M${x0.toFixed(1)},${zeroY} L${x0.toFixed(1)},${y0.toFixed(1)} L${xc.toFixed(1)},${zeroY} Z" fill="${v0 >= 0 ? '#30d158' : '#ff453a'}" opacity="0.26"/>`;
+      areas += `<path d="M${xc.toFixed(1)},${zeroY} L${x1.toFixed(1)},${y1.toFixed(1)} L${x1.toFixed(1)},${zeroY} Z" fill="${v1 >= 0 ? '#30d158' : '#ff453a'}" opacity="0.26"/>`;
+    }
+  }
+
+  let line = '<polyline points="';
+  for (let i = 0; i < n; i++) line += `${X(i).toFixed(1)},${Y(vals[i]).toFixed(1)} `;
+  line += `" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`;
+
+  const zero = `<line x1="0" y1="${zeroY}" x2="${W}" y2="${zeroY}" stroke="rgba(255,255,255,0.18)" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
+
+  let mark = '';
+  if (markerMonth && markerMonth >= 1 && markerMonth <= 12) {
+    const mx = X(markerMonth - 1), my = Y(vals[markerMonth - 1]);
+    mark = `<line x1="${mx.toFixed(1)}" y1="1" x2="${mx.toFixed(1)}" y2="${H-1}" stroke="#0a84ff" stroke-width="1" opacity="0.55" vector-effect="non-scaling-stroke"/>`
+         + `<rect x="${(mx-2.5).toFixed(1)}" y="${(my-2.5).toFixed(1)}" width="5" height="5" rx="1.5" fill="#0a84ff"/>`;
+  }
+
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="uy-strip-svg">${zero}${areas}${line}${mark}</svg>`;
 }
 
 function urlaubGroups() {
@@ -1873,24 +1894,28 @@ function renderUrlaubeDash() {
       const bal = []; let b = stripCarryIn[y];
       for (let m = 1; m <= 12; m++) { b += rate + (inMonth[m] || 0) - (byMonth[m] || 0); bal[m] = b; }
       const strip = urlaubStripSVG(bal, isCurrent ? nowMonth : null);
+      const lowest = Math.min(...bal.slice(1));
+      const endVal = bal[12];
 
+      const budgetTotal = yearlyBudget + deposits;   // Einmaleinzahlungen erhöhen das Jahresbudget
       const cells = [
-        ['Budget', fmt(yearlyBudget)],
-        ['Übertrag', fmt(carry)]
+        ['Budget', fmt(budgetTotal)],
+        ['Übertrag', fmt(carry)],
+        ['Ausgaben', fmt(expenses)]
       ];
-      if (deposits) cells.push(['Einzahlung', fmt(deposits)]);
-      cells.push(['Ausgaben', fmt(expenses)]);
-      const cellHTML = cells.map((c, i) => {
-        const wide = (i === cells.length - 1 && cells.length % 2 === 1) ? ' uy-mc-wide' : '';
-        return `<div class="uy-mc${wide}"><span class="uy-ml">${c[0]}</span><span class="uy-mv">${c[1]}</span></div>`;
-      }).join('');
+      const cellHTML = cells.map(c =>
+        `<div class="uy-mc"><span class="uy-ml">${c[0]}</span><span class="uy-mv">${c[1]}</span></div>`
+      ).join('');
       const metaGrid = `<div class="uy-meta-grid">${cellHTML}</div>`;
 
       html += `<div class="urlaub-year-head">
           <div class="uy-top"><span class="uy-year">${y}</span><span class="uy-remaining ${balance < 0 ? 'negative' : ''}">${remTxt}</span></div>
           <div class="uy-bar"><div class="uy-bar-fill ${balance < 0 ? 'over' : ''}" style="width:${fillPct}%"></div></div>
           ${metaGrid}
-          <div class="uy-strip">${strip}<div class="uy-strip-cap">Budget-Stand</div></div>
+          <div class="uy-strip">${strip}
+            <div class="uy-strip-cap">Budget-Stand</div>
+            <div class="uy-strip-meta"><span>Tief: ${fmt(lowest)}</span><span>Jahresende: ${fmt(endVal)}</span></div>
+          </div>
           ${tripList(items)}</div>`;
     });
   } else {
