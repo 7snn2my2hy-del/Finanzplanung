@@ -258,7 +258,7 @@
   .av-card-metric.s1 .av-card-metric-val  { color: var(--text); }
   .av-card-metric.s2 .av-card-metric-val  { color: var(--text); }
   .av-card-metric.s3 .av-card-metric-val  { color: var(--text); }
-  .av-card-total { background: rgba(255,255,255,0.06); border-color: var(--stroke-hi); padding-top: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--stroke); }
+  .av-card-total { background: transparent; border: none; border-radius: 0; padding: 16px 0; border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke); margin-bottom: 6px; }
   .av-hist-block { border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke); padding: 14px 0; }
   .av-cards > .av-hist-block:first-child { border-top: none; }
   .av-legend { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 10px; }
@@ -613,6 +613,7 @@
   <button class="add-btn" onclick="openUrlaubModal()">＋ Urlaub hinzufügen</button>
   </div>
 
+  <div class="group-divider"></div>
   <header class="sub-header" onclick="toggleSection('bonus')">
     <div class="sub-header-text">
       <h1>Bonusprogramme</h1>
@@ -1071,7 +1072,7 @@ function ymLabel(ym) {
 function toRealValue(nominal) {
   if (avViewMode !== 'real' || !nominal) return nominal;
   const years = monthsToRetirement() / 12;
-  return nominal / Math.pow(1 + avAssumptions.inflation / 100, years);
+  return nominal / Math.pow(1 + 2.0 / 100, years);
 }
 
 const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
@@ -1422,6 +1423,7 @@ function renderAvDash() {
     <div class="uy-konto-head">
       <span>Aktueller Kontostand</span>
       <b>${fmt(totalCurReal)}</b>
+      <span class="saverate-eur">&nbsp;</span>
     </div>`;
   let totalBaseM = 0, totalBaseE = 0;
   entries.forEach(e => {
@@ -1450,7 +1452,7 @@ function renderAvDash() {
   const gesamtCard = `<div class="av-card av-card-total">
     <div class="av-mode-toggle">
       <button class="av-mode-btn ${avViewMode==='nominal'?'active':''}" onclick="setAvViewMode('nominal')">Nominal</button>
-      <button class="av-mode-btn ${avViewMode==='real'?'active':''}" onclick="setAvViewMode('real')">Inflation</button>
+      <button class="av-mode-btn ${avViewMode==='real'?'active':''}" onclick="setAvViewMode('real')">Inflation 2 %</button>
     </div>
     <div class="av-card-total-scenario">
       <select class="av-scenario-select" id="av-scenario-sel" onchange="updateAvScenario()">
@@ -1458,13 +1460,6 @@ function renderAvDash() {
       </select>
       <span class="av-card-total-val" id="av-scenario-val">${totalBaseParts.join(' + ') || '–'}</span>
     </div>
-    ${avViewMode==='real' ? `
-    <div class="av-assumptions">
-      <div class="av-assum-row">
-        <label>Inflationsrate p.a.</label>
-        <div class="av-assum-input"><input type="number" step="0.1" value="${a.inflation}" onchange="setAvAssumption('inflation',this.value)"><span>%</span></div>
-      </div>
-    </div>` : ''}
   </div>`;
 
   function metricCell(cls, label, amt, type) {
@@ -1780,7 +1775,7 @@ function renderUrlaubeDash() {
 
   // Aktueller Kontostand (global, einmal oben)
   const konto = data.b.reduce((s,e) => s + (e.name && e.name.trim() === 'Urlaub I' ? (e.balance || 0) : 0), 0);
-  let html = `<div class="uy-konto-head"><span>Aktueller Kontostand</span><b>${fmt(konto)}</b></div>`;
+  let html = `<div class="uy-konto-head"><span>Aktueller Kontostand</span><b>${fmt(konto)}</b><span class="saverate-eur">&nbsp;</span></div>`;
 
   // --- Aggregate über alle Jahre ---
   // Ausgaben nach Reisejahr (ganze Reise zählt zum Reisejahr)
