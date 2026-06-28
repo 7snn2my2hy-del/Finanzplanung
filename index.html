@@ -258,8 +258,9 @@
   .av-card-metric.s1 .av-card-metric-val  { color: var(--text); }
   .av-card-metric.s2 .av-card-metric-val  { color: var(--text); }
   .av-card-metric.s3 .av-card-metric-val  { color: var(--text); }
-  .av-card-total { background: rgba(255,255,255,0.06); border-color: var(--stroke-hi); }
+  .av-card-total { background: rgba(255,255,255,0.06); border-color: var(--stroke-hi); padding-top: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--stroke); }
   .av-hist-block { border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke); padding: 14px 0; }
+  .av-cards > .av-hist-block:first-child { border-top: none; }
   .av-legend { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 10px; }
   .av-empty { font-size: 0.82rem; color: var(--muted-2); text-align: center; padding: 30px 12px; line-height: 1.5; }
   .hist-svg { width: 100%; height: 90px; display: block; }
@@ -283,7 +284,7 @@
   .field-group-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-2); margin: 4px 0 6px; }
 
   .urlaub-year-head { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke); }
-  .urlaub-year-head:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+  .urlaub-year-head.first-year { border-top: none; margin-top: 0; padding-top: 0; }
   .uy-konto-head { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--stroke); }
   .uy-konto-head span { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); display: block; margin-bottom: 4px; }
   .uy-konto-head b { font-size: 1.1rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; display: block; }
@@ -478,16 +479,16 @@
         </div>
       </div>
       <div class="dash-page">
-        <div class="av-dash glass" id="urlaub-dash">
-          <div class="dash-title">Urlaube</div>
-          <div id="urlaub-dash-body"></div>
-        </div>
-      </div>
-      <div class="dash-page">
         <div class="av-dash glass" id="av-dash">
           <div class="dash-title">Altersvorsorge</div>
           <div id="av-kontostand"></div>
           <div id="av-table"></div>
+        </div>
+      </div>
+      <div class="dash-page">
+        <div class="av-dash glass" id="urlaub-dash">
+          <div class="dash-title">Urlaube</div>
+          <div id="urlaub-dash-body"></div>
         </div>
       </div>
     </div>
@@ -555,6 +556,33 @@
 
   <div class="group-divider"></div>
 
+  <header class="sub-header" onclick="toggleSection('a')">
+    <div class="sub-header-text">
+      <h1>Altersvorsorge</h1>
+      <p>Vorsorge und Rente im Blick · Renteneintrittsalter 67</p>
+    </div>
+    <span class="section-chevron" id="chev-a">⌄</span>
+  </header>
+
+  <div class="section-body" id="body-a">
+  <div class="filter-row">
+    <select class="account-filter" id="filter-a" onchange="renderSection('a')"></select>
+  </div>
+  <div class="summary glass">
+    <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month-a">0,00 €</div></div>
+    <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year-a">0,00 €</div></div>
+    <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count-a">0</div></div>
+  </div>
+
+  <div class="section-label">Altersvorsorge</div>
+  <div class="list" id="list-a"></div>
+  <div class="empty" id="empty-a" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
+
+  <button class="add-btn" onclick="openModal('a')">＋ Eintrag hinzufügen</button>
+  </div>
+
+  <div class="group-divider"></div>
+
   <header class="sub-header" onclick="toggleSection('urlaub')">
     <div class="sub-header-text">
       <h1>Urlaube</h1>
@@ -584,35 +612,6 @@
 
   <button class="add-btn" onclick="openUrlaubModal()">＋ Urlaub hinzufügen</button>
   </div>
-
-  <div class="group-divider"></div>
-
-  <header class="sub-header" onclick="toggleSection('a')">
-    <div class="sub-header-text">
-      <h1>Altersvorsorge</h1>
-      <p>Vorsorge und Rente im Blick · Renteneintrittsalter 67</p>
-    </div>
-    <span class="section-chevron" id="chev-a">⌄</span>
-  </header>
-
-  <div class="section-body" id="body-a">
-  <div class="filter-row">
-    <select class="account-filter" id="filter-a" onchange="renderSection('a')"></select>
-  </div>
-  <div class="summary glass">
-    <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month-a">0,00 €</div></div>
-    <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year-a">0,00 €</div></div>
-    <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count-a">0</div></div>
-  </div>
-
-  <div class="section-label">Altersvorsorge</div>
-  <div class="list" id="list-a"></div>
-  <div class="empty" id="empty-a" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
-
-  <button class="add-btn" onclick="openModal('a')">＋ Eintrag hinzufügen</button>
-  </div>
-
-  <div class="group-divider"></div>
 
   <header class="sub-header" onclick="toggleSection('bonus')">
     <div class="sub-header-text">
@@ -1835,7 +1834,7 @@ function renderUrlaubeDash() {
       ).join('');
       const metaGrid = `<div class="uy-meta-grid">${cellHTML}</div>`;
 
-      html += `<div class="urlaub-year-head">
+      html += `<div class="urlaub-year-head${numYears.indexOf(y) === 0 ? ' first-year' : ''}">
           <div class="uy-top"><span class="uy-year">${y}</span><span class="uy-remaining ${balance < 0 ? 'negative' : ''}">${remTxt}</span></div>
           <div class="uy-bar"><div class="uy-bar-fill ${balance < 0 ? 'over' : ''}" style="width:${fillPct}%"></div></div>
           ${metaGrid}
