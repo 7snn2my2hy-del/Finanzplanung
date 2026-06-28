@@ -28,6 +28,7 @@
     --violet:    #bf5af2;
     --green:     #30d158;
     --petrol:    #00b3b8;
+    --coral:     #ff9e64;
   }
 
   html { -webkit-text-size-adjust: 100%; }
@@ -241,6 +242,7 @@
   .entry-amount { font-weight: 600; font-size: 0.97rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .entry-period { font-size: 0.7rem; color: var(--muted-2); text-align: right; margin-top: 2px; }
   .entry-yearly { font-size: 0.7rem; color: var(--muted); text-align: right; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .entry-balance { font-size: 0.78rem; font-weight: 700; color: var(--coral); text-align: right; margin-top: 4px; font-variant-numeric: tabular-nums; }
   .entry-pension { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 0.72rem; font-variant-numeric: tabular-nums; }
   .entry-pension .pv-date { color: var(--muted); }
   .growth-auto-note { font-size: 0.72rem; color: var(--muted); line-height: 1.4; background: rgba(255,255,255,0.03); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px 10px; }
@@ -254,6 +256,14 @@
   .av-group-cat[data-cat="Privat"]      { color: #ff8fae; }
   .av-group-cur { font-size: 0.7rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
   .av-card { background: rgba(255,255,255,0.04); border: 1px solid var(--stroke); border-radius: 16px; padding: 14px 16px; }
+  .vd-card { background: rgba(255,255,255,0.04); border: 1px solid var(--stroke); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; }
+  .vd-card:last-child { margin-bottom: 0; }
+  .vd-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .vd-name { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+  .vd-prov { font-size: 0.72rem; color: var(--muted-2); flex-shrink: 0; }
+  .vd-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 0.78rem; line-height: 1.5; }
+  .vd-key { color: var(--muted); flex-shrink: 0; }
+  .vd-val { color: var(--text); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; min-width: 0; }
   .av-card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
   .av-card-cat { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-2); }
   .av-card-name { text-transform: none; letter-spacing: 0; color: var(--text); font-size: 0.82rem; }
@@ -492,11 +502,18 @@
           <div id="urlaub-dash-body"></div>
         </div>
       </div>
+      <div class="dash-page">
+        <div class="av-dash glass" id="vertrag-dash">
+          <div class="dash-title">Verträge &amp; Versicherungen</div>
+          <div id="vertrag-dash-body"></div>
+        </div>
+      </div>
     </div>
     <div class="dash-dots" id="dash-dots">
       <span class="dash-dot active" onclick="goDashPage(0)"></span>
       <span class="dash-dot" onclick="goDashPage(1)"></span>
       <span class="dash-dot" onclick="goDashPage(2)"></span>
+      <span class="dash-dot" onclick="goDashPage(3)"></span>
     </div>
   </div>
 
@@ -843,8 +860,12 @@ const SECTIONS = {
     showPeriod: true,
     extra: { kind: 'text', label: 'Vertragsnummer (optional)', placeholder: '—' },
     textFields: [
-      { key:'debitDate', label:'Abbuchungsdatum (optional)', placeholder:'z.B. 15.01', display:'Abbuchung' }
+      { key:'debitDate', label:'Abbuchungsdatum (optional)', placeholder:'z.B. 15.01', display:'Abbuchung' },
+      { key:'startDate', label:'Stichtag des Vertrags (optional)', display:'Stichtag', kind:'date', dashOnly:true },
+      { key:'noticePeriod', label:'Kündigungsfrist (optional)', placeholder:'z.B. 4 Monate', display:'Kündigungsfrist', dashOnly:true },
+      { key:'benefit', label:'Leistung (optional, z.B. BU-Rente)', placeholder:'z.B. 2.000 € / Monat', display:'Leistung', dashOnly:true }
     ],
+    hideExtraInList: true,
     namePlaceholder: 'z.B. Netflix',
     showYearlyPerEntry: true,
     ids: { list:'list-v', empty:'empty-v', month:'sum-month', year:'sum-year', count:'sum-count' }
@@ -1136,7 +1157,7 @@ function renderSection(sec) {
     if (e.provider) sub.push(esc(e.provider));
     if (e.account) sub.push(esc(e.account));
     const extraVal = e.extra ?? e.contract;
-    if (extraVal) sub.push(esc(extraVal));
+    if (extraVal && !cfg.hideExtraInList) sub.push(esc(extraVal));
     if (e.autoGrow) sub.push('↻ auto +Rate/Monat');
     const yearly = cfg.showYearlyPerEntry
       ? `<div class="entry-yearly">${fmt(toMonthly(e.amount, e.period) * 12)} / Jahr</div>`
@@ -1146,13 +1167,16 @@ function renderSection(sec) {
     if (cfg.unitsField && e[cfg.unitsField.key]) {
       valuesHtml = `<div class="entry-pension"><span class="pv-date">${esc(e[cfg.unitsField.key])}</span></div>`;
     }
-    // Growth scenarios: only shown in dashboard, not in entry list
-    const tfShown = (cfg.textFields || []).filter(f => e[f.key]);
+    // textFields (außer dashOnly) in der Liste anzeigen
+    const tfShown = (cfg.textFields || []).filter(f => e[f.key] && !f.dashOnly);
     if (tfShown.length) {
       valuesHtml += `<div class="entry-pension">` + tfShown.map(f =>
         `<span class="pv-date">${f.display}: ${esc(e[f.key])}</span>`
       ).join('') + `</div>`;
     }
+    const balanceLine = (sec === 'b' && e.balance != null && e.balance !== 0)
+      ? `<div class="entry-balance">Stand: ${fmt(e.balance)}</div>`
+      : '';
     const div = document.createElement('div');
     div.className = 'entry glass';
     div.innerHTML = `
@@ -1166,6 +1190,7 @@ function renderSection(sec) {
         <div class="entry-amount">${fmt(e.amount)}</div>
         <div class="entry-period">${esc(e.period)}</div>
         ${yearly}
+        ${balanceLine}
       </div>
       <div class="entry-actions">
         <button class="btn-icon edit" aria-label="Bearbeiten" onclick="openModal('${sec}','${e.id}')">${ICON_EDIT}</button>
@@ -1362,7 +1387,45 @@ function applyAutoGrow() {
   if (changed) store.set(SECTIONS.b.storageKey, JSON.stringify(data.b));
 }
 
-function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderAvDash(); renderBonus(); renderUrlaubeAll(); updateIncome(); }
+function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderAvDash(); renderBonus(); renderUrlaubeAll(); renderVertragDash(); updateIncome(); }
+
+// 4. Dashboard: alle Versicherungen & Verträge (nicht Abonnement/Verein)
+function renderVertragDash() {
+  const body = $('vertrag-dash-body');
+  if (!body) return;
+  const cats = ['Versicherung', 'Vertrag'];
+  const entries = data.v.filter(e => cats.includes(e.cat));
+  if (!entries.length) {
+    body.innerHTML = '<div class="av-empty">Noch keine Versicherungen oder Verträge angelegt.</div>';
+    return;
+  }
+  const catOrder = SECTIONS.v.cats || [];
+  const sorted = [...entries].sort((a,b) => {
+    const ci = catOrder.indexOf(a.cat) - catOrder.indexOf(b.cat);
+    return ci !== 0 ? ci : a.name.localeCompare(b.name, 'de');
+  });
+  const fmtDate = (iso) => {
+    if (!iso) return '';
+    const p = String(iso).split('-');
+    return p.length === 3 ? `${p[2]}.${p[1]}.${p[0]}` : esc(iso);
+  };
+  const rows = sorted.map(e => {
+    const meta = [];
+    const vnr = e.extra ?? e.contract;
+    if (vnr) meta.push(['Vertragsnr.', esc(vnr)]);
+    if (e.startDate) meta.push(['Stichtag', fmtDate(e.startDate)]);
+    if (e.noticePeriod) meta.push(['Kündigungsfrist', esc(e.noticePeriod)]);
+    if (e.benefit) meta.push(['Leistung', esc(e.benefit)]);
+    const metaHtml = meta.map(m =>
+      `<div class="vd-row"><span class="vd-key">${m[0]}</span><span class="vd-val">${m[1]}</span></div>`
+    ).join('');
+    return `<div class="vd-card">
+      <div class="vd-head"><span class="vd-name">${esc(e.name)}</span>${e.provider ? `<span class="vd-prov">${esc(e.provider)}</span>` : ''}</div>
+      ${metaHtml || '<div class="vd-row"><span class="vd-key">Keine Vertragsdaten hinterlegt</span></div>'}
+    </div>`;
+  }).join('');
+  body.innerHTML = rows;
+}
 
 let currentDashPage = 0;
 function goDashPage(i) {
@@ -2207,7 +2270,7 @@ function openModal(sec, id) {
   // Build custom free-text fields (e.g. Abbuchungsdatum) from config
   const tf = cfg.textFields || [];
   $('f-texts').innerHTML = tf.map(f =>
-    `<div class="field"><label>${f.label}</label><input type="text" id="tf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+    `<div class="field"><label>${f.label}</label><input type="${f.kind === 'date' ? 'date' : 'text'}" id="tf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
   ).join('');
 
   const vEntry = id ? data[sec].find(x => x.id === id) : null;
