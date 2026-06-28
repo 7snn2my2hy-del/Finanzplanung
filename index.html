@@ -239,7 +239,7 @@
   .entry-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; flex-shrink: 0; }
 
   .entry-name { font-weight: 600; font-size: 0.97rem; letter-spacing: -0.01em; }
-  .entry-name-prov { font-weight: 500; font-size: 0.8rem; color: var(--muted); letter-spacing: 0; white-space: nowrap; }
+  .entry-name-prov { font-weight: 500; font-size: 0.8rem; color: var(--muted); letter-spacing: 0; }
   .entry-sub  { font-size: 0.78rem; color: var(--muted); margin-top: 2px; line-height: 1.35; }
   .entry-sub > div { }
   .entry-paysched { font-size: 0.74rem; color: var(--muted-2); margin-top: 2px; font-variant-numeric: tabular-nums; }
@@ -2442,11 +2442,17 @@ function buildValueFields(sec, vEntry) {
 
   const rowFields = vf.filter(f => f.row);
   const soloFields = vf.filter(f => !f.row);
+  // Bei Privat: Einheiten-Feld direkt neben "Aktueller Wert" in dieselbe Zeile
+  const unitsInline = isPrivat && cfg.unitsField;
   let vHtml = '';
   if (rowFields.length) {
-    vHtml += '<div class="field field-row">' + rowFields.map(f =>
+    let cells = rowFields.map(f =>
       `<div><label>${f.label}</label><input type="text" id="vf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
-    ).join('') + '</div>';
+    ).join('');
+    if (unitsInline) {
+      cells += `<div><label>${cfg.unitsField.label}</label><input type="text" id="f-units-input-inline" placeholder="${cfg.unitsField.placeholder||''}" autocomplete="off"></div>`;
+    }
+    vHtml += '<div class="field field-row">' + cells + '</div>';
   }
   vHtml += soloFields.map(f =>
     `<div class="field"><label>${f.label}</label><input type="text" id="vf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
@@ -2457,6 +2463,11 @@ function buildValueFields(sec, vEntry) {
     const inp = $('vf-' + f.key);
     if (inp) inp.value = (v != null) ? fmt(v) : '';
   });
+  // Einheiten-Wert ins Inline-Feld laden (Privat)
+  if (unitsInline) {
+    const ui = $('f-units-input-inline');
+    if (ui) ui.value = vEntry ? (vEntry[cfg.unitsField.key] || '') : '';
+  }
 
   // Projected type selector — hidden for Privat (auto) and Gesetzlich (always monthly)
   const cat = $('f-cat').value;
@@ -2601,15 +2612,17 @@ function openModal(sec, id) {
   }
 
   // Einheiten-Feld (optional, z.B. AV)
+  // Bei Privat wird Einheiten inline neben "Aktueller Wert" gerendert (in buildValueFields)
+  const unitsInlinePrivat = (sec === 'a' && $('f-cat').value === 'Privat' && cfg.unitsField);
   const unitsWrap = $('f-units-wrap');
-  if (cfg.unitsField) {
+  if (cfg.unitsField && !unitsInlinePrivat) {
     unitsWrap.style.display = '';
     $('f-units-label').textContent = cfg.unitsField.label;
     $('f-units-input').placeholder = cfg.unitsField.placeholder || '';
     $('f-units-input').value = vEntry ? (vEntry[cfg.unitsField.key] || '') : '';
   } else {
     unitsWrap.style.display = 'none';
-    $('f-units-input').value = '';
+    if (!unitsInlinePrivat) $('f-units-input').value = '';
   }
 
   // Wrapper-Zeile für Einheiten + Art der Beträge nur zeigen, wenn mind. eins sichtbar
@@ -2667,7 +2680,9 @@ function saveEntry() {
     fields[f.key] = (f.kind === 'money') ? (raw === '' ? '' : parseMoney(raw)) : raw;
   });
   if (cfg.unitsField) {
-    fields[cfg.unitsField.key] = $('f-units-input').value.trim();
+    // Privat rendert Einheiten inline (f-units-input-inline), sonst Standard-Feld
+    const src = $('f-units-input-inline') || $('f-units-input');
+    fields[cfg.unitsField.key] = src ? src.value.trim() : '';
   }
 
   // Auto-Erhöhung: Flag + Monats-Anker (beim Aktivieren auf aktuellen Monat, kein Nachbuchen)
