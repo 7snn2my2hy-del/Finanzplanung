@@ -264,7 +264,7 @@
   .vd-prov { font-size: 0.7rem; color: var(--muted-2); flex-shrink: 0; }
   .vd-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 0.75rem; line-height: 1.45; }
   .vd-key { color: var(--muted); flex-shrink: 0; }
-  .vd-val { color: var(--text); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; min-width: 0; }
+  .vd-val { color: var(--muted); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; min-width: 0; }
   .av-card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
   .av-card-cat { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-2); }
   .av-card-name { text-transform: none; letter-spacing: 0; color: var(--text); font-size: 0.82rem; }
@@ -394,7 +394,7 @@
     transition: border-color 0.15s, background 0.15s;
   }
   .field input::placeholder { color: var(--muted-2); }
-  .field input[type="date"] { -webkit-appearance: none; appearance: none; height: auto; line-height: 1.2; min-height: 0; font-size: 1rem; }
+  .field input[type="date"] { -webkit-appearance: none; appearance: none; line-height: normal; height: auto; font-size: 1rem; }
   .field input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
   .field input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
   .field input:focus, .field select:focus { border-color: var(--accent); background: rgba(10,132,255,0.08); }
@@ -685,23 +685,25 @@
       <label>Name</label>
       <input type="text" id="f-name" placeholder="z.B. Netflix" autocomplete="off">
     </div>
-    <div class="field" id="f-provider-wrap">
-      <label id="f-provider-label">Anbieter (optional)</label>
-      <input type="text" id="f-provider" placeholder="z.B. Allianz" autocomplete="off">
-    </div>
-    <div class="field">
-      <label>Konto</label>
-      <select id="f-account">
-        <option value="">— kein Konto —</option>
-        <option>DB Giro</option>
-        <option>DB Spar</option>
-        <option>DB ROBIN</option>
-        <option>DKB Giro</option>
-        <option>Scalable Broker</option>
-        <option>Scalable Wealth (Weltreise)</option>
-        <option>Scalable Tagesgeld</option>
-        <option>EquatePlus</option>
-      </select>
+    <div class="field field-row" id="f-prov-acct-row">
+      <div id="f-provider-wrap">
+        <label id="f-provider-label">Anbieter (optional)</label>
+        <input type="text" id="f-provider" placeholder="z.B. Allianz" autocomplete="off">
+      </div>
+      <div>
+        <label>Konto</label>
+        <select id="f-account">
+          <option value="">— kein Konto —</option>
+          <option>DB Giro</option>
+          <option>DB Spar</option>
+          <option>DB ROBIN</option>
+          <option>DKB Giro</option>
+          <option>Scalable Broker</option>
+          <option>Scalable Wealth (Weltreise)</option>
+          <option>Scalable Tagesgeld</option>
+          <option>EquatePlus</option>
+        </select>
+      </div>
     </div>
     <div class="field field-row">
       <div>
@@ -717,6 +719,10 @@
           <option value="wöchentlich">Wöchentlich</option>
         </select>
       </div>
+      <div id="f-amount-value-wrap" style="display:none">
+        <label id="f-amount-value-label"></label>
+        <input type="text" id="f-amount-value-input" placeholder="" autocomplete="off">
+      </div>
     </div>
     <div class="field field-row">
       <div>
@@ -730,20 +736,22 @@
       </div>
     </div>
     <div id="f-values"></div>
-    <div class="field" id="f-units-wrap" style="display:none">
-      <label id="f-units-label">Einheiten (optional)</label>
-      <input type="text" id="f-units-input" placeholder="z.B. 12 Stück oder 65,3 Punkte" autocomplete="off">
+    <div class="field field-row" id="f-units-projtype-row" style="display:none">
+      <div id="f-units-wrap" style="display:none">
+        <label id="f-units-label">Einheiten (optional)</label>
+        <input type="text" id="f-units-input" placeholder="z.B. 12 Stück" autocomplete="off">
+      </div>
+      <div id="f-projtype" style="display:none">
+        <label>Art der Beträge</label>
+        <select id="f-projtype-select">
+          <option value="einmal">Einmalbetrag</option>
+          <option value="monatlich">monatlich</option>
+        </select>
+      </div>
     </div>
     <div class="field f-toggle" id="f-autogrow-wrap" style="display:none">
       <label class="f-toggle-lab" for="f-autogrow">Stand monatlich automatisch erhöhen</label>
       <input type="checkbox" id="f-autogrow" class="f-toggle-cb">
-    </div>
-    <div class="field" id="f-projtype" style="display:none">
-      <label>Art der Beträge (Rente & Szenarien)</label>
-      <select id="f-projtype-select">
-        <option value="einmal">Einmalbetrag</option>
-        <option value="monatlich">monatlich</option>
-      </select>
     </div>
     <div id="f-growth"></div>
     <div id="f-texts"></div>
@@ -864,10 +872,10 @@ const SECTIONS = {
     showPeriod: true,
     extra: { kind: 'text', label: 'Vertragsnummer (optional)', placeholder: '—' },
     textFields: [
-      { key:'debitDate', label:'Abbuchungsdatum (optional)', placeholder:'z.B. 15.01', display:'Abbuchung' },
       { key:'startDate', label:'Stichtag (optional)', display:'Stichtag', kind:'date', dashOnly:true, half:true },
       { key:'noticePeriod', label:'Kündigungsfrist (optional)', placeholder:'z.B. 4 Monate', display:'Kündigungsfrist', dashOnly:true, half:true },
-      { key:'benefit', label:'Leistung (optional, z.B. BU-Rente)', placeholder:'z.B. 2000', display:'Leistung', dashOnly:true, kind:'money' }
+      { key:'debitDate', label:'Abbuchungsdatum (optional)', placeholder:'z.B. 15.01', display:'Abbuchung', half:true },
+      { key:'benefit', label:'Leistung (optional, z.B. BU-Rente)', placeholder:'z.B. 2000', display:'Leistung', dashOnly:true, kind:'money', half:true }
     ],
     hideExtraInList: true,
     namePlaceholder: 'z.B. Netflix',
@@ -887,6 +895,7 @@ const SECTIONS = {
     namePlaceholder: 'z.B. Notgroschen',
     showYearlyPerEntry: true,
     autoGrowOption: true,        // Schalter „Stand monatlich automatisch erhöhen" anbieten
+    amountWithValue: 'balance',  // Betrag + Stand in einer Zeile
     valueFields: [
       { key:'balance', label:'Aktueller Stand (€)', placeholder:'z.B. 3.000', display:'Stand', color:'now' }
     ],
@@ -2193,6 +2202,24 @@ function buildValueFields(sec, vEntry) {
   // For Privat: only the current value (projected is auto-calculated, field hidden)
   if (isPrivat) vf = vf.filter(f => f.key !== 'projected');
 
+  // Optional: ein valueField inline neben dem Betrag anzeigen
+  const inlineKey = cfg.amountWithValue;
+  const inlineWrap = $('f-amount-value-wrap');
+  if (inlineKey) {
+    const inlineF = vf.find(f => f.key === inlineKey);
+    if (inlineF) {
+      inlineWrap.style.display = '';
+      $('f-amount-value-label').textContent = inlineF.label;
+      $('f-amount-value-input').placeholder = inlineF.placeholder || '';
+      $('f-amount-value-input').value = vEntry && vEntry[inlineKey] != null ? fmt(vEntry[inlineKey]).replace(' €','') : '';
+      vf = vf.filter(f => f.key !== inlineKey);
+    } else {
+      inlineWrap.style.display = 'none';
+    }
+  } else {
+    inlineWrap.style.display = 'none';
+  }
+
   const rowFields = vf.filter(f => f.row);
   const soloFields = vf.filter(f => !f.row);
   let vHtml = '';
@@ -2356,6 +2383,13 @@ function openModal(sec, id) {
     $('f-units-input').value = '';
   }
 
+  // Wrapper-Zeile für Einheiten + Art der Beträge nur zeigen, wenn mind. eins sichtbar
+  const utRow = $('f-units-projtype-row');
+  const unitsVis = unitsWrap.style.display !== 'none';
+  const ptVis = $('f-projtype').style.display !== 'none';
+  utRow.style.display = (unitsVis || ptVis) ? '' : 'none';
+  utRow.style.gridTemplateColumns = (unitsVis && ptVis) ? '1fr 1fr' : '1fr';
+
   // React to category changes (section a only)
   if (sec === 'a') {
     $('f-cat').onchange = () => { buildValueFields(sec, vEntry); renderGrowthArea(sec, vEntry); };
@@ -2387,7 +2421,8 @@ function saveEntry() {
 
   const fields = { name, provider, account, amount, period, cat, extra };
   (cfg.valueFields || []).forEach(f => {
-    const inp = $('vf-' + f.key);
+    let inp = $('vf-' + f.key);
+    if (!inp && cfg.amountWithValue === f.key) inp = $('f-amount-value-input');
     if (inp) fields[f.key] = parseMoney(inp.value);
   });
   (cfg.textFields || []).forEach(f => {
