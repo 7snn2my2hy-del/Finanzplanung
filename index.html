@@ -131,6 +131,10 @@
   .dash-sub-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--petrol); font-weight: 700; display: block; margin-bottom: 4px; }
   .dash-saverate { }
   .uy-konto-head span.saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .wealth-sub-row { display: flex; align-items: center; gap: 7px; margin-top: 2px; }
+  .wealth-sub-row .saverate-eur { margin-top: 0; }
+  .info-i { flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%; border: none; background: var(--stroke-hi); color: var(--text); font-size: 0.6rem; font-weight: 700; font-style: italic; font-family: Georgia, "Times New Roman", serif; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: transform 0.15s, background 0.2s; }
+  .info-i:active { transform: scale(0.88); background: var(--accent); }
   .saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; font-weight: 600; }
   .dash-legend { flex: 1; display: flex; flex-direction: column; gap: 5px; justify-content: center; }
   .legend-row { display: flex; align-items: center; gap: 6px; font-size: 0.68rem; line-height: 1.3; }
@@ -443,7 +447,7 @@
           <div class="uy-konto-head">
             <span>Gesamtvermögen</span>
             <b id="wealth-val">–</b>
-            <span class="saverate-eur" id="wealth-sub"></span>
+            <span class="wealth-sub-row"><span class="saverate-eur" id="wealth-sub"></span><button class="info-i" aria-label="Info" onclick="showWealthInfo()">i</button></span>
           </div>
           <div class="dash-accounts" style="margin-top:0;border-top:none;padding-top:0">
             <div class="dash-sub-label">Ausgaben nach Kategorie</div>
@@ -705,6 +709,10 @@
       </div>
     </div>
     <div id="f-values"></div>
+    <div class="field" id="f-units-wrap" style="display:none">
+      <label id="f-units-label">Einheiten (optional)</label>
+      <input type="text" id="f-units-input" placeholder="z.B. 12 Stück oder 65,3 Punkte" autocomplete="off">
+    </div>
     <div class="field f-toggle" id="f-autogrow-wrap" style="display:none">
       <label class="f-toggle-lab" for="f-autogrow">Stand monatlich automatisch erhöhen</label>
       <input type="checkbox" id="f-autogrow" class="f-toggle-cb">
@@ -869,6 +877,7 @@ const SECTIONS = {
     extra: { kind: 'text', label: 'Vertragsnummer (optional)', placeholder: '—' },
     namePlaceholder: 'z.B. Riester-Rente',
     showYearlyPerEntry: true,
+    unitsField: { key: 'units', label: 'Einheiten (optional)', placeholder: 'z.B. 12 Stück oder 65,3 Punkte' },
     valueFields: [
       { key:'current',   label:'Aktueller Wert (€)',     placeholder:'z.B. 12.000', display:'Aktuell', color:'now', row:true },
       { key:'projected', label:'Bei Renteneintritt (€)', placeholder:'z.B. 80.000', display:'Rente',   color:'end', row:true }
@@ -1133,24 +1142,9 @@ function renderSection(sec) {
       ? `<div class="entry-yearly">${fmt(toMonthly(e.amount, e.period) * 12)} / Jahr</div>`
       : '';
     let valuesHtml = '';
-    // For Privat: compute "Bei Renteneintritt" live (current + months×monthly)
-    const eDisplay = (sec === 'a' && e.cat === 'Privat')
-      ? { ...e, projected: (e.current || 0) + toMonthly(e.amount || 0, e.period) * monthsToRetirement() }
-      : e;
-    const vfShown = (cfg.valueFields || []).filter(f => eDisplay[f.key] != null);
-    if (vfShown.length) {
-      valuesHtml = `<div class="entry-pension">` + vfShown.map(f => {
-        let txt;
-        if (f.key === 'projected' && sec === 'a' && e.cat === 'Privat') {
-          txt = `Rente: ${fmt(eDisplay[f.key])} (e)`;
-        } else {
-          txt = `${f.display}: ${fmt(eDisplay[f.key])}`;
-          if (f.key === 'projected' && e.projectedType) {
-            txt += e.projectedType === 'monatlich' ? ' (m)' : ' (e)';
-          }
-        }
-        return `<span class="pv-${f.color || 'now'}">${txt}</span>`;
-      }).join('') + `</div>`;
+    // Optionales "Einheiten"-Feld (z.B. Aktien-Stückzahl, Rentenpunkte) statt Aktuell/Rente
+    if (cfg.unitsField && e[cfg.unitsField.key]) {
+      valuesHtml = `<div class="entry-pension"><span class="pv-date">${esc(e[cfg.unitsField.key])}</span></div>`;
     }
     // Growth scenarios: only shown in dashboard, not in entry list
     const tfShown = (cfg.textFields || []).filter(f => e[f.key]);
@@ -1621,7 +1615,6 @@ function renderBonus() {
   empty.style.display = bonus.length ? 'none' : 'block';
   [...bonus].sort((a,b)=>a.name.localeCompare(b.name)).forEach(e => {
     const sub = [];
-    if (e.points) sub.push(esc(e.points));
     if (e.expiry) sub.push('Verfall: ' + esc(e.expiry));
     const div = document.createElement('div');
     div.className = 'entry glass';
@@ -1630,6 +1623,7 @@ function renderBonus() {
         <div class="entry-name">${esc(e.name)}</div>
         ${sub.length ? `<div class="entry-sub">${sub.join(' · ')}</div>` : ''}
       </div>
+      ${e.points ? `<div><div class="entry-amount">${esc(e.points)}</div></div>` : '<div></div>'}
       <div class="entry-actions">
         <button class="btn-icon edit" aria-label="Bearbeiten" onclick="openBonusModal('${e.id}')">${ICON_EDIT}</button>
         <button class="btn-icon del" aria-label="Löschen" onclick="deleteBonus('${e.id}')">${ICON_DEL}</button>
@@ -2213,6 +2207,18 @@ function openModal(sec, id) {
     $('f-autogrow').checked = false;
   }
 
+  // Einheiten-Feld (optional, z.B. AV)
+  const unitsWrap = $('f-units-wrap');
+  if (cfg.unitsField) {
+    unitsWrap.style.display = '';
+    $('f-units-label').textContent = cfg.unitsField.label;
+    $('f-units-input').placeholder = cfg.unitsField.placeholder || '';
+    $('f-units-input').value = vEntry ? (vEntry[cfg.unitsField.key] || '') : '';
+  } else {
+    unitsWrap.style.display = 'none';
+    $('f-units-input').value = '';
+  }
+
   // React to category changes (section a only)
   if (sec === 'a') {
     $('f-cat').onchange = () => { buildValueFields(sec, vEntry); renderGrowthArea(sec, vEntry); };
@@ -2250,6 +2256,9 @@ function saveEntry() {
   (cfg.textFields || []).forEach(f => {
     fields[f.key] = $('tf-' + f.key).value.trim();
   });
+  if (cfg.unitsField) {
+    fields[cfg.unitsField.key] = $('f-units-input').value.trim();
+  }
 
   // Auto-Erhöhung: Flag + Monats-Anker (beim Aktivieren auf aktuellen Monat, kein Nachbuchen)
   if (cfg.autoGrowOption) {
@@ -2330,6 +2339,18 @@ function dialogResolve(val) {
   if (_dialogResolver) { _dialogResolver(val); _dialogResolver = null; }
 }
 function notify(message, title = 'Hinweis') { return showDialog(message, { title, cancelText: '' }); }
+
+// Info-Popup: welche Einträge fließen ins Gesamtvermögen ein
+function showWealthInfo() {
+  const vermoegen = data.b.filter(e => !isGiro(e) && (e.balance || 0) !== 0).map(e => e.name);
+  const vorsorge  = data.a.filter(e => e.cat === 'Privat' && (e.current || 0) !== 0).map(e => e.name);
+  const v = vermoegen.length ? vermoegen.join(', ') : '–';
+  const a = vorsorge.length ? vorsorge.join(', ') : '–';
+  notify(
+    `Vermögen (Kontostände ohne Girokonten):\n${v}\n\nVorsorge (private Altersvorsorge):\n${a}`,
+    'Was fließt ein?'
+  );
+}
 
 // ---- Export / Import ----
 function exportData() {
