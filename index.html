@@ -123,10 +123,8 @@
   .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; padding: 0 4px; }
   .donut-center-label { font-size: 0.52rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); }
   .donut-center-val { font-size: 0.75rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 2px; max-width: 72px; text-align: center; line-height: 1.15; }
-  .dash-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
   .dash-sub-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); display: block; margin-bottom: 4px; }
   .dash-saverate { }
-  .saverate-val { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); font-variant-numeric: tabular-nums; display: block; }
   .saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; }
   .dash-legend { flex: 1; display: flex; flex-direction: column; gap: 5px; justify-content: center; }
   .legend-row { display: flex; align-items: center; gap: 6px; font-size: 0.68rem; line-height: 1.3; }
@@ -259,7 +257,7 @@
   .av-card-metric.s2 .av-card-metric-val  { color: var(--text); }
   .av-card-metric.s3 .av-card-metric-val  { color: var(--text); }
   .av-card-total { background: transparent; border: none; border-radius: 0; padding: 16px 0; border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke); margin-bottom: 6px; }
-  .av-hist-block { border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke); padding: 14px 0; }
+  .av-hist-block { border-top: 1px solid var(--stroke); padding: 14px 0 0; }
   .av-cards > .av-hist-block:first-child { border-top: none; }
   .av-legend { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 10px; }
   .av-empty { font-size: 0.82rem; color: var(--muted-2); text-align: center; padding: 30px 12px; line-height: 1.5; }
@@ -271,13 +269,6 @@
   .av-mode-toggle { display: flex; gap: 4px; background: rgba(0,0,0,0.25); border-radius: 9px; padding: 3px; margin-bottom: 10px; }
   .av-mode-btn { flex: 1; border: none; background: transparent; color: var(--muted); font: inherit; font-size: 0.74rem; font-weight: 600; padding: 6px; border-radius: 7px; cursor: pointer; transition: all 0.15s; }
   .av-mode-btn.active { background: var(--accent); color: #fff; }
-  .av-assumptions { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--stroke); display: flex; flex-direction: column; gap: 8px; }
-  .av-assum-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .av-assum-row label { font-size: 0.74rem; color: var(--muted); }
-  .av-assum-input { display: flex; align-items: center; gap: 4px; }
-  .av-assum-input input { width: 64px; background: rgba(255,255,255,0.06); border: 1px solid var(--stroke); border-radius: 7px; color: var(--text); font: inherit; font-size: 0.78rem; padding: 5px 8px; text-align: right; outline: none; }
-  .av-assum-input span { font-size: 0.74rem; color: var(--muted-2); }
-  .av-assum-note { font-size: 0.62rem; color: var(--muted-2); line-height: 1.4; margin-top: 4px; }
   .av-card-total-scenario { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .av-scenario-select { background: rgba(255,255,255,0.08); border: 1px solid var(--stroke); border-radius: 8px; color: var(--muted); font: inherit; font-size: 0.72rem; padding: 4px 8px; outline: none; cursor: pointer; flex-shrink: 0; }
   .av-card-total-val { font-size: 0.82rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; flex: 1; text-align: right; }
@@ -985,12 +976,7 @@ function projectValue(current, monthlyContribution, annualRate, months) {
 // Returns [{rate, value}] scenarios for a private-pension entry
 
 // --- Inflation assumption (editable, persisted) ---
-const AV_ASSUMPTIONS_KEY = 'av_assumptions_v1';
-const AV_DEFAULTS = { inflation: 2.0 };
-let avAssumptions = { ...AV_DEFAULTS, ...(JSON.parse(store.get(AV_ASSUMPTIONS_KEY) || '{}')) };
 let avViewMode = store.get('av_view_mode_v1') || 'nominal';  // 'nominal' | 'real'
-
-function saveAvAssumptions() { store.set(AV_ASSUMPTIONS_KEY, JSON.stringify(avAssumptions)); }
 
 // --- Monthly history snapshots (auto, on app open) ---
 const HISTORY_KEY = 'history_v1';
@@ -1448,7 +1434,6 @@ function renderAvDash() {
     {label:'4 %', val:'4'},
     {label:'6 %', val:'6'}
   ];
-  const a = avAssumptions;
   const gesamtCard = `<div class="av-card av-card-total">
     <div class="av-mode-toggle">
       <button class="av-mode-btn ${avViewMode==='nominal'?'active':''}" onclick="setAvViewMode('nominal')">Nominal</button>
@@ -1601,11 +1586,6 @@ function setAvViewMode(mode) {
   avViewMode = mode;
   store.set('av_view_mode_v1', mode);
   renderAvDash();
-}
-
-function setAvAssumption(key, value) {
-  const n = parseFloat(String(value).replace(',', '.'));
-  if (!isNaN(n)) { avAssumptions[key] = n; saveAvAssumptions(); renderAvDash(); }
 }
 
 const COLLAPSE_KEY = 'collapsed_sections_v1';
@@ -2356,7 +2336,6 @@ function exportData() {
     urlaube: urlaube,
     urlaubBudget: urlaubBudget,
     urlaubDeposits: urlaubDeposits,
-    avAssumptions: avAssumptions,
     avViewMode: avViewMode,
     history: history
   };
@@ -2427,10 +2406,6 @@ async function applyBackup(rawText) {
   if (Array.isArray(parsed.urlaubDeposits)) {
     urlaubDeposits = parsed.urlaubDeposits;
     store.set(URLAUB_DEPOSITS_KEY, JSON.stringify(urlaubDeposits));
-  }
-  if (parsed.avAssumptions && typeof parsed.avAssumptions === 'object') {
-    avAssumptions = { ...AV_DEFAULTS, ...parsed.avAssumptions };
-    saveAvAssumptions();
   }
   if (parsed.avViewMode === 'nominal' || parsed.avViewMode === 'real') {
     avViewMode = parsed.avViewMode;
