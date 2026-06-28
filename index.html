@@ -263,8 +263,10 @@
   .vd-name { font-size: 0.88rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
   .vd-prov { font-size: 0.7rem; color: var(--muted-2); flex-shrink: 0; }
   .vd-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 0.75rem; line-height: 1.45; }
-  .vd-key { color: var(--muted); flex-shrink: 0; }
+  .vd-key { color: var(--text); flex-shrink: 0; }
   .vd-val { color: var(--muted); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; min-width: 0; }
+  .vd-urgent { border-color: rgba(255,69,58,0.4); background: rgba(255,69,58,0.06); }
+  .vd-val-urgent { color: var(--danger); font-weight: 700; }
   .av-card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
   .av-card-cat { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-2); }
   .av-card-name { text-transform: none; letter-spacing: 0; color: var(--text); font-size: 0.82rem; }
@@ -707,7 +709,7 @@
     </div>
     <div class="field field-row">
       <div>
-        <label>Betrag (€)</label>
+        <label>Betrag</label>
         <input type="text" id="f-amount" placeholder="9,99">
       </div>
       <div id="f-period-wrap">
@@ -724,12 +726,12 @@
         <input type="text" id="f-amount-value-input" placeholder="" autocomplete="off">
       </div>
     </div>
-    <div class="field field-row">
+    <div class="field field-row" id="f-cat-extra-row">
       <div>
         <label>Kategorie</label>
         <select id="f-cat"></select>
       </div>
-      <div>
+      <div id="f-extra-wrap">
         <label id="f-extra-label">Vertragsnummer (optional)</label>
         <input type="text" id="f-extra-input" placeholder="—" autocomplete="off">
         <select id="f-extra-select" style="display:none"></select>
@@ -804,7 +806,7 @@
       </div>
     </div>
     <div class="field">
-      <label>Gesamtkosten (€)</label>
+      <label>Gesamtkosten</label>
       <input type="text" id="urlaub-cost" placeholder="z.B. 3.500" autocomplete="off" oninput="updatePayHint()">
     </div>
     <div class="field">
@@ -835,7 +837,7 @@
       </div>
     </div>
     <div class="field">
-      <label>Betrag (€)</label>
+      <label>Betrag</label>
       <input type="text" id="deposit-amount" placeholder="z.B. 2.000" autocomplete="off">
     </div>
     <div class="field">
@@ -872,12 +874,11 @@ const SECTIONS = {
     showPeriod: true,
     extra: { kind: 'text', label: 'Vertragsnummer (optional)', placeholder: '—' },
     textFields: [
-      { key:'startDate', label:'Stichtag (optional)', display:'Stichtag', kind:'date', dashOnly:true, half:true },
-      { key:'noticePeriod', label:'Kündigungsfrist (optional)', placeholder:'z.B. 4 Monate', display:'Kündigungsfrist', dashOnly:true, half:true },
+      { key:'startDate', label:'Stichtag (optional)', placeholder:'TT.MM.JJJJ', display:'Stichtag', half:true },
+      { key:'noticePeriod', label:'Kündigungsfrist (optional)', placeholder:'z.B. 4 Monate', display:'Kündigungsfrist', half:true },
       { key:'debitDate', label:'Abbuchungsdatum (optional)', placeholder:'z.B. 15.01', display:'Abbuchung', half:true },
-      { key:'benefit', label:'Leistung (optional, z.B. BU-Rente)', placeholder:'z.B. 2000', display:'Leistung', dashOnly:true, kind:'money', half:true }
+      { key:'benefit', label:'Leistung (optional)', placeholder:'z.B. 2000', display:'Leistung', kind:'money', half:true }
     ],
-    hideExtraInList: true,
     namePlaceholder: 'z.B. Netflix',
     showYearlyPerEntry: true,
     ids: { list:'list-v', empty:'empty-v', month:'sum-month', year:'sum-year', count:'sum-count' }
@@ -891,13 +892,12 @@ const SECTIONS = {
     providerPlaceholder: 'z.B. Sparkonto DKB',
     showPeriod: false,           // always monthly
     fixedPeriod: 'monatlich',
-    extra: { kind: 'select', label: 'Typ', options: ['Aktien/ ETF','Sparkonto','Girokonto','Robo-Advisor'] },
     namePlaceholder: 'z.B. Notgroschen',
     showYearlyPerEntry: true,
     autoGrowOption: true,        // Schalter „Stand monatlich automatisch erhöhen" anbieten
     amountWithValue: 'balance',  // Betrag + Stand in einer Zeile
     valueFields: [
-      { key:'balance', label:'Aktueller Stand (€)', placeholder:'z.B. 3.000', display:'Stand', color:'now' }
+      { key:'balance', label:'Aktueller Stand', placeholder:'z.B. 3.000', display:'Stand', color:'now' }
     ],
     ids: { list:'list-b', empty:'empty-b', month:'sum-month-b', year:'sum-year-b', count:'sum-count-b' }
   },
@@ -913,8 +913,8 @@ const SECTIONS = {
     showYearlyPerEntry: true,
     unitsField: { key: 'units', label: 'Einheiten (optional)', placeholder: 'z.B. 12 Stück oder 65,3 Punkte' },
     valueFields: [
-      { key:'current',   label:'Aktueller Wert (€)',     placeholder:'z.B. 12.000', display:'Aktuell', color:'now', row:true },
-      { key:'projected', label:'Bei Renteneintritt (€)', placeholder:'z.B. 80.000', display:'Rente',   color:'end', row:true }
+      { key:'current',   label:'Aktueller Wert',     placeholder:'z.B. 12.000', display:'Aktuell', color:'now', row:true },
+      { key:'projected', label:'Bei Renteneintritt', placeholder:'z.B. 80.000', display:'Rente',   color:'end', row:true }
     ],
     projectedTypeField: true,
     growthFields: [
@@ -927,7 +927,7 @@ const SECTIONS = {
 };
 
 const ACCOUNTS = ['DB Giro','DB Spar','DB ROBIN','DKB Giro','Scalable Broker','Scalable Wealth (Weltreise)','Scalable Tagesgeld','EquatePlus'];
-const isGiro = e => e.extra === 'Girokonto';   // Girokonto = am Eintrag markiert (aus Vermögen & Sparquote ausgenommen)
+const isGiro = e => /giro/i.test(e.account || '');   // Girokonto = Kontoname enthält "Giro" (aus Vermögen & Sparquote ausgenommen)
 const INCOME_KEY = 'income_v1';
 const BONUS_KEY = 'bonus_v1';
 const URLAUB_KEY = 'urlaube_v1';
@@ -1181,11 +1181,12 @@ function renderSection(sec) {
       valuesHtml = `<div class="entry-pension"><span class="pv-date">${esc(e[cfg.unitsField.key])}</span></div>`;
     }
     // textFields (außer dashOnly) in der Liste anzeigen
-    const tfShown = (cfg.textFields || []).filter(f => e[f.key] && !f.dashOnly);
+    const tfShown = (cfg.textFields || []).filter(f => e[f.key] != null && e[f.key] !== '' && !f.dashOnly);
     if (tfShown.length) {
-      valuesHtml += `<div class="entry-pension">` + tfShown.map(f =>
-        `<span class="pv-date">${f.display}: ${esc(e[f.key])}</span>`
-      ).join('') + `</div>`;
+      valuesHtml += `<div class="entry-pension">` + tfShown.map(f => {
+        const val = (f.kind === 'money') ? `${fmt(Number(e[f.key]))} (m)` : esc(e[f.key]);
+        return `<span class="pv-date">${f.display}: ${val}</span>`;
+      }).join('') + `</div>`;
     }
     const balanceLine = (sec === 'b' && e.balance != null)
       ? `<div class="entry-balance">Stand: ${fmt(e.balance)}</div>`
@@ -1404,52 +1405,79 @@ function applyAutoGrow() {
 function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderAvDash(); renderBonus(); renderUrlaubeAll(); renderVertragDash(); updateIncome(); }
 
 // 4. Dashboard: alle Versicherungen & Verträge (nicht Abonnement/Verein)
+// Parst "TT.MM.JJJJ" -> Date (oder null)
+function parseDeDate(s) {
+  if (!s) return null;
+  const m = String(s).trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (!m) return null;
+  const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Parst Kündigungsfrist-Freitext ("4 Monate", "6 Wochen", "30 Tage") -> Tage (oder null)
+function parseNoticeDays(s) {
+  if (!s) return null;
+  const m = String(s).trim().match(/(\d+)\s*(jahr|monat|woche|tag)/i);
+  if (!m) return null;
+  const n = Number(m[1]);
+  const unit = m[2].toLowerCase();
+  if (unit.startsWith('jahr')) return n * 365;
+  if (unit.startsWith('monat')) return n * 30;
+  if (unit.startsWith('woche')) return n * 7;
+  return n; // Tage
+}
+
 function renderVertragDash() {
   const body = $('vertrag-dash-body');
   if (!body) return;
-  const groups = [
-    { cat: 'Versicherung', label: 'Versicherungen', plural: 'Versicherungen', singular: 'Versicherung' },
-    { cat: 'Vertrag', label: 'Verträge', plural: 'Verträge', singular: 'Vertrag' }
-  ];
-  const nVers = data.v.filter(e => e.cat === 'Versicherung').length;
-  const nVert = data.v.filter(e => e.cat === 'Vertrag').length;
-  if (nVers + nVert === 0) {
-    body.innerHTML = `<div class="uy-konto-head"><span>Anzahl</span><b>0</b><span class="saverate-eur">&nbsp;</span></div><div class="av-empty">Noch keine Versicherungen oder Verträge angelegt.</div>`;
+  const cats = ['Versicherung', 'Vertrag'];
+  const all = data.v.filter(e => cats.includes(e.cat));
+
+  // Nur Einträge mit Stichtag UND Kündigungsfrist, beide parsebar
+  const today = new Date(); today.setHours(0,0,0,0);
+  const MS = 86400000;
+  const radar = [];
+  all.forEach(e => {
+    const stichtag = parseDeDate(e.startDate);
+    const days = parseNoticeDays(e.noticePeriod);
+    if (!stichtag || days == null) return;
+    const deadline = new Date(stichtag.getTime() - days * MS);
+    const daysLeft = Math.round((deadline - today) / MS);
+    radar.push({ e, stichtag, deadline, daysLeft });
+  });
+  radar.sort((a,b) => a.deadline - b.deadline);
+
+  const nTotal = all.length;
+  const nRadar = radar.length;
+  const fmtD = (d) => `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+
+  let html = `<div class="uy-konto-head"><span>Kündigungs-Radar</span><b>${nRadar}</b><span class="saverate-eur">${nRadar === 1 ? '1 Vertrag mit Frist' : nRadar + ' Verträge mit Frist'}${nTotal > nRadar ? ` · ${nTotal - nRadar} ohne Daten` : ''}</span></div>`;
+
+  if (!nRadar) {
+    html += `<div class="av-empty">Keine Verträge mit Stichtag und Kündigungsfrist hinterlegt.</div>`;
+    body.innerHTML = html;
     return;
   }
-  const countParts = [];
-  if (nVers) countParts.push(`${nVers} ${nVers === 1 ? 'Versicherung' : 'Versicherungen'}`);
-  if (nVert) countParts.push(`${nVert} ${nVert === 1 ? 'Vertrag' : 'Verträge'}`);
 
-  const fmtDate = (iso) => {
-    if (!iso) return '';
-    const p = String(iso).split('-');
-    return p.length === 3 ? `${p[2]}.${p[1]}.${p[0]}` : esc(iso);
+  const restLabel = (d) => {
+    if (d < 0) return `seit ${Math.abs(d)} ${Math.abs(d) === 1 ? 'Tag' : 'Tagen'} vorbei`;
+    if (d === 0) return 'heute';
+    if (d < 60) return `in ${d} ${d === 1 ? 'Tag' : 'Tagen'}`;
+    const months = Math.round(d / 30);
+    return `in ca. ${months} ${months === 1 ? 'Monat' : 'Monaten'}`;
   };
 
-  let html = `<div class="uy-konto-head"><span>Anzahl</span><b>${nVers + nVert}</b><span class="saverate-eur">${countParts.join(' · ')}</span></div>`;
-
-  groups.forEach(g => {
-    const items = data.v.filter(e => e.cat === g.cat).sort((a,b) => a.name.localeCompare(b.name, 'de'));
-    if (!items.length) return;
-    html += `<div class="vd-group"><div class="dash-sub-label">${g.label}</div>`;
-    items.forEach(e => {
-      const meta = [];
-      const vnr = e.extra ?? e.contract;
-      if (vnr) meta.push(['Vertragsnr.', esc(vnr)]);
-      if (e.startDate) meta.push(['Stichtag', fmtDate(e.startDate)]);
-      if (e.noticePeriod) meta.push(['Kündigungsfrist', esc(e.noticePeriod)]);
-      if (e.benefit !== '' && e.benefit != null) meta.push(['Leistung', `${fmt(Number(e.benefit))} (m)`]);
-      const metaHtml = meta.map(m =>
-        `<div class="vd-row"><span class="vd-key">${m[0]}</span><span class="vd-val">${m[1]}</span></div>`
-      ).join('');
-      html += `<div class="vd-card">
-        <div class="vd-head"><span class="vd-name">${esc(e.name)}</span>${e.provider ? `<span class="vd-prov">${esc(e.provider)}</span>` : ''}</div>
-        ${metaHtml}
-      </div>`;
-    });
-    html += `</div>`;
+  html += `<div class="vd-group">`;
+  radar.forEach(r => {
+    const urgent = r.daysLeft < 60;
+    html += `<div class="vd-card${urgent ? ' vd-urgent' : ''}">
+      <div class="vd-head"><span class="vd-name">${esc(r.e.name)}</span>${r.e.provider ? `<span class="vd-prov">${esc(r.e.provider)}</span>` : ''}</div>
+      <div class="vd-row"><span class="vd-key">Kündbar bis</span><span class="vd-val${urgent ? ' vd-val-urgent' : ''}">${fmtD(r.deadline)}</span></div>
+      <div class="vd-row"><span class="vd-key">Restzeit</span><span class="vd-val${urgent ? ' vd-val-urgent' : ''}">${restLabel(r.daysLeft)}</span></div>
+      <div class="vd-row"><span class="vd-key">Vertragsende</span><span class="vd-val">${fmtD(r.stichtag)}</span></div>
+    </div>`;
   });
+  html += `</div>`;
   body.innerHTML = html;
 }
 
@@ -2267,7 +2295,7 @@ function renderGrowthArea(sec, vEntry) {
   el.innerHTML = `<div class="field-group-label">Szenarien</div>
     <div class="field field-row">` +
     gf.map(f =>
-      `<div><label>${f.label} (€)</label><input type="text" id="gf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
+      `<div><label>${f.label}</label><input type="text" id="gf-${f.key}" placeholder="${f.placeholder||''}" autocomplete="off"></div>`
     ).join('') +
     `</div>`;
   gf.forEach(f => {
@@ -2297,15 +2325,24 @@ function openModal(sec, id) {
   const exLabel = $('f-extra-label');
   const exInput = $('f-extra-input');
   const exSelect = $('f-extra-select');
-  exLabel.textContent = cfg.extra.label;
-  if (cfg.extra.kind === 'select') {
-    exInput.style.display = 'none';
-    exSelect.style.display = '';
-    exSelect.innerHTML = cfg.extra.options.map(o => `<option>${o}</option>`).join('');
+  const exWrap = $('f-extra-wrap');
+  const catExtraRow = $('f-cat-extra-row');
+  if (cfg.extra) {
+    exWrap.style.display = '';
+    catExtraRow.style.gridTemplateColumns = '1fr 1fr';
+    exLabel.textContent = cfg.extra.label;
+    if (cfg.extra.kind === 'select') {
+      exInput.style.display = 'none';
+      exSelect.style.display = '';
+      exSelect.innerHTML = cfg.extra.options.map(o => `<option>${o}</option>`).join('');
+    } else {
+      exSelect.style.display = 'none';
+      exInput.style.display = '';
+      exInput.placeholder = cfg.extra.placeholder || '';
+    }
   } else {
-    exSelect.style.display = 'none';
-    exInput.style.display = '';
-    exInput.placeholder = cfg.extra.placeholder || '';
+    exWrap.style.display = 'none';
+    catExtraRow.style.gridTemplateColumns = '1fr';
   }
 
   $('f-name').placeholder = cfg.namePlaceholder;
@@ -2339,14 +2376,14 @@ function openModal(sec, id) {
     $('f-amount').value   = e.amount;
     $('f-period').value   = e.period || 'monatlich';
     $('f-cat').value      = e.cat;
-    if (cfg.extra.kind === 'select') exSelect.value = e.extra || cfg.extra.options[0];
-    else exInput.value = e.extra ?? e.contract ?? '';
+    if (cfg.extra && cfg.extra.kind === 'select') exSelect.value = e.extra || cfg.extra.options[0];
+    else if (cfg.extra) exInput.value = e.extra ?? e.contract ?? '';
   } else {
     ['f-name','f-provider','f-amount','f-extra-input'].forEach(i => $(i).value = '');
     $('f-account').value = '';
     $('f-period').value = cfg.fixedPeriod || 'monatlich';
     $('f-cat').value    = cfg.defaultCat;
-    if (cfg.extra.kind === 'select') exSelect.value = cfg.extra.options[0];
+    if (cfg.extra && cfg.extra.kind === 'select') exSelect.value = cfg.extra.options[0];
   }
   tf.forEach(f => {
     const val = vEntry ? vEntry[f.key] : null;
@@ -2413,9 +2450,10 @@ function saveEntry() {
   const amount   = parseFloat($('f-amount').value.replace(',', '.'));
   const period   = cfg.showPeriod ? $('f-period').value : (cfg.fixedPeriod || 'monatlich');
   const cat      = $('f-cat').value;
-  const extra    = cfg.extra.kind === 'select'
-    ? $('f-extra-select').value
-    : $('f-extra-input').value.trim();
+  const extra    = !cfg.extra ? ''
+    : cfg.extra.kind === 'select'
+      ? $('f-extra-select').value
+      : $('f-extra-input').value.trim();
 
   if (!name || isNaN(amount) || amount < 0) { notify('Bitte Name und Betrag ausfüllen.'); return; }
 
