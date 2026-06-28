@@ -130,9 +130,9 @@
   .donut-center-val { font-size: 0.75rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 2px; max-width: 72px; text-align: center; line-height: 1.15; }
   .dash-sub-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--petrol); font-weight: 700; display: block; margin-bottom: 4px; }
   .dash-saverate { }
-  .uy-konto-head span.saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; font-weight: 600; text-transform: none; letter-spacing: 0; }
-  .wealth-sub-row { display: flex; align-items: center; gap: 7px; margin-top: 2px; }
-  .wealth-sub-row .saverate-eur { margin-top: 0; }
+  .uy-konto-head span.saverate-eur { font-size: 0.68rem; color: var(--muted); display: inline; margin-top: 0; font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .uy-konto-head .wealth-sub-row { display: flex; align-items: center; gap: 7px; margin-top: 2px; flex-wrap: nowrap; text-transform: none; }
+  .uy-konto-head .wealth-sub-row .saverate-eur { margin-top: 0; margin-bottom: 0; display: inline; flex: 0 1 auto; min-width: 0; }
   .info-i { flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%; border: none; background: var(--stroke-hi); color: var(--text); font-size: 0.6rem; font-weight: 700; font-style: italic; font-family: Georgia, "Times New Roman", serif; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: transform 0.15s, background 0.2s; }
   .info-i:active { transform: scale(0.88); background: var(--accent); }
   .saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; font-weight: 600; }
@@ -290,14 +290,13 @@
   .uy-konto-head { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--stroke); }
   .uy-konto-head span { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--petrol); font-weight: 700; display: block; margin-bottom: 4px; }
   .uy-konto-head b { font-size: 1.2rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -0.03em; display: block; }
-  .urlaub-budget-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; margin-bottom: 12px; }
+  .urlaub-combined { padding: 16px 18px; margin-bottom: 12px; }
+  .uc-budget-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .uc-divider { height: 1px; background: var(--stroke); margin: 14px 0; }
+  .ub-auto-val { font-size: 1.05rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
   .ub-label { font-size: 0.78rem; color: var(--muted); }
   .ub-input-wrap { display: flex; align-items: baseline; gap: 3px; }
-  #urlaub-budget-input { width: 100px; background: transparent; border: none; outline: none; color: var(--text); font: inherit; font-size: 1.05rem; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; padding: 0; border-bottom: 1px solid var(--stroke); }
-  #urlaub-budget-input:focus { border-bottom-color: var(--accent); }
-  #urlaub-budget-input::placeholder { color: var(--muted-2); }
   .ub-eur { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
-  .urlaub-deposits { padding: 12px 16px; margin-bottom: 12px; }
   .ud-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .ud-add { background: none; border: none; color: var(--accent); font: inherit; font-size: 0.85rem; font-weight: 600; padding: 2px 0; cursor: pointer; }
   #deposit-list { display: flex; flex-direction: column; }
@@ -595,14 +594,15 @@
 
   <div class="section-body" id="body-urlaub">
   <div class="section-label">Urlaube</div>
-  <div class="urlaub-budget-box glass">
-    <span class="ub-label">Jahresbudget (pro Jahr)</span>
-    <div class="ub-input-wrap">
-      <input type="text" id="urlaub-budget-input" placeholder="0,00" oninput="onUrlaubBudgetInput()">
-      <span class="ub-eur">€</span>
+  <div class="urlaub-combined glass">
+    <div class="uc-budget-row">
+      <span class="ub-label">Jahresbudget (pro Jahr)</span>
+      <div class="ub-input-wrap">
+        <span class="ub-auto-val" id="urlaub-budget-auto">0,00</span>
+        <span class="ub-eur">€</span>
+      </div>
     </div>
-  </div>
-  <div class="urlaub-deposits glass">
+    <div class="uc-divider"></div>
     <div class="ud-head">
       <span class="ub-label">Einmaleinzahlungen</span>
       <button class="ud-add" onclick="openDepositModal()">＋ Einzahlung</button>
@@ -910,7 +910,7 @@ let income = parseFloat(store.get(INCOME_KEY) || '0') || 0;
 let bonus = JSON.parse(store.get(BONUS_KEY) || '[]');
 let editBonusId = null;
 let urlaube = JSON.parse(store.get(URLAUB_KEY) || '[]');
-let urlaubBudget = parseFloat(store.get(URLAUB_BUDGET_KEY) || '0') || 0;
+let urlaubBudget = parseFloat(store.get(URLAUB_BUDGET_KEY) || '0') || 0;  // wird automatisch aus "Urlaub I" berechnet
 let urlaubDeposits = JSON.parse(store.get(URLAUB_DEPOSITS_KEY) || '[]');
 let editUrlaubId = null;
 let editDepositId = null;
@@ -1676,11 +1676,42 @@ function urlaubYear(monthStr) {
   return m ? m[1] : null;
 }
 
-function onUrlaubBudgetInput() {
-  urlaubBudget = parseMoney($('urlaub-budget-input').value) || 0;
-  store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
-  renderUrlaubeAll();
-  renderDashboard();
+// Monatsrate des Sparen-Eintrags "Urlaub I"
+function urlaubMonthlyRate() {
+  const e = data.b.find(x => x.name && x.name.trim() === 'Urlaub I');
+  return e ? toMonthly(e.amount || 0, e.period || 'monatlich') : 0;
+}
+
+// Historie der Ratenänderungen [{ym, rate}] (ym = Jahr*12+Monat). Nur Änderungen ab jetzt.
+const URLAUB_RATE_HIST_KEY = 'urlaub_rate_hist_v1';
+let urlaubRateHist = JSON.parse(store.get(URLAUB_RATE_HIST_KEY) || '[]');
+
+function updateUrlaubRateHist() {
+  const rate = urlaubMonthlyRate();
+  const ymNow = new Date().getFullYear() * 12 + new Date().getMonth();
+  const last = urlaubRateHist[urlaubRateHist.length - 1];
+  if (!last) {
+    urlaubRateHist.push({ ym: ymNow, rate });
+  } else if (last.rate !== rate) {
+    if (last.ym === ymNow) last.rate = rate;        // gleiche Monat: überschreiben
+    else urlaubRateHist.push({ ym: ymNow, rate });  // neuer Monat: anhängen
+  }
+  store.set(URLAUB_RATE_HIST_KEY, JSON.stringify(urlaubRateHist));
+}
+
+// Rate, die in einem bestimmten Monat (ym) galt
+function rateAtYm(ym) {
+  let r = urlaubMonthlyRate();   // Fallback: aktuelle Rate (für Monate vor jeder Historie)
+  for (const h of urlaubRateHist) { if (h.ym <= ym) r = h.rate; }
+  return r;
+}
+
+// Auto-Jahresbudget = Summe der je Monat gültigen Rate, Jan–Dez des aktuellen Jahres
+function computeUrlaubBudget() {
+  const year = new Date().getFullYear();
+  let sum = 0;
+  for (let m = 0; m < 12; m++) sum += rateAtYm(year * 12 + m);
+  return sum;
 }
 
 const MONTH_FULL = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
@@ -1887,7 +1918,14 @@ function renderUrlaube() {
   });
 }
 
-function renderUrlaubeAll() { renderUrlaubeDash(); renderUrlaube(); renderDeposits(); }
+function renderUrlaubeAll() {
+  updateUrlaubRateHist();
+  urlaubBudget = computeUrlaubBudget();
+  store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
+  const autoEl = $('urlaub-budget-auto');
+  if (autoEl) autoEl.textContent = fmt(urlaubBudget).replace(' €','');
+  renderUrlaubeDash(); renderUrlaube(); renderDeposits();
+}
 
 // Liste der Einmaleinzahlungen (unter dem Budget)
 function renderDeposits() {
@@ -2342,8 +2380,8 @@ function notify(message, title = 'Hinweis') { return showDialog(message, { title
 
 // Info-Popup: welche Einträge fließen ins Gesamtvermögen ein
 function showWealthInfo() {
-  const vermoegen = data.b.filter(e => !isGiro(e) && (e.balance || 0) !== 0).map(e => e.name);
-  const vorsorge  = data.a.filter(e => e.cat === 'Privat' && (e.current || 0) !== 0).map(e => e.name);
+  const vermoegen = data.b.filter(e => !isGiro(e)).map(e => e.name);
+  const vorsorge  = data.a.filter(e => e.cat === 'Privat').map(e => e.name);
   const v = vermoegen.length ? vermoegen.join(', ') : '–';
   const a = vorsorge.length ? vorsorge.join(', ') : '–';
   notify(
@@ -2363,6 +2401,7 @@ function exportData() {
     bonus: bonus,
     urlaube: urlaube,
     urlaubBudget: urlaubBudget,
+    urlaubRateHist: urlaubRateHist,
     urlaubDeposits: urlaubDeposits,
     avViewMode: avViewMode,
     history: history
@@ -2429,7 +2468,10 @@ async function applyBackup(rawText) {
   if (typeof parsed.urlaubBudget === 'number') {
     urlaubBudget = parsed.urlaubBudget;
     store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
-    $('urlaub-budget-input').value = urlaubBudget > 0 ? fmt(urlaubBudget).replace(' €','') : '';
+  }
+  if (Array.isArray(parsed.urlaubRateHist)) {
+    urlaubRateHist = parsed.urlaubRateHist;
+    store.set(URLAUB_RATE_HIST_KEY, JSON.stringify(urlaubRateHist));
   }
   if (Array.isArray(parsed.urlaubDeposits)) {
     urlaubDeposits = parsed.urlaubDeposits;
@@ -2465,7 +2507,6 @@ function populateFilters() {
 
 if (!store.persistent) $('notice').style.display = 'block';
 if (income > 0) $('income-input').value = income.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
-if (urlaubBudget > 0) $('urlaub-budget-input').value = urlaubBudget.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
 populateFilters();
 applyAutoGrow();
 renderAll();
