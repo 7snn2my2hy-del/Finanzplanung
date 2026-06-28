@@ -130,9 +130,9 @@
   .donut-center-val { font-size: 0.75rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 2px; max-width: 72px; text-align: center; line-height: 1.15; }
   .dash-sub-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--petrol); font-weight: 700; display: block; margin-bottom: 4px; }
   .dash-saverate { }
-  .uy-konto-head span.saverate-eur { font-size: 0.68rem; color: var(--muted); display: inline; margin-top: 0; font-weight: 600; text-transform: none; letter-spacing: 0; }
-  .uy-konto-head .wealth-sub-row { display: flex; align-items: center; gap: 7px; margin-top: 2px; flex-wrap: nowrap; text-transform: none; }
+  .uy-konto-head .wealth-sub-row { display: flex; align-items: center; gap: 7px; margin-top: 2px; flex-wrap: nowrap; text-transform: none; min-height: 18px; }
   .uy-konto-head .wealth-sub-row .saverate-eur { margin-top: 0; margin-bottom: 0; display: inline; flex: 0 1 auto; min-width: 0; }
+  .uy-konto-head span.saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; font-weight: 600; text-transform: none; letter-spacing: 0; min-height: 18px; line-height: 18px; }
   .info-i { flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%; border: none; background: var(--stroke-hi); color: var(--text); font-size: 0.6rem; font-weight: 700; font-style: italic; font-family: Georgia, "Times New Roman", serif; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: transform 0.15s, background 0.2s; }
   .info-i:active { transform: scale(0.88); background: var(--accent); }
   .saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; font-weight: 600; }
@@ -2380,12 +2380,17 @@ function notify(message, title = 'Hinweis') { return showDialog(message, { title
 
 // Info-Popup: welche Einträge fließen ins Gesamtvermögen ein
 function showWealthInfo() {
-  const vermoegen = data.b.filter(e => !isGiro(e)).map(e => e.name);
-  const vorsorge  = data.a.filter(e => e.cat === 'Privat').map(e => e.name);
+  const catOrder = SECTIONS.b.cats || [];
+  const byCat = (a, b) => {
+    const ci = catOrder.indexOf(a.cat) - catOrder.indexOf(b.cat);
+    return ci !== 0 ? ci : (a.name || '').localeCompare(b.name || '', 'de', { numeric: true });
+  };
+  const vermoegen = data.b.filter(e => !isGiro(e)).sort(byCat).map(e => e.name);
+  const vorsorge  = data.a.filter(e => e.cat === 'Privat').sort((a,b)=>(a.name||'').localeCompare(b.name||'','de',{numeric:true})).map(e => e.name);
   const v = vermoegen.length ? vermoegen.join(', ') : '–';
   const a = vorsorge.length ? vorsorge.join(', ') : '–';
   notify(
-    `Vermögen (Kontostände ohne Girokonten):\n${v}\n\nVorsorge (private Altersvorsorge):\n${a}`,
+    `Vermögen:\n${v}\n\nVorsorge (private Altersvorsorge):\n${a}`,
     'Was fließt ein?'
   );
 }
