@@ -773,7 +773,7 @@
         <label>Art der Beträge</label>
         <select id="f-projtype-select">
           <option value="einmal">Einmalbetrag</option>
-          <option value="monatlich">monatlich</option>
+          <option value="monatlich">Monatlich</option>
         </select>
       </div>
     </div>
@@ -2269,7 +2269,7 @@ function openDepositModal(id) {
   const e = id ? urlaubDeposits.find(x => x.id === id) : null;
   $('deposit-year').value = e ? (e.y || '') : '';
   $('deposit-month').value = e ? String(e.m || '').padStart(2,'0') : '';
-  $('deposit-amount').value = e ? fmt(e.amount || 0).replace(' €','') : '';
+  $('deposit-amount').value = e ? fmt(e.amount || 0) : '';
   $('deposit-note').value = e ? (e.note || '') : '';
   $('deposit-overlay').classList.add('open');
   setTimeout(() => $('deposit-amount').focus(), 60);
@@ -2307,7 +2307,7 @@ async function deleteDeposit(id) {
 }
 
 function urlaubPaymentRowHTML(m, amount, y) {
-  const a = (amount != null && amount !== '') ? fmt(amount).replace(' €','') : '';
+  const a = (amount != null && amount !== '') ? fmt(amount) : '';
   const mv = (m != null && m !== '') ? String(m).padStart(2,'0') : '';
   const yv = (y != null && y !== '') ? String(y) : '';
   return `<div class="pay-row">
@@ -2366,7 +2366,7 @@ function openUrlaubModal(id) {
   $('urlaub-name').value = e ? e.name : '';
   $('urlaub-year').value = e ? (tripYear(e) || '') : '';
   $('urlaub-month').value = e ? String(tripMonthNum(e)).padStart(2,'0') : '';
-  $('urlaub-cost').value = e ? fmt(tripCost(e)).replace(' €','') : '';
+  $('urlaub-cost').value = e ? fmt(tripCost(e)) : '';
   $('urlaub-payments').innerHTML = '';
   if (e && Array.isArray(e.payments)) {
     e.payments.slice().sort((a,b) => (a.m||0)-(b.m||0)).forEach(p => {
@@ -2431,7 +2431,7 @@ function buildValueFields(sec, vEntry) {
       inlineWrap.style.display = '';
       $('f-amount-value-label').textContent = inlineF.label;
       $('f-amount-value-input').placeholder = inlineF.placeholder || '';
-      $('f-amount-value-input').value = vEntry && vEntry[inlineKey] != null ? fmt(vEntry[inlineKey]).replace(' €','') : '';
+      $('f-amount-value-input').value = vEntry && vEntry[inlineKey] != null ? fmt(vEntry[inlineKey]) : '';
       vf = vf.filter(f => f.key !== inlineKey);
     } else {
       inlineWrap.style.display = 'none';
@@ -2455,7 +2455,7 @@ function buildValueFields(sec, vEntry) {
   vf.forEach(f => {
     const v = vEntry ? vEntry[f.key] : null;
     const inp = $('vf-' + f.key);
-    if (inp) inp.value = (v != null) ? fmt(v).replace(' €','') : '';
+    if (inp) inp.value = (v != null) ? fmt(v) : '';
   });
 
   // Projected type selector — hidden for Privat (auto) and Gesetzlich (always monthly)
@@ -2493,7 +2493,7 @@ function renderGrowthArea(sec, vEntry) {
   gf.forEach(f => {
     const inp = $('gf-' + f.key);
     const v = vEntry ? vEntry[f.key] : null;
-    if (inp) inp.value = (v != null) ? fmt(v).replace(' €','') : '';
+    if (inp) inp.value = (v != null) ? fmt(v) : '';
   });
 }
 
@@ -2617,7 +2617,7 @@ function openModal(sec, id) {
   const unitsVis = unitsWrap.style.display !== 'none';
   const ptVis = $('f-projtype').style.display !== 'none';
   utRow.style.display = (unitsVis || ptVis) ? '' : 'none';
-  utRow.style.gridTemplateColumns = (unitsVis && ptVis) ? '1fr 1fr' : '1fr';
+  utRow.style.gridTemplateColumns = '1fr 1fr';
 
   // React to category changes (section a only)
   if (sec === 'a') {
@@ -2832,7 +2832,7 @@ async function applyBackup(rawText) {
   if (typeof parsed.income === 'number') {
     income = parsed.income;
     store.set(INCOME_KEY, String(income));
-    $('income-input').value = income > 0 ? fmt(income).replace(' €','') : '';
+    $('income-input').value = income > 0 ? fmt(income) : '';
   }
   if (Array.isArray(parsed.bonus)) {
     bonus = parsed.bonus;
