@@ -212,21 +212,38 @@
 
   .list { display: flex; flex-direction: column; gap: 10px; }
 
+  /* Swipe-Architektur: entry-wrap clippt, entry-slider ist flex-row und verschiebt sich */
+  .entry-wrap { position: relative; border-radius: 18px; overflow: hidden; margin-bottom: 10px; }
+  .entry-wrap:last-child { margin-bottom: 0; }
+  .entry-slider { display: flex; flex-direction: row; width: 100%; transition: transform 0.3s cubic-bezier(0.32,0.72,0,1); will-change: transform; }
+  .entry-slider.no-transition { transition: none; }
+  .entry-action-bg { display: flex; flex-direction: row; align-items: center; gap: 6px; padding: 6px 8px 6px 6px; flex-shrink: 0; background: transparent; }
+  .swipe-edit, .swipe-del { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 64px; align-self: stretch; border-radius: 16px; color: #fff; cursor: pointer; flex-shrink: 0; }
+  .swipe-edit { background: #E07A18; }
+  .swipe-del  { background: #D93025; }
+  .swipe-edit svg, .swipe-del svg { width: 20px; height: 20px; }
+  .swipe-edit span, .swipe-del span { font-size: 0.64rem; font-weight: 600; }
   .entry {
+    position: relative;
+    flex: 0 0 100%;
+    width: 100%;
     padding: 16px 18px;
     border-radius: 18px;
-    display: grid; grid-template-columns: 1fr auto auto;
+    display: grid; grid-template-columns: 1fr auto;
     align-items: center; gap: 14px;
-    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, background 0.2s ease;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    will-change: transform;
   }
-  .entry:active { transform: scale(0.97); opacity: 0.9; }
   .entry:hover  { border-color: var(--stroke-hi); background: var(--glass-hi); }
+  .entry-main { min-width: 0; }
+  .entry-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; flex-shrink: 0; }
 
   .entry-name { font-weight: 600; font-size: 0.97rem; letter-spacing: -0.01em; }
-  .entry-sub  { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.45; }
+  .entry-sub  { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+  .entry-sub > div { }
   .entry-paysched { font-size: 0.74rem; color: var(--muted-2); margin-top: 2px; font-variant-numeric: tabular-nums; }
 
-  .cat-pill { display: inline-block; font-size: 0.66rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-top: 6px; letter-spacing: 0.02em; }
+  .cat-pill { display: inline-block; font-size: 0.66rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.02em; }
   .cat-Abonnement   { background: rgba(176,110,235,0.16); color: #c39bf0; }
   .cat-Versicherung { background: rgba(55,195,230,0.16);  color: #3fc8e6; }
   .cat-Verein       { background: rgba(255,150,50,0.16);  color: #ff9f43; }
@@ -237,6 +254,17 @@
   .cat-Gesetzlich   { background: rgba(200,160,100,0.16); color: #c9a46a; }
   .cat-Betrieblich  { background: rgba(45,195,175,0.16);  color: #34c8b4; }
   .cat-Privat       { background: rgba(255,125,160,0.16); color: #ff8fae; }
+
+  .entry-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .acct-pill { display: inline-block; font-size: 0.66rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.02em; }
+  .acct-DBGiro              { background: rgba(90,200,250,0.16);  color: #5ac8fa; }
+  .acct-DBSpar             { background: rgba(100,210,255,0.14); color: #64d2ff; }
+  .acct-DBROBIN            { background: rgba(120,170,255,0.16); color: #7aaaff; }
+  .acct-DKBGiro            { background: rgba(48,209,170,0.16);  color: #30d1aa; }
+  .acct-ScalableBroker     { background: rgba(255,180,90,0.16);  color: #ffb45a; }
+  .acct-ScalableTagesgeld  { background: rgba(215,200,120,0.16); color: #d7c878; }
+  .acct-ScalableWealthWeltreise  { background: rgba(255,140,160,0.16); color: #ff8ca0; }
+  .acct-EquatePlus         { background: rgba(190,150,255,0.16); color: #be96ff; }
 
   .entry-amount { font-weight: 600; font-size: 0.97rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .entry-period { font-size: 0.7rem; color: var(--muted-2); text-align: right; margin-top: 2px; }
@@ -296,7 +324,7 @@
   .av-card-total-scenario { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .av-scenario-select { background: rgba(255,255,255,0.08); border: 1px solid var(--stroke); border-radius: 8px; color: var(--muted); font: inherit; font-size: 0.72rem; padding: 4px 8px; outline: none; cursor: pointer; flex-shrink: 0; }
   .av-card-total-val { font-size: 0.82rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; flex: 1; text-align: right; }
-  .field-group-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-2); margin: 4px 0 6px; }
+  .field-group-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-2); margin: 0 0 -4px; font-weight: 600; }
 
   .urlaub-year-head { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--stroke); }
   .urlaub-year-head.first-year { border-top: none; margin-top: 4px; padding-top: 0; }
@@ -386,7 +414,7 @@
   .grabber { width: 38px; height: 5px; border-radius: 99px; background: rgba(255,255,255,0.22); margin: -8px auto 18px; }
   .modal h2 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 20px; }
 
-  .field { margin-bottom: 14px; }
+  .field { margin-bottom: 0; }
   .field label { display: block; font-size: 0.76rem; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.01em; }
   .field input, .field select {
     width: 100%; background: rgba(255,255,255,0.06);
@@ -402,9 +430,11 @@
   .field input:focus, .field select:focus { border-color: var(--accent); background: rgba(10,132,255,0.08); }
   .field select option { background: #1c1c1e; color: var(--text); }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .f-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .f-toggle-lab { font-size: 0.78rem; color: var(--text); line-height: 1.35; white-space: nowrap; }
-  .f-toggle-cb { width: 22px; height: 22px; accent-color: var(--accent); flex: 0 0 auto; cursor: pointer; margin: 0; }
+  .f-dyn-group { display: flex; flex-direction: column; gap: 14px; }
+  .f-dyn-group:empty { display: none; }
+  .f-toggle { display: flex; align-items: center; justify-content: flex-start; gap: 10px; min-height: 44px; }
+  .f-toggle .f-toggle-lab { font-size: 0.78rem; color: var(--text); line-height: 1; white-space: nowrap; display: inline; margin: 0; }
+  .f-toggle .f-toggle-cb { width: 22px; height: 22px; accent-color: var(--accent); flex: 0 0 22px; cursor: pointer; margin: 0; }
   #urlaub-payments { display: flex; flex-direction: column; gap: 8px; }
   .pay-row { display: flex; gap: 8px; align-items: center; }
   .pay-row input { padding: 10px 10px; font-size: 0.95rem; }
@@ -444,7 +474,7 @@
     <div class="income-left">
       <span class="income-label">Netto / Monat</span>
       <div class="income-input-wrap">
-        <input type="text" id="income-input" placeholder="0,00" oninput="onIncomeInput()">
+        <input type="text" id="income-input" placeholder="z.B. 0,00" oninput="onIncomeInput()">
         <span class="income-eur">€</span>
       </div>
     </div>
@@ -683,6 +713,7 @@
   <div class="modal">
     <div class="grabber"></div>
     <h2 id="modal-title">Neuer Eintrag</h2>
+    <div style="display:flex;flex-direction:column;gap:14px">
     <div class="field">
       <label>Name</label>
       <input type="text" id="f-name" placeholder="z.B. Netflix" autocomplete="off">
@@ -692,25 +723,16 @@
         <label id="f-provider-label">Anbieter (optional)</label>
         <input type="text" id="f-provider" placeholder="z.B. Allianz" autocomplete="off">
       </div>
-      <div>
-        <label>Konto</label>
-        <select id="f-account">
-          <option value="">— kein Konto —</option>
-          <option>DB Giro</option>
-          <option>DB Spar</option>
-          <option>DB ROBIN</option>
-          <option>DKB Giro</option>
-          <option>Scalable Broker</option>
-          <option>Scalable Wealth (Weltreise)</option>
-          <option>Scalable Tagesgeld</option>
-          <option>EquatePlus</option>
-        </select>
+      <div id="f-extra-wrap">
+        <label id="f-extra-label">Vertragsnummer (optional)</label>
+        <input type="text" id="f-extra-input" placeholder="—" autocomplete="off">
+        <select id="f-extra-select" style="display:none"></select>
       </div>
     </div>
     <div class="field field-row">
       <div>
         <label>Betrag</label>
-        <input type="text" id="f-amount" placeholder="9,99">
+        <input type="text" id="f-amount" placeholder="z.B. 1.000,00 €">
       </div>
       <div id="f-period-wrap">
         <label>Intervall</label>
@@ -728,16 +750,25 @@
     </div>
     <div class="field field-row" id="f-cat-extra-row">
       <div>
+        <label>Konto</label>
+        <select id="f-account">
+          <option value="">— kein Konto —</option>
+          <option>DB Giro</option>
+          <option>DB Spar</option>
+          <option>DB ROBIN</option>
+          <option>DKB Giro</option>
+          <option>Scalable Broker</option>
+          <option>Scalable Wealth (Weltreise)</option>
+          <option>Scalable Tagesgeld</option>
+          <option>EquatePlus</option>
+        </select>
+      </div>
+      <div>
         <label>Kategorie</label>
         <select id="f-cat"></select>
       </div>
-      <div id="f-extra-wrap">
-        <label id="f-extra-label">Vertragsnummer (optional)</label>
-        <input type="text" id="f-extra-input" placeholder="—" autocomplete="off">
-        <select id="f-extra-select" style="display:none"></select>
-      </div>
     </div>
-    <div id="f-values"></div>
+    <div id="f-values" class="f-dyn-group"></div>
     <div class="field field-row" id="f-units-projtype-row" style="display:none">
       <div id="f-units-wrap" style="display:none">
         <label id="f-units-label">Einheiten (optional)</label>
@@ -752,11 +783,12 @@
       </div>
     </div>
     <div class="field f-toggle" id="f-autogrow-wrap" style="display:none">
-      <label class="f-toggle-lab" for="f-autogrow">Stand monatlich automatisch erhöhen</label>
       <input type="checkbox" id="f-autogrow" class="f-toggle-cb">
+      <label class="f-toggle-lab" for="f-autogrow">Stand monatlich automatisch erhöhen</label>
     </div>
-    <div id="f-growth"></div>
-    <div id="f-texts"></div>
+    <div id="f-growth" class="f-dyn-group"></div>
+    <div id="f-texts" class="f-dyn-group"></div>
+    </div><!-- end gap wrapper -->
     <div class="modal-actions">
       <button class="btn btn-secondary" id="cancel-btn" onclick="closeModal()">Abbrechen</button>
       <button class="btn btn-primary" id="save-btn" onclick="saveEntry()">Speichern</button>
@@ -807,7 +839,7 @@
     </div>
     <div class="field">
       <label>Gesamtkosten</label>
-      <input type="text" id="urlaub-cost" placeholder="z.B. 3.500" autocomplete="off" oninput="updatePayHint()">
+      <input type="text" id="urlaub-cost" placeholder="z.B. 1.000,00 €" autocomplete="off" oninput="updatePayHint()">
     </div>
     <div class="field">
       <label>Anzahlungen (optional)</label>
@@ -838,7 +870,7 @@
     </div>
     <div class="field">
       <label>Betrag</label>
-      <input type="text" id="deposit-amount" placeholder="z.B. 2.000" autocomplete="off">
+      <input type="text" id="deposit-amount" placeholder="z.B. 1.000,00 €" autocomplete="off">
     </div>
     <div class="field">
       <label>Notiz (optional)</label>
@@ -874,10 +906,10 @@ const SECTIONS = {
     showPeriod: true,
     extra: { kind: 'text', label: 'Vertragsnummer (optional)', placeholder: '—' },
     textFields: [
-      { key:'startDate', label:'Stichtag (optional)', placeholder:'TT.MM.JJJJ', display:'Stichtag', half:true },
+      { key:'startDate', label:'Stichtag (optional)', placeholder:'z.B. TT.MM.JJJJ', display:'Stichtag', half:true },
       { key:'noticePeriod', label:'Kündigungsfrist (optional)', placeholder:'z.B. 4 Monate', display:'Kündigungsfrist', half:true },
-      { key:'debitDate', label:'Abbuchungsdatum (optional)', placeholder:'z.B. 15.01', display:'Abbuchung', half:true },
-      { key:'benefit', label:'Leistung (optional)', placeholder:'z.B. 2000', display:'Leistung', kind:'money', half:true }
+      { key:'debitDate', label:'Abbuchungsdatum (optional)', placeholder:'z.B. TT.MM.JJJJ', display:'Abbuchung', half:true },
+      { key:'benefit', label:'Leistung (optional)', placeholder:'z.B. 1.000,00 €', display:'Leistung', kind:'money', half:true }
     ],
     namePlaceholder: 'z.B. Netflix',
     showYearlyPerEntry: true,
@@ -897,7 +929,7 @@ const SECTIONS = {
     autoGrowOption: true,        // Schalter „Stand monatlich automatisch erhöhen" anbieten
     amountWithValue: 'balance',  // Betrag + Stand in einer Zeile
     valueFields: [
-      { key:'balance', label:'Aktueller Stand', placeholder:'z.B. 3.000', display:'Stand', color:'now' }
+      { key:'balance', label:'Aktueller Stand', placeholder:'z.B. 1.000,00 €', display:'Stand', color:'now' }
     ],
     ids: { list:'list-b', empty:'empty-b', month:'sum-month-b', year:'sum-year-b', count:'sum-count-b' }
   },
@@ -913,14 +945,14 @@ const SECTIONS = {
     showYearlyPerEntry: true,
     unitsField: { key: 'units', label: 'Einheiten (optional)', placeholder: 'z.B. 12 Stück oder 65,3 Punkte' },
     valueFields: [
-      { key:'current',   label:'Aktueller Wert',     placeholder:'z.B. 12.000', display:'Aktuell', color:'now', row:true },
-      { key:'projected', label:'Bei Renteneintritt', placeholder:'z.B. 80.000', display:'Rente',   color:'end', row:true }
+      { key:'current',   label:'Aktueller Wert',     placeholder:'z.B. 1.000,00 €', display:'Aktuell', color:'now', row:true },
+      { key:'projected', label:'Bei Renteneintritt', placeholder:'z.B. 1.000,00 €', display:'Rente',   color:'end', row:true }
     ],
     projectedTypeField: true,
     growthFields: [
-      { key:'growth1', label:'bei 1 %', placeholder:'z.B. 70.000', display:'1 %' },
-      { key:'growth2', label:'bei 2 %', placeholder:'z.B. 85.000', display:'2 %' },
-      { key:'growth3', label:'bei 3 %', placeholder:'z.B. 100.000', display:'3 %' }
+      { key:'growth1', label:'bei 1 %', placeholder:'z.B. 1.000,00 €', display:'1 %' },
+      { key:'growth2', label:'bei 2 %', placeholder:'z.B. 1.000,00 €', display:'2 %' },
+      { key:'growth3', label:'bei 3 %', placeholder:'z.B. 1.000,00 €', display:'3 %' }
     ],
     ids: { list:'list-a', empty:'empty-a', month:'sum-month-a', year:'sum-year-a', count:'sum-count-a' }
   }
@@ -928,6 +960,8 @@ const SECTIONS = {
 
 const ACCOUNTS = ['DB Giro','DB Spar','DB ROBIN','DKB Giro','Scalable Broker','Scalable Wealth (Weltreise)','Scalable Tagesgeld','EquatePlus'];
 const isGiro = e => /giro/i.test(e.account || '');   // Girokonto = Kontoname enthält "Giro" (aus Vermögen & Sparquote ausgenommen)
+// Kontoname -> CSS-sicherer Slug für Pill-Farbe
+const acctSlug = name => (name || '').replace(/[^a-zA-Z0-9]/g, '');
 const INCOME_KEY = 'income_v1';
 const BONUS_KEY = 'bonus_v1';
 const URLAUB_KEY = 'urlaube_v1';
@@ -989,6 +1023,19 @@ function parseMoney(s) {
   }
   const n = parseFloat(s);
   return isNaN(n) ? null : n;
+}
+
+// Formatiert ein Eingabefeld bei Verlassen auf "1.234,56 €" (leer bleibt leer)
+function formatMoneyField(input) {
+  if (!input) return;
+  const n = parseMoney(input.value);
+  input.value = (n == null) ? '' : fmt(n);
+}
+// Hängt Auto-Format an ein Money-Input (on blur)
+function bindMoneyInput(input) {
+  if (!input || input.dataset.moneyBound) return;
+  input.dataset.moneyBound = '1';
+  input.addEventListener('blur', () => formatMoneyField(input));
 }
 
 function toMonthly(a, p) {
@@ -1166,12 +1213,11 @@ function renderSection(sec) {
       return ci !== 0 ? ci : a.name.localeCompare(b.name, 'de');
     })
     .forEach(e => {
-    const sub = [];
-    if (e.provider) sub.push(esc(e.provider));
-    if (e.account) sub.push(esc(e.account));
+    const subLines = [];
+    if (e.provider) subLines.push(esc(e.provider));
     const extraVal = e.extra ?? e.contract;
-    if (extraVal && !cfg.hideExtraInList) sub.push(esc(extraVal));
-    if (e.autoGrow) sub.push('↻ auto +Rate/Monat');
+    if (extraVal && !cfg.hideExtraInList) subLines.push('Vertragsnummer: ' + esc(extraVal));
+    if (e.autoGrow) subLines.push('↻ auto +Rate/Monat');
     const yearly = cfg.showYearlyPerEntry
       ? `<div class="entry-yearly">${fmt(toMonthly(e.amount, e.period) * 12)} / Jahr</div>`
       : '';
@@ -1184,38 +1230,145 @@ function renderSection(sec) {
     const tfShown = (cfg.textFields || []).filter(f => e[f.key] != null && e[f.key] !== '' && !f.dashOnly);
     if (tfShown.length) {
       valuesHtml += `<div class="entry-pension">` + tfShown.map(f => {
-        const val = (f.kind === 'money') ? `${fmt(Number(e[f.key]))} (m)` : esc(e[f.key]);
+        let val;
+        if (f.kind === 'money') val = `${fmt(Number(e[f.key]))} (m)`;
+        else if (f.key === 'startDate' || f.key === 'debitDate') val = displayDate(e[f.key]);
+        else val = esc(e[f.key]);
         return `<span class="pv-date">${f.display}: ${val}</span>`;
       }).join('') + `</div>`;
     }
     const balanceLine = (sec === 'b' && e.balance != null)
       ? `<div class="entry-balance">Stand: ${fmt(e.balance)}</div>`
       : '';
+    const acctPill = e.account
+      ? `<span class="acct-pill acct-${acctSlug(e.account)}">${esc(e.account)}</span>`
+      : '';
+    const subLinesHtml = subLines.length
+      ? `<div class="entry-sub">${subLines.map(l => `<div>${l}</div>`).join('')}</div>`
+      : '';
     const div = document.createElement('div');
-    div.className = 'entry glass';
+    div.className = 'entry-wrap';
+    div.dataset.sec = sec;
+    div.dataset.id = e.id;
     div.innerHTML = `
-      <div>
-        <div class="entry-name">${esc(e.name)}</div>
-        ${sub.length ? `<div class="entry-sub">${sub.join(' · ')}</div>` : ''}
-        <span class="cat-pill cat-${esc(e.cat)}">${esc(e.cat)}</span>
-        ${balanceLine}
-        ${valuesHtml}
-      </div>
-      <div>
-        <div class="entry-amount">${fmt(e.amount)}</div>
-        <div class="entry-period">${esc(e.period)}</div>
-        ${yearly}
-      </div>
-      <div class="entry-actions">
-        <button class="btn-icon edit" aria-label="Bearbeiten" onclick="openModal('${sec}','${e.id}')">${ICON_EDIT}</button>
-        <button class="btn-icon del" aria-label="Löschen" onclick="deleteEntry('${sec}','${e.id}')">${ICON_DEL}</button>
+      <div class="entry-slider">
+        <div class="entry glass">
+          <div class="entry-main">
+            <div class="entry-name">${esc(e.name)}</div>
+            ${subLinesHtml}
+            <div class="entry-pills">
+              <span class="cat-pill cat-${esc(e.cat)}">${esc(e.cat)}</span>
+              ${acctPill}
+            </div>
+            ${balanceLine}
+            ${valuesHtml}
+          </div>
+          <div class="entry-right">
+            <div class="entry-amount">${fmt(e.amount)}</div>
+            <div class="entry-period">${esc(e.period)}</div>
+            ${yearly}
+          </div>
+        </div>
+        <div class="entry-action-bg">
+          <div class="swipe-edit">${ICON_EDIT}<span>Bearb.</span></div>
+          <div class="swipe-del">${ICON_DEL}<span>Lösch.</span></div>
+        </div>
       </div>`;
     list.appendChild(div);
+    attachSwipe(div, sec, e.id);
   });
 
   if (sec === 'a' && typeof renderAvDash === 'function') renderAvDash();
   if (sec === 'v' && typeof renderVertragDash === 'function') renderVertragDash();
 }
+
+// Swipe-Logik: entry-slider verschiebt sich nach links, Buttons rechts daneben sichtbar
+let _openSwipe = null;
+document.addEventListener('touchstart', (ev) => {
+  if (_openSwipe && !_openSwipe.contains(ev.target)) closeOpenSwipe();
+}, { passive: true, capture: true });
+
+function closeOpenSwipe() {
+  if (_openSwipe) {
+    const slider = _openSwipe;
+    slider.classList.remove('no-transition');
+    slider.style.transform = '';
+    slider._openPx = 0;
+    _openSwipe = null;
+  }
+}
+
+function attachSwipe(wrap, sec, id) {
+  attachSwipeGeneric(wrap, () => deleteEntry(sec, id), () => openModal(sec, id));
+}
+
+function attachSwipeGeneric(wrap, onDelete, onEdit) {
+  const slider = wrap.querySelector('.entry-slider');
+  const bgEl   = wrap.querySelector('.entry-action-bg');
+  if (!slider || !bgEl) return;
+
+  let REVEAL = 0;
+  const getReveal = () => { if (!REVEAL) REVEAL = bgEl.offsetWidth || 144; return REVEAL; };
+
+  const THRESHOLD = 50;
+  let startX = 0, startY = 0, curX = 0;
+  let dragging = false, decided = false, horizontal = false, openAtStart = false;
+
+  const setSlider = (px, animate) => {
+    slider.classList.toggle('no-transition', !animate);
+    slider.style.transform = px < 0 ? `translateX(${px}px)` : '';
+  };
+  const settle = (open) => {
+    const px = open ? -getReveal() : 0;
+    setSlider(px, true);
+    slider._openPx = open ? px : 0;
+    if (open) _openSwipe = slider;
+    else if (_openSwipe === slider) _openSwipe = null;
+  };
+
+  wrap.addEventListener('touchstart', (ev) => {
+    if (_openSwipe && _openSwipe !== slider) closeOpenSwipe();
+    const t = ev.touches[0];
+    startX = t.clientX; startY = t.clientY; curX = slider._openPx || 0;
+    dragging = true; decided = false; horizontal = false;
+    openAtStart = !!(slider._openPx);
+  }, { passive: true });
+
+  wrap.addEventListener('touchmove', (ev) => {
+    if (!dragging) return;
+    const t = ev.touches[0];
+    const mx = t.clientX - startX;
+    const my = t.clientY - startY;
+    if (!decided) {
+      if (Math.abs(mx) < 4 && Math.abs(my) < 4) return;
+      decided = true;
+      horizontal = Math.abs(mx) > Math.abs(my);
+    }
+    if (!horizontal) { if (openAtStart) { settle(false); openAtStart = false; } return; }
+    ev.stopPropagation();
+    const R = getReveal();
+    let px = (openAtStart ? -R : 0) + mx;
+    px = Math.max(-R, Math.min(0, px));
+    curX = px;
+    setSlider(px, false);
+  }, { passive: true });
+
+  wrap.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    if (!horizontal) { settle(openAtStart); return; }
+    const R = getReveal();
+    settle(openAtStart ? curX < -R / 2 : curX < -THRESHOLD);
+  });
+
+  wrap.querySelector('.swipe-del').addEventListener('click', (e) => {
+    e.stopPropagation(); closeOpenSwipe(); setTimeout(onDelete, 50);
+  });
+  wrap.querySelector('.swipe-edit').addEventListener('click', (e) => {
+    e.stopPropagation(); closeOpenSwipe(); setTimeout(onEdit, 50);
+  });
+}
+
 
 function sectionMonthlyTotal(sec) {
   return data[sec].reduce((s,e) => s + toMonthly(e.amount, e.period), 0);
@@ -1408,10 +1561,27 @@ function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'
 // Parst "TT.MM.JJJJ" -> Date (oder null)
 function parseDeDate(s) {
   if (!s) return null;
-  const m = String(s).trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-  if (!m) return null;
-  const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
-  return isNaN(d.getTime()) ? null : d;
+  const str = String(s).trim();
+  // TT.MM.JJJJ
+  let m = str.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (m) {
+    const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  // ISO JJJJ-MM-TT (Altlasten aus früherem Datumsfeld)
+  m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) {
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  return null;
+}
+
+// Stichtag immer als TT.MM.JJJJ anzeigen (egal ob intern ISO oder deutsch)
+function displayDate(s) {
+  const d = parseDeDate(s);
+  if (!d) return esc(s);
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 }
 
 // Parst Kündigungsfrist-Freitext ("4 Monate", "6 Wochen", "30 Tage") -> Tage (oder null)
@@ -1731,22 +1901,36 @@ function renderBonus() {
   list.innerHTML = '';
   empty.style.display = bonus.length ? 'none' : 'block';
   [...bonus].sort((a,b)=>a.name.localeCompare(b.name)).forEach(e => {
-    const sub = [];
-    if (e.expiry) sub.push('Verfall: ' + esc(e.expiry));
+    const subLines = [];
+    if (e.expiry) subLines.push('Verfall: ' + esc(e.expiry));
+    const subLinesHtml = subLines.length
+      ? `<div class="entry-sub">${subLines.map(l => `<div>${l}</div>`).join('')}</div>`
+      : '';
     const div = document.createElement('div');
-    div.className = 'entry glass';
+    div.className = 'entry-wrap';
     div.innerHTML = `
-      <div>
-        <div class="entry-name">${esc(e.name)}</div>
-        ${sub.length ? `<div class="entry-sub">${sub.join(' · ')}</div>` : ''}
-      </div>
-      ${e.points ? `<div><div class="entry-amount">${esc(e.points)}</div></div>` : '<div></div>'}
-      <div class="entry-actions">
-        <button class="btn-icon edit" aria-label="Bearbeiten" onclick="openBonusModal('${e.id}')">${ICON_EDIT}</button>
-        <button class="btn-icon del" aria-label="Löschen" onclick="deleteBonus('${e.id}')">${ICON_DEL}</button>
+      <div class="entry-slider">
+        <div class="entry glass">
+          <div class="entry-main">
+            <div class="entry-name">${esc(e.name)}</div>
+            ${subLinesHtml}
+          </div>
+          <div class="entry-right">
+            ${e.points ? `<div class="entry-amount">${esc(e.points)}</div>` : ''}
+          </div>
+        </div>
+        <div class="entry-action-bg">
+          <div class="swipe-edit">${ICON_EDIT}<span>Bearb.</span></div>
+          <div class="swipe-del">${ICON_DEL}<span>Lösch.</span></div>
+        </div>
       </div>`;
     list.appendChild(div);
+    attachSwipeBonus(div, e.id);
   });
+}
+
+function attachSwipeBonus(wrap, id) {
+  attachSwipeGeneric(wrap, () => deleteBonus(id), () => openBonusModal(id));
 }
 
 function openBonusModal(id) {
@@ -2119,9 +2303,9 @@ function urlaubPaymentRowHTML(m, amount, y) {
   const mv = (m != null && m !== '') ? String(m).padStart(2,'0') : '';
   const yv = (y != null && y !== '') ? String(y) : '';
   return `<div class="pay-row">
-    <input type="text" class="pay-month" placeholder="MM" inputmode="numeric" value="${esc(mv)}" autocomplete="off" oninput="updatePayHint()">
-    <input type="text" class="pay-year" placeholder="JJJJ" inputmode="numeric" value="${esc(yv)}" autocomplete="off" oninput="updatePayHint()">
-    <input type="text" class="pay-amount" placeholder="Betrag" value="${a ? esc(a) : ''}" autocomplete="off" oninput="updatePayHint()">
+    <input type="text" class="pay-month" placeholder="z.B. MM" inputmode="numeric" value="${esc(mv)}" autocomplete="off" oninput="updatePayHint()">
+    <input type="text" class="pay-year" placeholder="z.B. JJJJ" inputmode="numeric" value="${esc(yv)}" autocomplete="off" oninput="updatePayHint()">
+    <input type="text" class="pay-amount" placeholder="z.B. 1.000,00 €" value="${a ? esc(a) : ''}" autocomplete="off" oninput="updatePayHint()">
     <button type="button" class="pay-del" aria-label="Anzahlung entfernen" onclick="removePaymentRow(this)">${ICON_DEL}</button>
   </div>`;
 }
@@ -2314,7 +2498,10 @@ function openModal(sec, id) {
   $('f-cat').innerHTML = cfg.cats.map(c => `<option>${c}</option>`).join('');
 
   // Provider field: hidden for some sections
-  $('f-provider-wrap').style.display = cfg.hideProvider ? 'none' : '';
+  const showProvider = !cfg.hideProvider;
+  const showExtra = !!cfg.extra;
+  $('f-prov-acct-row').style.display = (showProvider || showExtra) ? '' : 'none';
+  $('f-provider-wrap').style.display = showProvider ? '' : 'none';
   $('f-provider-label').textContent = cfg.providerLabel || '';
   $('f-provider').placeholder = cfg.providerPlaceholder || '';
 
@@ -2326,10 +2513,8 @@ function openModal(sec, id) {
   const exInput = $('f-extra-input');
   const exSelect = $('f-extra-select');
   const exWrap = $('f-extra-wrap');
-  const catExtraRow = $('f-cat-extra-row');
   if (cfg.extra) {
     exWrap.style.display = '';
-    catExtraRow.style.gridTemplateColumns = '1fr 1fr';
     exLabel.textContent = cfg.extra.label;
     if (cfg.extra.kind === 'select') {
       exInput.style.display = 'none';
@@ -2342,7 +2527,6 @@ function openModal(sec, id) {
     }
   } else {
     exWrap.style.display = 'none';
-    catExtraRow.style.gridTemplateColumns = '1fr';
   }
 
   $('f-name').placeholder = cfg.namePlaceholder;
@@ -2373,7 +2557,7 @@ function openModal(sec, id) {
     $('f-name').value     = e.name;
     $('f-provider').value = e.provider || '';
     $('f-account').value  = e.account || '';
-    $('f-amount').value   = e.amount;
+    $('f-amount').value   = fmt(e.amount);
     $('f-period').value   = e.period || 'monatlich';
     $('f-cat').value      = e.cat;
     if (cfg.extra && cfg.extra.kind === 'select') exSelect.value = e.extra || cfg.extra.options[0];
@@ -2434,6 +2618,13 @@ function openModal(sec, id) {
     $('f-cat').onchange = null;
   }
 
+  // Money-Felder mit Auto-Format (on blur) versehen
+  bindMoneyInput($('f-amount'));
+  bindMoneyInput($('f-amount-value-input'));
+  (cfg.valueFields || []).forEach(f => bindMoneyInput($('vf-' + f.key)));
+  (cfg.textFields || []).forEach(f => { if (f.kind === 'money') bindMoneyInput($('tf-' + f.key)); });
+  (cfg.growthFields || []).forEach(f => bindMoneyInput($('gf-' + f.key)));
+
   $('overlay').classList.add('open');
   setTimeout(() => $('f-name').focus(), 60);
 }
@@ -2447,7 +2638,7 @@ function saveEntry() {
   const name     = $('f-name').value.trim();
   const provider = cfg.hideProvider ? '' : $('f-provider').value.trim();
   const account  = $('f-account').value;
-  const amount   = parseFloat($('f-amount').value.replace(',', '.'));
+  const amount   = parseMoney($('f-amount').value);
   const period   = cfg.showPeriod ? $('f-period').value : (cfg.fixedPeriod || 'monatlich');
   const cat      = $('f-cat').value;
   const extra    = !cfg.extra ? ''
@@ -2690,6 +2881,7 @@ applyAutoGrow();
 renderAll();
 applyCollapsedStates();
 initDashSwipe();
+['deposit-amount','urlaub-cost'].forEach(id => bindMoneyInput($(id)));
 </script>
 </body>
 </html>
