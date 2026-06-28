@@ -130,17 +130,18 @@
   .donut-center-val { font-size: 0.75rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 2px; max-width: 72px; text-align: center; line-height: 1.15; }
   .dash-sub-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--petrol); font-weight: 700; display: block; margin-bottom: 4px; }
   .dash-saverate { }
-  .saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; }
+  .uy-konto-head span.saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .saverate-eur { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 2px; font-weight: 600; }
   .dash-legend { flex: 1; display: flex; flex-direction: column; gap: 5px; justify-content: center; }
   .legend-row { display: flex; align-items: center; gap: 6px; font-size: 0.68rem; line-height: 1.3; }
   .legend-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
-  .legend-name { color: var(--muted); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .legend-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; flex-shrink: 0; }
+  .legend-name { color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .legend-val { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; flex-shrink: 0; }
   .legend-pct { display: none; }
   .dash-accounts { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke); }
   .acct-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; line-height: 1.4; }
-  .acct-row-name { flex: 1; min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .acct-row-val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
+  .acct-row-name { flex: 1; min-width: 0; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .acct-row-val { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
   .acct-row-pct { width: 40px; text-align: right; color: var(--muted-2); font-variant-numeric: tabular-nums; flex-shrink: 0; }
   .bal-acct-row { padding-left: 16px; }
   #saverate-bars, #account-bars, #balance-bars { display: flex; flex-direction: column; gap: 8px; }
@@ -280,8 +281,8 @@
   .av-card-total-val { font-size: 0.82rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; flex: 1; text-align: right; }
   .field-group-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-2); margin: 4px 0 6px; }
 
-  .urlaub-year-head { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke); }
-  .urlaub-year-head.first-year { border-top: none; margin-top: 0; padding-top: 0; }
+  .urlaub-year-head { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--stroke); }
+  .urlaub-year-head.first-year { border-top: none; margin-top: 4px; padding-top: 0; }
   .uy-konto-head { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--stroke); }
   .uy-konto-head span { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--petrol); font-weight: 700; display: block; margin-bottom: 4px; }
   .uy-konto-head b { font-size: 1.2rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -0.03em; display: block; }
@@ -303,8 +304,8 @@
   .depo-note { font-size: 0.74rem; color: var(--muted-2); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .depo-amount { font-size: 0.95rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
   .depo-actions { display: flex; gap: 2px; flex: 0 0 auto; }
-  .uy-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
-  .uy-year { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted-2); }
+  .uy-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 9px; }
+  .uy-year { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--petrol); }
   .uy-remaining { font-size: 0.95rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
   .uy-remaining.negative { color: var(--danger); }
   .uy-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
