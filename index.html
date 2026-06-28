@@ -239,7 +239,7 @@
   .entry-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; flex-shrink: 0; }
 
   .entry-name { font-weight: 600; font-size: 0.97rem; letter-spacing: -0.01em; }
-  .entry-name-prov { font-weight: 500; font-size: 0.8rem; color: var(--muted); letter-spacing: 0; }
+  .entry-name-prov { font-weight: 500; font-size: 0.8rem; color: var(--muted); letter-spacing: 0; white-space: nowrap; }
   .entry-sub  { font-size: 0.78rem; color: var(--muted); margin-top: 2px; line-height: 1.35; }
   .entry-sub > div { }
   .entry-paysched { font-size: 0.74rem; color: var(--muted-2); margin-top: 2px; font-variant-numeric: tabular-nums; }
@@ -259,7 +259,7 @@
   .entry-pills { display: flex; flex-wrap: nowrap; gap: 5px; margin-top: 6px; min-width: 0; }
   .acct-pill { display: inline-block; font-size: 0.6rem; font-weight: 600; padding: 2px 7px; border-radius: 99px; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
   .acct-DBGiro              { background: rgba(90,200,250,0.16);  color: #5ac8fa; }
-  .acct-DBSpar             { background: rgba(100,210,255,0.14); color: #64d2ff; }
+  .acct-DBSpar             { background: rgba(120,140,255,0.16); color: #8a9cff; }
   .acct-DBROBIN            { background: rgba(125,210,140,0.18); color: #7dd28c; }
   .acct-DKBGiro            { background: rgba(48,209,170,0.16);  color: #30d1aa; }
   .acct-ScalableBroker     { background: rgba(255,180,90,0.16);  color: #ffb45a; }
@@ -335,10 +335,8 @@
   .urlaub-combined { padding: 16px 18px; margin-bottom: 12px; }
   .uc-budget-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .uc-divider { height: 1px; background: var(--stroke); margin: 14px 0; }
-  .ub-auto-val { font-size: 1.05rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .ub-auto-val { font-size: 0.95rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
   .ub-label { font-size: 0.78rem; color: var(--muted); }
-  .ub-input-wrap { display: flex; align-items: baseline; gap: 3px; }
-  .ub-eur { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
   .ud-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .ud-add { background: none; border: none; color: var(--accent); font: inherit; font-size: 0.85rem; font-weight: 600; padding: 2px 0; cursor: pointer; }
   #deposit-list { display: flex; flex-direction: column; }
@@ -650,10 +648,7 @@
   <div class="urlaub-combined glass">
     <div class="uc-budget-row">
       <span class="ub-label">Jahresbudget (pro Jahr)</span>
-      <div class="ub-input-wrap">
-        <span class="ub-auto-val" id="urlaub-budget-auto">0,00</span>
-        <span class="ub-eur">€</span>
-      </div>
+      <span class="ub-auto-val" id="urlaub-budget-auto">0,00 €</span>
     </div>
     <div class="uc-divider"></div>
     <div class="ud-head">
@@ -832,12 +827,12 @@
     </div>
     <div class="field field-row">
       <div>
-        <label>Reisejahr (JJJJ)</label>
+        <label>Reisejahr</label>
         <input type="text" id="urlaub-year" placeholder="z.B. 2026" autocomplete="off" inputmode="numeric">
       </div>
       <div>
-        <label>Reisemonat (MM)</label>
-        <input type="text" id="urlaub-month" placeholder="z.B. 9" autocomplete="off" inputmode="numeric">
+        <label>Reisemonat</label>
+        <input type="text" id="urlaub-month" placeholder="z.B. 01" autocomplete="off" inputmode="numeric">
       </div>
     </div>
     <div class="field">
@@ -865,12 +860,12 @@
     <div style="display:flex;flex-direction:column;gap:14px">
     <div class="field field-row">
       <div>
-        <label>Jahr (JJJJ)</label>
+        <label>Jahr</label>
         <input type="text" id="deposit-year" placeholder="z.B. 2026" autocomplete="off" inputmode="numeric">
       </div>
       <div>
-        <label>Monat (MM)</label>
-        <input type="text" id="deposit-month" placeholder="z.B. 6" autocomplete="off" inputmode="numeric">
+        <label>Monat</label>
+        <input type="text" id="deposit-month" placeholder="z.B. 01" autocomplete="off" inputmode="numeric">
       </div>
     </div>
     <div class="field">
@@ -1223,7 +1218,6 @@ function renderSection(sec) {
     const extraVal = e.extra ?? e.contract;
     // Vertragsnummer nur zeigen, wenn die Sektion ein extra-Feld kennt (nicht bei Konsum/Urlaub/Sparen)
     if (extraVal && cfg.extra && !cfg.hideExtraInList) subLines.push('Vertragsnummer: ' + esc(extraVal));
-    if (e.autoGrow) subLines.push('↻ auto +Rate/Monat');
     const yearly = cfg.showYearlyPerEntry
       ? `<div class="entry-yearly">${fmt(toMonthly(e.amount, e.period) * 12)} / Jahr</div>`
       : '';
@@ -2238,7 +2232,7 @@ function renderUrlaubeAll() {
   urlaubBudget = computeUrlaubBudget();
   store.set(URLAUB_BUDGET_KEY, String(urlaubBudget));
   const autoEl = $('urlaub-budget-auto');
-  if (autoEl) autoEl.textContent = fmt(urlaubBudget).replace(' €','');
+  if (autoEl) autoEl.textContent = fmt(urlaubBudget);
   renderUrlaubeDash(); renderUrlaube(); renderDeposits();
 }
 
@@ -2273,8 +2267,8 @@ function openDepositModal(id) {
   editDepositId = id || null;
   $('deposit-title').textContent = id ? 'Einzahlung bearbeiten' : 'Neue Einzahlung';
   const e = id ? urlaubDeposits.find(x => x.id === id) : null;
-  $('deposit-year').value = e ? (e.y || '') : String(new Date().getFullYear());
-  $('deposit-month').value = e ? String(e.m || '') : String(new Date().getMonth() + 1);
+  $('deposit-year').value = e ? (e.y || '') : '';
+  $('deposit-month').value = e ? String(e.m || '').padStart(2,'0') : '';
   $('deposit-amount').value = e ? fmt(e.amount || 0).replace(' €','') : '';
   $('deposit-note').value = e ? (e.note || '') : '';
   $('deposit-overlay').classList.add('open');
@@ -2370,8 +2364,8 @@ function openUrlaubModal(id) {
   $('urlaub-title').textContent = id ? 'Urlaub bearbeiten' : 'Neuer Urlaub';
   const e = id ? urlaube.find(x => x.id === id) : null;
   $('urlaub-name').value = e ? e.name : '';
-  $('urlaub-year').value = e ? (tripYear(e) || '') : String(new Date().getFullYear());
-  $('urlaub-month').value = e ? String(tripMonthNum(e)) : '';
+  $('urlaub-year').value = e ? (tripYear(e) || '') : '';
+  $('urlaub-month').value = e ? String(tripMonthNum(e)).padStart(2,'0') : '';
   $('urlaub-cost').value = e ? fmt(tripCost(e)).replace(' €','') : '';
   $('urlaub-payments').innerHTML = '';
   if (e && Array.isArray(e.payments)) {
