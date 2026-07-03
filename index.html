@@ -7,6 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finanzen">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMGE4NGZmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjYmY1YWYyIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSI0MCIgZmlsbD0iIzBhMGEwYyIvPjx0ZXh0IHg9IjkwIiB5PSI5MCIgZm9udC1mYW1pbHk9Ii1hcHBsZS1zeXN0ZW0sSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iODYiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9InVybCgjZykiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBsZXR0ZXItc3BhY2luZz0iLTIiPkpTPC90ZXh0Pjwvc3ZnPg==">
 <title>Versicherungen, Budgets & Vorsorge</title>
@@ -16,8 +17,8 @@
   :root {
     --bg:        #000000;
     --bg-2:      #0a0a0c;
-    --glass:     rgba(28, 28, 32, 0.55);
-    --glass-hi:  rgba(44, 44, 50, 0.6);
+    --glass:     rgba(28, 28, 32, 0.5);
+    --glass-hi:  rgba(44, 44, 50, 0.58);
     --stroke:    rgba(255, 255, 255, 0.08);
     --stroke-hi: rgba(255, 255, 255, 0.16);
     --text:      #f5f5f7;
@@ -28,6 +29,12 @@
     --violet:    #bf5af2;
     --green:     #30d158;
     --petrol:    #00b3b8;
+    /* iOS 26 Liquid Glass: Spring-Kurven + konzentrische Radien */
+    --spring:    cubic-bezier(0.34, 1.35, 0.64, 1);   /* federnd, leichter Overshoot */
+    --ease-ios:  cubic-bezier(0.32, 0.72, 0, 1);      /* iOS Standard-Deceleration */
+    --r-card:    28px;   /* große Flächen (Karten, Dashboards) */
+    --r-entry:   22px;   /* Listeneinträge */
+    --r-control: 16px;   /* Inputs, kleine Buttons */
   }
 
   html { -webkit-text-size-adjust: 100%; }
@@ -53,14 +60,15 @@
 
   .glass {
     background: var(--glass);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(48px) saturate(190%);
+    backdrop-filter: blur(48px) saturate(190%);
     border: 1px solid var(--stroke);
-    border-radius: 26px;
+    border-radius: var(--r-card);
     box-shadow:
-      0 1px 1px rgba(255,255,255,0.10) inset,
-      0 0 0 0.5px rgba(255,255,255,0.04) inset,
-      0 12px 40px rgba(0,0,0,0.45);
+      0 1.5px 1px rgba(255,255,255,0.14) inset,
+      0 -1px 1px rgba(0,0,0,0.25) inset,
+      0 0 0 0.5px rgba(255,255,255,0.05) inset,
+      0 16px 48px rgba(0,0,0,0.5);
   }
 
   .summary {
@@ -118,7 +126,7 @@
   .dash-page { flex: 0 0 100%; width: 100%; scroll-snap-align: center; scroll-snap-stop: always; }
   .dash-page > .glass { margin: 0; }
   .dash-dots { display: flex; justify-content: center; gap: 7px; margin-top: 12px; }
-  .dash-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--stroke-hi); cursor: pointer; transition: background 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .dash-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--stroke-hi); cursor: pointer; transition: background 0.3s var(--spring), width 0.3s var(--spring); }
   .dash-dot.active { background: var(--accent); width: 22px; }
 
   .dashboard { padding: 22px; margin: 40px 0 0; }
@@ -193,7 +201,7 @@
   .sub-header { margin: 24px 0 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .sub-header h1 { font-size: 1.95rem; font-weight: 800; letter-spacing: -0.04em; }
   .sub-header p { color: var(--muted); font-size: 0.88rem; margin-top: 3px; }
-  .section-chevron { font-size: 1.4rem; color: var(--muted-2); flex-shrink: 0; transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); line-height: 1; }
+  .section-chevron { font-size: 1.4rem; color: var(--muted-2); flex-shrink: 0; transition: transform 0.35s var(--spring); line-height: 1; }
   .sub-header.collapsed .section-chevron { transform: rotate(-90deg); }
   .section-body { overflow: hidden; }
   .section-body.collapsed { display: none; }
@@ -213,12 +221,13 @@
   .list { display: flex; flex-direction: column; gap: 10px; }
 
   /* Swipe-Architektur: entry-wrap clippt, entry-slider ist flex-row und verschiebt sich */
-  .entry-wrap { position: relative; border-radius: 18px; overflow: hidden; margin-bottom: 10px; }
+  .entry-wrap { position: relative; border-radius: var(--r-entry); overflow: hidden; margin-bottom: 10px; }
   .entry-wrap:last-child { margin-bottom: 0; }
-  .entry-slider { display: flex; flex-direction: row; width: 100%; transition: transform 0.3s cubic-bezier(0.32,0.72,0,1); will-change: transform; }
+  .entry-slider { display: flex; flex-direction: row; width: 100%; transition: transform 0.42s var(--spring); will-change: transform; }
   .entry-slider.no-transition { transition: none; }
   .entry-action-bg { display: flex; flex-direction: row; align-items: center; gap: 6px; padding: 6px 8px 6px 6px; flex-shrink: 0; background: transparent; }
-  .swipe-edit, .swipe-del { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 64px; align-self: stretch; border-radius: 16px; color: #fff; cursor: pointer; flex-shrink: 0; }
+  .swipe-edit, .swipe-del { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 64px; align-self: stretch; border-radius: 18px; color: #fff; cursor: pointer; flex-shrink: 0; transition: transform 0.3s var(--spring); }
+  .swipe-edit:active, .swipe-del:active { transform: scale(0.92); }
   .swipe-edit { background: #E07A18; }
   .swipe-del  { background: #D93025; }
   .swipe-edit svg, .swipe-del svg { width: 20px; height: 20px; }
@@ -228,7 +237,7 @@
     flex: 0 0 100%;
     width: 100%;
     padding: 16px 18px;
-    border-radius: 18px;
+    border-radius: var(--r-entry);
     display: grid; grid-template-columns: 1fr auto;
     align-items: center; gap: 14px;
     transition: border-color 0.2s ease, background 0.2s ease;
@@ -270,7 +279,9 @@
   .entry-amount { font-weight: 600; font-size: 0.97rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .entry-period { font-size: 0.7rem; color: var(--muted-2); text-align: right; margin-top: 2px; }
   .entry-yearly { font-size: 0.7rem; color: var(--muted); text-align: right; margin-top: 3px; font-variant-numeric: tabular-nums; }
-  .entry-balance { font-size: 0.74rem; font-weight: 600; color: var(--petrol); text-align: left; margin-top: 5px; font-variant-numeric: tabular-nums; }
+  .entry-balance { font-size: 0.74rem; font-weight: 600; color: var(--petrol); text-align: left; margin-top: 5px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  .balance-inline { font: inherit; font-size: 0.78rem; font-weight: 600; color: var(--petrol); background: rgba(0,179,184,0.08); border: 1px solid rgba(0,179,184,0.35); border-radius: 8px; padding: 3px 8px; width: 130px; outline: none; font-variant-numeric: tabular-nums; }
+  .balance-inline:focus { border-color: var(--petrol); }
   .entry-pension { display: flex; flex-wrap: wrap; gap: 1px 12px; margin-top: 2px; font-size: 0.78rem; line-height: 1.35; font-variant-numeric: tabular-nums; }
   .entry-pension .pv-date { color: var(--muted); }
   .growth-auto-note { font-size: 0.72rem; color: var(--muted); line-height: 1.4; background: rgba(255,255,255,0.03); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px 10px; }
@@ -314,11 +325,47 @@
   .av-cards > .av-hist-block:first-child { border-top: none; margin-top: 0; padding-top: 0; }
   .av-legend { font-size: 0.62rem; color: var(--muted-2); text-align: center; margin-top: 10px; }
   .av-empty { font-size: 0.82rem; color: var(--muted-2); text-align: center; padding: 30px 12px; line-height: 1.5; }
-  .hist-svg { width: 100%; height: 90px; display: block; }
+  .hist-svg { flex: 1; min-width: 0; height: 90px; display: block; }
+  .hist-plot { display: flex; align-items: stretch; gap: 8px; }
+  .hist-axis { display: flex; flex-direction: column; justify-content: space-between; padding: 4px 0 1px; font-size: 0.58rem; color: var(--muted-2); font-variant-numeric: tabular-nums; text-align: right; flex-shrink: 0; }
   .hist-empty { font-size: 0.74rem; color: var(--muted-2); line-height: 1.4; padding: 8px 0; }
   .hist-range { font-size: 0.6rem; color: var(--muted-2); text-align: center; margin-top: 4px; }
   .hist-up { color: var(--green); }
   .hist-down { color: var(--danger); }
+  #lock-screen { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.6);
+    -webkit-backdrop-filter: blur(60px) saturate(160%); backdrop-filter: blur(60px) saturate(160%);
+    display: flex; align-items: center; justify-content: center; }
+  .lock-inner { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 32px; }
+  .lock-icon { font-size: 2.4rem; }
+  .lock-title { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; }
+  .lock-btn { flex: none; padding: 13px 26px; margin-top: 6px; }
+  .lock-hint { font-size: 0.74rem; color: var(--muted-2); min-height: 1.2em; text-align: center; }
+  .due-list { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+  .due-row { display: flex; align-items: baseline; gap: 8px; font-size: 0.78rem; }
+  .due-date { color: var(--muted-2); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .due-name { color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .due-prov { color: var(--muted-2); }
+  .due-amount { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .hist-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .hist-range-ctl { display: flex; gap: 3px; background: rgba(0,0,0,0.25); border-radius: 99px; padding: 2px; }
+  .hist-range-btn { border: none; background: transparent; color: var(--muted-2); font: inherit; font-size: 0.6rem; font-weight: 600; padding: 3px 9px; border-radius: 99px; cursor: pointer; transition: all 0.2s var(--ease-ios); }
+  .hist-range-btn.active { background: var(--accent); color: #fff; }
+  .undo-toast {
+    position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom));
+    transform: translate(-50%, 120px); z-index: 300;
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(40, 40, 46, 0.72);
+    -webkit-backdrop-filter: blur(48px) saturate(190%); backdrop-filter: blur(48px) saturate(190%);
+    border: 1px solid var(--stroke-hi); border-radius: 99px;
+    box-shadow: 0 1.5px 1px rgba(255,255,255,0.12) inset, 0 12px 40px rgba(0,0,0,0.5);
+    padding: 12px 10px 12px 18px;
+    transition: transform 0.45s var(--spring);
+    pointer-events: none;
+  }
+  .undo-toast.show { transform: translate(-50%, 0); pointer-events: auto; }
+  .undo-label { font-size: 0.82rem; color: var(--text); white-space: nowrap; }
+  .undo-btn { border: none; background: rgba(10,132,255,0.18); color: var(--accent); font: inherit; font-size: 0.82rem; font-weight: 600; padding: 7px 14px; border-radius: 99px; cursor: pointer; transition: transform 0.3s var(--spring); }
+  .undo-btn:active { transform: scale(0.94); }
   .av-mode-toggle { display: flex; gap: 4px; background: rgba(0,0,0,0.25); border-radius: 9px; padding: 3px; margin-bottom: 10px; }
   .av-mode-btn { flex: 1; border: none; background: transparent; color: var(--muted); font: inherit; font-size: 0.74rem; font-weight: 600; padding: 6px; border-radius: 7px; cursor: pointer; transition: all 0.15s; }
   .av-mode-btn.active { background: var(--accent); color: #fff; }
@@ -352,7 +399,7 @@
   .uy-remaining { font-size: 0.95rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
   .uy-remaining.negative { color: var(--danger); }
   .uy-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
-  .uy-bar-fill { height: 100%; border-radius: 99px; background: var(--danger); transition: width 0.3s; }
+  .uy-bar-fill { height: 100%; border-radius: 99px; background: var(--danger); transition: width 0.45s var(--ease-ios); }
   .uy-bar-fill.over { background: var(--danger); }
   .uy-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
   .uy-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; margin-bottom: 2px; }
@@ -375,9 +422,9 @@
   .add-btn {
     width: 100%; margin-top: 10px; padding: 10px;
     font: inherit; font-size: 0.82rem; font-weight: 500;
-    color: var(--muted); cursor: pointer; border-radius: 14px;
+    color: var(--muted); cursor: pointer; border-radius: 99px;
     border: 1px solid var(--stroke); background: transparent;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.3s var(--spring);
   }
   .add-btn:hover  { background: var(--glass); border-color: var(--stroke-hi); color: var(--accent); }
   .add-btn:active { transform: scale(0.97); opacity: 0.85; }
@@ -396,16 +443,17 @@
   .overlay.open { display: flex; }
 
   .modal {
-    background: rgba(30, 30, 34, 0.72);
-    -webkit-backdrop-filter: blur(40px) saturate(180%); backdrop-filter: blur(40px) saturate(180%);
+    background: rgba(30, 30, 34, 0.68);
+    -webkit-backdrop-filter: blur(48px) saturate(190%); backdrop-filter: blur(48px) saturate(190%);
     border: 1px solid var(--stroke-hi); border-bottom: none;
-    border-radius: 26px 26px 0 0;
+    border-radius: 34px 34px 0 0;
+    box-shadow: 0 1.5px 1px rgba(255,255,255,0.12) inset, 0 -20px 60px rgba(0,0,0,0.4);
     padding: 26px 22px calc(26px + env(safe-area-inset-bottom));
     width: 100%; max-width: 720px;
     max-height: 92dvh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    animation: slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    animation: slideUp 0.45s var(--spring);
   }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
@@ -416,7 +464,7 @@
   .field label { display: block; font-size: 0.76rem; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.01em; }
   .field input, .field select {
     width: 100%; background: rgba(255,255,255,0.06);
-    border: 1px solid var(--stroke); border-radius: 12px;
+    border: 1px solid var(--stroke); border-radius: var(--r-control);
     color: var(--text); font: inherit; font-size: 1rem;
     padding: 12px 14px; outline: none;
     transition: border-color 0.15s, background 0.15s;
@@ -448,7 +496,7 @@
   .pay-hint.over b { color: var(--danger); }
 
   .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
-  .btn { flex: 1; padding: 14px; border-radius: 16px; font: inherit; font-size: 0.97rem; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s, transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .btn { flex: 1; padding: 14px; border-radius: 99px; font: inherit; font-size: 0.97rem; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s, transform 0.3s var(--spring); }
   .btn:active { transform: scale(0.96); opacity: 0.88; }
   .btn-primary { background: var(--accent); color: #fff; }
   .btn-primary:hover { opacity: 0.9; }
@@ -506,7 +554,7 @@
             </div>
           </div>
           <div class="dash-accounts" id="dash-wealth-hist" style="display:none">
-            <div class="dash-sub-label">Gesamtvermögensverlauf</div>
+            <div class="hist-head"><span class="dash-sub-label">Gesamtvermögensverlauf</span><span class="hist-range-ctl" data-target="wealth"></span></div>
             <div id="wealth-hist-chart"></div>
           </div>
           <div class="dash-accounts" id="dash-balances">
@@ -689,6 +737,35 @@
     <input type="file" id="import-file" accept="application/json,.json" style="display:none" onchange="importData(event)">
   </div>
   <p class="backup-hint">Sichern lädt alle Einträge als Datei herunter – lege sie z.B. in iCloud Drive ab. Wiederherstellen lädt so eine Datei wieder ein. Ideal als Backup vor App-Updates.</p>
+
+  <button class="backup-btn" style="width:100%;margin-top:12px" onclick="toggleCloudCfg()">☁ Cloud-Backup (GitHub) einrichten</button>
+  <button class="backup-btn" style="width:100%;margin-top:10px" id="applock-btn" onclick="toggleAppLock()">🔒 FaceID-Sperre aktivieren</button>
+  <p class="backup-hint" id="applock-status" style="margin-top:6px"></p>
+  <div id="cloud-cfg" style="display:none;margin-top:12px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="field">
+        <label>Repository (benutzer/repo)</label>
+        <input type="text" id="cb-repo" placeholder="z.B. joerg/finanzen-backup" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label>GitHub-Token (fine-grained, nur Contents)</label>
+        <input type="password" id="cb-token" placeholder="z.B. github_pat_…" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Passphrase (verschlüsselt vor dem Hochladen)</label>
+        <input type="password" id="cb-pass" placeholder="z.B. milchstrasse-14mm!" autocomplete="off">
+      </div>
+      <div class="field f-toggle">
+        <input type="checkbox" id="cb-auto" class="f-toggle-cb" checked>
+        <label class="f-toggle-lab" for="cb-auto">Automatisch nach jeder Änderung sichern</label>
+      </div>
+      <div class="backup-row">
+        <button class="backup-btn" onclick="saveCloudCfg(); cloudBackupNow(true)">☁ Jetzt sichern</button>
+        <button class="backup-btn" onclick="saveCloudCfg(); cloudRestore()">↓ Aus Cloud laden</button>
+      </div>
+      <p class="backup-hint" id="cloud-status" style="margin:0 6px"></p>
+    </div>
+  </div>
 </div>
 
 <!-- Custom dialog (works where native confirm/alert are blocked) -->
@@ -784,6 +861,7 @@
     <div id="f-growth" class="f-dyn-group"></div>
     <div id="f-texts" class="f-dyn-group"></div>
     </div><!-- end gap wrapper -->
+    <button type="button" class="add-btn" id="btn-duplicate" style="display:none" onclick="duplicateEntry()">⧉ Eintrag duplizieren</button>
     <div class="modal-actions">
       <button class="btn btn-secondary" id="cancel-btn" onclick="closeModal()">Abbrechen</button>
       <button class="btn btn-primary" id="save-btn" onclick="saveEntry()">Speichern</button>
@@ -846,6 +924,7 @@
       <div class="pay-hint" id="urlaub-pay-hint"></div>
     </div>
     </div>
+    <button type="button" class="add-btn" id="btn-duplicate-urlaub" style="display:none" onclick="duplicateUrlaub()">⧉ Urlaub duplizieren</button>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeUrlaubModal()">Abbrechen</button>
       <button class="btn btn-primary" onclick="saveUrlaub()">Speichern</button>
@@ -884,6 +963,14 @@
   </div>
 </div>
 
+<div id="lock-screen" style="display:none">
+  <div class="lock-inner">
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title">Finanzen</div>
+    <button class="btn btn-primary lock-btn" onclick="attemptUnlock()">Mit Face ID entsperren</button>
+    <div class="lock-hint" id="lock-hint"></div>
+  </div>
+</div>
 <script>
 const store = (() => {
   let memory = {}, usable = false;
@@ -969,18 +1056,25 @@ const URLAUB_KEY = 'urlaube_v1';
 const URLAUB_BUDGET_KEY = 'urlaub_budget_v1';
 const URLAUB_DEPOSITS_KEY = 'urlaub_deposits_v1';
 
+// Sicheres Parsen: korrupte Storage-Daten crashen nicht die App, sondern fallen auf den Default zurück
+function safeParse(raw, fallback) {
+  if (raw == null) return fallback;
+  try { const v = JSON.parse(raw); return v == null ? fallback : v; }
+  catch (e) { return fallback; }
+}
+
 let data = {
-  v: JSON.parse(store.get(SECTIONS.v.storageKey) || '[]'),
-  b: JSON.parse(store.get(SECTIONS.b.storageKey) || '[]'),
-  a: JSON.parse(store.get(SECTIONS.a.storageKey) || '[]')
+  v: safeParse(store.get(SECTIONS.v.storageKey), []),
+  b: safeParse(store.get(SECTIONS.b.storageKey), []),
+  a: safeParse(store.get(SECTIONS.a.storageKey), [])
 };
 
 let income = parseFloat(store.get(INCOME_KEY) || '0') || 0;
-let bonus = JSON.parse(store.get(BONUS_KEY) || '[]');
+let bonus = safeParse(store.get(BONUS_KEY), []);
 let editBonusId = null;
-let urlaube = JSON.parse(store.get(URLAUB_KEY) || '[]');
+let urlaube = safeParse(store.get(URLAUB_KEY), []);
 let urlaubBudget = parseFloat(store.get(URLAUB_BUDGET_KEY) || '0') || 0;  // wird automatisch aus "Urlaub I" berechnet
-let urlaubDeposits = JSON.parse(store.get(URLAUB_DEPOSITS_KEY) || '[]');
+let urlaubDeposits = safeParse(store.get(URLAUB_DEPOSITS_KEY), []);
 let editUrlaubId = null;
 let editDepositId = null;
 
@@ -988,7 +1082,7 @@ let editId = null;
 let activeSection = 'v';
 
 const $ = id => document.getElementById(id);
-const fmt = n => n.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+const fmt = n => { const v = Number(n); return (isNaN(v) ? 0 : v).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €'; };
 // Compact euro for tight spaces (donut center): no cents; ≥10.000 shown as e.g. "12,3k €"
 const fmtShort = n => {
   const v = Math.round(n);
@@ -1050,7 +1144,6 @@ function toMonthly(a, p) {
 // --- Retirement projection (private pension) ---
 const BIRTH_DATE = new Date(1988, 0, 13);   // 13.01.1988
 const RETIREMENT_AGE = 67;
-const GROWTH_RATES = [0.02, 0.04, 0.06];    // konservativ 2/4/6 %
 
 // Months from now until 67th birthday (0 if already reached)
 function monthsToRetirement() {
@@ -1078,7 +1171,7 @@ let avViewMode = store.get('av_view_mode_v1') || 'nominal';  // 'nominal' | 'rea
 
 // --- Monthly history snapshots (auto, on app open) ---
 const HISTORY_KEY = 'history_v1';
-let history = JSON.parse(store.get(HISTORY_KEY) || '[]');  // [{ ym:'2026-06', wealth, pension }]
+let history = safeParse(store.get(HISTORY_KEY), []);  // [{ ym:'2026-06', wealth, pension }]
 
 function currentWealthSnapshot() {
   const wealth = data.b.reduce((s,e) => s + (isGiro(e) ? 0 : (e.balance || 0)), 0)
@@ -1107,6 +1200,28 @@ function recordSnapshot() {
 }
 
 // Renders a simple SVG line chart. series = [{points:[v,...], color, label}]
+// Zeitraum-Auswahl für Verlaufs-Charts (6M / 1J / Alle), geteilt für beide Charts
+let histRange = store.get('hist_range_v1') || 'all';
+function histSlice(arr) {
+  if (histRange === '6m') return arr.slice(-6);
+  if (histRange === '1y') return arr.slice(-12);
+  return arr;
+}
+function setHistRange(r) {
+  histRange = r;
+  store.set('hist_range_v1', r);
+  renderHistRangeCtls();
+  renderDashboard();
+  if (typeof renderPensionHistory === 'function') renderPensionHistory();
+}
+function renderHistRangeCtls() {
+  document.querySelectorAll('.hist-range-ctl').forEach(el => {
+    el.innerHTML = [['6m','6M'],['1y','1J'],['all','Alle']].map(([v,l]) =>
+      `<button type="button" class="hist-range-btn${histRange===v?' active':''}" onclick="setHistRange('${v}')">${l}</button>`
+    ).join('');
+  });
+}
+
 function renderHistoryChart(containerId, labels, series) {
   const el = $(containerId);
   if (!el) return;
@@ -1127,23 +1242,33 @@ function renderHistoryChart(containerId, labels, series) {
   }
   const W = 300, H = 90, padL = 4, padR = 4, padT = 8, padB = 4;
   const all = series.flatMap(s => s.points).filter(v => v != null);
-  const max = Math.max(...all), min = Math.min(...all, 0);
+  // Skala an Datenspanne (nicht ab 0), mit 10% Puffer — sonst wirken kleine Änderungen unsichtbar flach
+  let dMin = Math.min(...all), dMax = Math.max(...all);
+  if (dMax === dMin) { const b = Math.abs(dMax) * 0.01 || 1; dMin -= b; dMax += b; }
+  const bandPad = (dMax - dMin) * 0.1;
+  const min = dMin - bandPad, max = dMax + bandPad;
   const range = max - min || 1;
   const xAt = i => padL + (i / (n - 1)) * (W - padL - padR);
   const yAt = v => padT + (1 - (v - min) / range) * (H - padT - padB);
   let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="hist-svg">`;
+  // Dezente Gitterlinien oben/Mitte/unten
+  [yAt(max), yAt((max + min) / 2), yAt(min)].forEach(y => {
+    svg += `<line x1="0" y1="${y.toFixed(1)}" x2="${W}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  });
   series.forEach(s => {
     const pts = s.points.map((v,i) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ');
     svg += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
     svg += `<circle cx="${xAt(n-1).toFixed(1)}" cy="${yAt(s.points[n-1]).toFixed(1)}" r="2.6" fill="${s.color}"/>`;
   });
   svg += `</svg>`;
+  // Y-Achsenwerte als HTML-Spalte links (SVG-Text würde durch preserveAspectRatio verzerrt)
+  const axis = `<div class="hist-axis"><span>${fmtShort(max)}</span><span>${fmtShort((max + min) / 2)}</span><span>${fmtShort(min)}</span></div>`;
   const s0 = series[0];
   const last = s0.points[n-1], first = s0.points[0];
   const delta = last - first;
   const deltaTxt = (delta >= 0 ? '+' : '') + fmtShort(delta);
   const deltaCls = delta >= 0 ? 'hist-up' : 'hist-down';
-  el.innerHTML = `${svg}<div class="hist-range">${labels[0]} – ${labels[n-1]} · ${fmtShort(last)} <span class="${deltaCls}">(${deltaTxt})</span></div>`;
+  el.innerHTML = `<div class="hist-plot">${axis}${svg}</div><div class="hist-range">${labels[0]} – ${labels[n-1]} · ${fmtShort(last)} <span class="${deltaCls}">(${deltaTxt})</span></div>`;
 }
 
 function ymLabel(ym) {
@@ -1161,6 +1286,22 @@ function toRealValue(nominal) {
 
 const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 const ICON_DEL  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+
+// Gemeinsames Gerüst für swipebare Einträge (Haupteinträge, Bonus, Urlaub):
+// entry-slider mit Karte (main + right) und den beiden Swipe-Buttons.
+function entrySliderHTML(mainHtml, rightHtml) {
+  return `
+      <div class="entry-slider">
+        <div class="entry glass">
+          <div class="entry-main">${mainHtml}</div>
+          <div class="entry-right">${rightHtml}</div>
+        </div>
+        <div class="entry-action-bg">
+          <div class="swipe-edit">${ICON_EDIT}<span>Bearb.</span></div>
+          <div class="swipe-del">${ICON_DEL}<span>Lösch.</span></div>
+        </div>
+      </div>`;
+}
 
 function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -1238,7 +1379,7 @@ function renderSection(sec) {
       }).join('') + `</div>`;
     }
     const balanceLine = (sec === 'b' && e.balance != null)
-      ? `<div class="entry-balance">Stand: ${fmt(e.balance)}</div>`
+      ? `<div class="entry-balance" onclick="event.stopPropagation(); startInlineBalance('${e.id}', this)">Stand: ${fmt(e.balance)}</div>`
       : '';
     const acctPill = e.account
       ? `<span class="acct-pill acct-${acctSlug(e.account)}">${esc(e.account)}</span>`
@@ -1253,30 +1394,19 @@ function renderSection(sec) {
     const nameHtml = e.provider
       ? `${esc(e.name)}<span class="entry-name-prov"> | ${esc(e.provider)}</span>`
       : esc(e.name);
-    div.innerHTML = `
-      <div class="entry-slider">
-        <div class="entry glass">
-          <div class="entry-main">
-            <div class="entry-name">${nameHtml}</div>
+    div.innerHTML = entrySliderHTML(
+      `<div class="entry-name">${nameHtml}</div>
             <div class="entry-pills">
               <span class="cat-pill cat-${esc(e.cat)}">${esc(e.cat)}</span>
               ${acctPill}
             </div>
             ${subLinesHtml}
             ${balanceLine}
-            ${valuesHtml}
-          </div>
-          <div class="entry-right">
-            <div class="entry-amount">${fmt(e.amount)}</div>
+            ${valuesHtml}`,
+      `<div class="entry-amount">${fmt(e.amount)}</div>
             <div class="entry-period">${esc(e.period)}</div>
-            ${yearly}
-          </div>
-        </div>
-        <div class="entry-action-bg">
-          <div class="swipe-edit">${ICON_EDIT}<span>Bearb.</span></div>
-          <div class="swipe-del">${ICON_DEL}<span>Lösch.</span></div>
-        </div>
-      </div>`;
+            ${yearly}`
+    );
     list.appendChild(div);
     attachSwipe(div, sec, e.id);
   });
@@ -1482,8 +1612,9 @@ function renderDashboard() {
   const whWrap = $('dash-wealth-hist');
   if (history.length >= 1) {
     whWrap.style.display = '';
-    renderHistoryChart('wealth-hist-chart', history.map(h => ymLabel(h.ym)), [
-      { points: history.map(h => h.wealth), color: COLORS.a, label: 'Gesamtvermögen' }
+    const wh = histSlice(history);
+    renderHistoryChart('wealth-hist-chart', wh.map(h => ymLabel(h.ym)), [
+      { points: wh.map(h => h.wealth), color: COLORS.a, label: 'Gesamtvermögen' }
     ]);
   } else {
     whWrap.style.display = 'none';
@@ -1600,6 +1731,46 @@ function parseNoticeDays(s) {
   return n; // Tage
 }
 
+// --- Fällig diesen Monat: anstehende Abbuchungen aus den Vertragsdaten ---
+// Nutzt das Abbuchungsdatum (Tag, ggf. Monat) + Intervall des Eintrags.
+function dueThisMonth() {
+  const today = new Date();
+  const curM = today.getMonth() + 1, curY = today.getFullYear(), curD = today.getDate();
+  const daysInM = new Date(curY, curM, 0).getDate();
+  const out = [];
+  data.v.forEach(e => {
+    if (!e.debitDate) return;
+    const m = String(e.debitDate).trim().match(/^(\d{1,2})(?:\.(\d{1,2}))?/);
+    if (!m) return;
+    const day = Math.min(parseInt(m[1], 10), daysInM);
+    if (day < 1) return;
+    const anchorMonth = m[2] ? parseInt(m[2], 10) : null;
+    const per = e.period || 'monatlich';
+    let due = false;
+    if (per === 'monatlich') due = true;
+    else if (per === 'vierteljährlich') due = anchorMonth != null && (((curM - anchorMonth) % 3) + 3) % 3 === 0;
+    else if (per === 'jährlich') due = anchorMonth === curM;
+    if (!due || day < curD) return;  // nicht fällig oder schon abgebucht
+    out.push({ e, day });
+  });
+  out.sort((a, b) => a.day - b.day || (a.e.name || '').localeCompare(b.e.name || '', 'de'));
+  return out;
+}
+
+function dueThisMonthHTML() {
+  const due = dueThisMonth();
+  if (!due.length) return '';
+  const curM = String(new Date().getMonth() + 1).padStart(2, '0');
+  const sum = due.reduce((s, d) => s + (Number(d.e.amount) || 0), 0);
+  let html = `<div class="uy-konto-head"><span>Fällig diesen Monat</span><b>${fmt(sum)}</b><span class="saverate-eur">${due.length === 1 ? '1 Abbuchung steht an' : due.length + ' Abbuchungen stehen an'}</span></div>`;
+  html += `<div class="due-list">`;
+  due.forEach(d => {
+    html += `<div class="due-row"><span class="due-date">${String(d.day).padStart(2, '0')}.${curM}.</span><span class="due-name">${esc(d.e.name)}${d.e.provider ? `<span class="due-prov"> · ${esc(d.e.provider)}</span>` : ''}</span><span class="due-amount">${fmt(d.e.amount)}</span></div>`;
+  });
+  html += `</div><div class="uc-divider" style="margin:14px 0"></div>`;
+  return html;
+}
+
 function renderVertragDash() {
   const body = $('vertrag-dash-body');
   if (!body) return;
@@ -1624,7 +1795,8 @@ function renderVertragDash() {
   const nRadar = radar.length;
   const fmtD = (d) => `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 
-  let html = `<div class="uy-konto-head"><span>Kündigungs-Radar</span><b>${nRadar}</b><span class="saverate-eur">${nRadar === 1 ? '1 Vertrag mit Frist' : nRadar + ' Verträge mit Frist'}${nTotal > nRadar ? ` · ${nTotal - nRadar} ohne Daten` : ''}</span></div>`;
+  let html = dueThisMonthHTML();
+  html += `<div class="uy-konto-head"><span>Kündigungs-Radar</span><b>${nRadar}</b><span class="saverate-eur">${nRadar === 1 ? '1 Vertrag mit Frist' : nRadar + ' Verträge mit Frist'}${nTotal > nRadar ? ` · ${nTotal - nRadar} ohne Daten` : ''}</span></div>`;
 
   if (!nRadar) {
     html += `<div class="av-empty">Keine Verträge mit Stichtag und Kündigungsfrist hinterlegt.</div>`;
@@ -1812,8 +1984,8 @@ function renderAvDash() {
   }).join('');
 
   const pensionHistBlock = `<div id="dash-pension-hist" class="av-hist-block">
-      <div class="dash-sub-label">Altersvorsorgeverlauf</div>
-      <div id="pension-hist-chart"></div>
+      <div class="hist-head"><span class="dash-sub-label">Altersvorsorgeverlauf</span><span class="hist-range-ctl" data-target="pension"></span></div>
+          <div id="pension-hist-chart"></div>
     </div>`;
   $('av-table').innerHTML = `<div class="av-cards">${pensionHistBlock}${gesamtCard}${groups}</div><div class="av-legend">(m) = monatlich · (e) = einmalig</div>`;
   // Init scenario display
@@ -1826,8 +1998,9 @@ function renderPensionHistory() {
   if (!phWrap) return;
   if (history.length >= 1 && data.a.length) {
     phWrap.style.display = '';
-    renderHistoryChart('pension-hist-chart', history.map(h => ymLabel(h.ym)), [
-      { points: history.map(h => h.pension), color: '#30d158', label: 'Vorsorge gesamt' }
+    const ph = histSlice(history);
+    renderHistoryChart('pension-hist-chart', ph.map(h => ymLabel(h.ym)), [
+      { points: ph.map(h => h.pension), color: '#30d158', label: 'Vorsorge gesamt' }
     ]);
   } else {
     phWrap.style.display = 'none';
@@ -1880,7 +2053,7 @@ function setAvViewMode(mode) {
 }
 
 const COLLAPSE_KEY = 'collapsed_sections_v1';
-let collapsedSections = JSON.parse(store.get(COLLAPSE_KEY) || '[]');
+let collapsedSections = safeParse(store.get(COLLAPSE_KEY), []);
 function applyCollapsedStates() {
   ['v','b','a','bonus','urlaub'].forEach(s => {
     const body = $('body-' + s);
@@ -1911,22 +2084,11 @@ function renderBonus() {
       : '';
     const div = document.createElement('div');
     div.className = 'entry-wrap';
-    div.innerHTML = `
-      <div class="entry-slider">
-        <div class="entry glass">
-          <div class="entry-main">
-            <div class="entry-name">${esc(e.name)}</div>
-            ${subLinesHtml}
-          </div>
-          <div class="entry-right">
-            ${e.points ? `<div class="entry-amount">${esc(e.points)}</div>` : ''}
-          </div>
-        </div>
-        <div class="entry-action-bg">
-          <div class="swipe-edit">${ICON_EDIT}<span>Bearb.</span></div>
-          <div class="swipe-del">${ICON_DEL}<span>Lösch.</span></div>
-        </div>
-      </div>`;
+    div.innerHTML = entrySliderHTML(
+      `<div class="entry-name">${esc(e.name)}</div>
+            ${subLinesHtml}`,
+      e.points ? `<div class="entry-amount">${esc(e.points)}</div>` : ''
+    );
     list.appendChild(div);
     attachSwipeBonus(div, e.id);
   });
@@ -1968,9 +2130,16 @@ function saveBonus() {
 async function deleteBonus(id) {
   const ok = await showDialog('Eintrag wirklich löschen?', { title: 'Löschen', okText: 'Löschen' });
   if (!ok) return;
+  const idx = bonus.findIndex(x => x.id === id);
+  const removed = idx >= 0 ? bonus[idx] : null;
   bonus = bonus.filter(x => x.id !== id);
   store.set(BONUS_KEY, JSON.stringify(bonus));
   renderBonus();
+  if (removed) showUndoToast(`„${removed.name}" gelöscht`, () => {
+    bonus.splice(Math.min(idx, bonus.length), 0, removed);
+    store.set(BONUS_KEY, JSON.stringify(bonus));
+    renderBonus();
+  });
 }
 
 // ---- Urlaube (vacations grouped by year, budget = Urlaub-savings ×12) ----
@@ -1988,7 +2157,7 @@ function urlaubMonthlyRate() {
 
 // Historie der Ratenänderungen [{ym, rate}] (ym = Jahr*12+Monat). Nur Änderungen ab jetzt.
 const URLAUB_RATE_HIST_KEY = 'urlaub_rate_hist_v1';
-let urlaubRateHist = JSON.parse(store.get(URLAUB_RATE_HIST_KEY) || '[]');
+let urlaubRateHist = safeParse(store.get(URLAUB_RATE_HIST_KEY), []);
 
 function updateUrlaubRateHist() {
   const rate = urlaubMonthlyRate();
@@ -2203,23 +2372,12 @@ function renderUrlaube() {
           })
           .join(' · ');
       }
-      div.innerHTML = `
-        <div class="entry-slider">
-          <div class="entry glass">
-            <div class="entry-main">
-              <div class="entry-name">${esc(u.name)}</div>
+      div.innerHTML = entrySliderHTML(
+        `<div class="entry-name">${esc(u.name)}</div>
               <div class="entry-sub">${monthName}</div>
-              ${sched ? `<div class="entry-paysched">${sched}</div>` : ''}
-            </div>
-            <div class="entry-right">
-              <div class="entry-amount">${fmt(tripCost(u))}</div>
-            </div>
-          </div>
-          <div class="entry-action-bg">
-            <div class="swipe-edit">${ICON_EDIT}<span>Bearb.</span></div>
-            <div class="swipe-del">${ICON_DEL}<span>Lösch.</span></div>
-          </div>
-        </div>`;
+              ${sched ? `<div class="entry-paysched">${sched}</div>` : ''}`,
+        `<div class="entry-amount">${fmt(tripCost(u))}</div>`
+      );
       list.appendChild(div);
       attachSwipeGeneric(div, () => deleteUrlaub(u.id), () => openUrlaubModal(u.id));
     });
@@ -2301,9 +2459,16 @@ function saveDeposit() {
 async function deleteDeposit(id) {
   const ok = await showDialog('Einzahlung wirklich löschen?', { title: 'Löschen', okText: 'Löschen' });
   if (!ok) return;
+  const idx = urlaubDeposits.findIndex(x => x.id === id);
+  const removed = idx >= 0 ? urlaubDeposits[idx] : null;
   urlaubDeposits = urlaubDeposits.filter(x => x.id !== id);
   store.set(URLAUB_DEPOSITS_KEY, JSON.stringify(urlaubDeposits));
   renderUrlaubeAll();
+  if (removed) showUndoToast('Einzahlung gelöscht', () => {
+    urlaubDeposits.splice(Math.min(idx, urlaubDeposits.length), 0, removed);
+    store.set(URLAUB_DEPOSITS_KEY, JSON.stringify(urlaubDeposits));
+    renderUrlaubeAll();
+  });
 }
 
 function urlaubPaymentRowHTML(m, amount, y) {
@@ -2362,6 +2527,7 @@ function updatePayHint() {
 function openUrlaubModal(id) {
   editUrlaubId = id || null;
   $('urlaub-title').textContent = id ? 'Urlaub bearbeiten' : 'Neuer Urlaub';
+  $('btn-duplicate-urlaub').style.display = id ? '' : 'none';
   const e = id ? urlaube.find(x => x.id === id) : null;
   $('urlaub-name').value = e ? e.name : '';
   $('urlaub-year').value = e ? (tripYear(e) || '') : '';
@@ -2410,9 +2576,16 @@ function saveUrlaub() {
 async function deleteUrlaub(id) {
   const ok = await showDialog('Urlaub wirklich löschen?', { title: 'Löschen', okText: 'Löschen' });
   if (!ok) return;
+  const idx = urlaube.findIndex(x => x.id === id);
+  const removed = idx >= 0 ? urlaube[idx] : null;
   urlaube = urlaube.filter(x => x.id !== id);
   store.set(URLAUB_KEY, JSON.stringify(urlaube));
   renderUrlaubeAll();
+  if (removed) showUndoToast(`„${removed.name}" gelöscht`, () => {
+    urlaube.splice(Math.min(idx, urlaube.length), 0, removed);
+    store.set(URLAUB_KEY, JSON.stringify(urlaube));
+    renderUrlaubeAll();
+  });
 }
 
 function buildValueFields(sec, vEntry) {
@@ -2550,6 +2723,7 @@ function openModal(sec, id) {
 
   $('f-name').placeholder = cfg.namePlaceholder;
   $('modal-title').textContent = id ? 'Eintrag bearbeiten' : 'Neuer Eintrag';
+  $('btn-duplicate').style.display = id ? '' : 'none';
 
   // Build custom free-text fields (e.g. Abbuchungsdatum) from config
   const tf = cfg.textFields || [];
@@ -2667,7 +2841,7 @@ function saveEntry() {
       ? $('f-extra-select').value
       : $('f-extra-input').value.trim();
 
-  if (!name || isNaN(amount) || amount < 0) { notify('Bitte Name und Betrag ausfüllen.'); return; }
+  if (!name || amount == null || isNaN(amount) || amount < 0) { notify('Bitte Name und Betrag ausfüllen.'); return; }
 
   const fields = { name, provider, account, amount, period, cat, extra };
   (cfg.valueFields || []).forEach(f => {
@@ -2739,14 +2913,81 @@ function saveEntry() {
 async function deleteEntry(sec, id) {
   const ok = await showDialog('Eintrag wirklich löschen?', { title: 'Löschen', okText: 'Löschen' });
   if (!ok) return;
+  const idx = data[sec].findIndex(x => x.id === id);
+  const removed = idx >= 0 ? data[sec][idx] : null;
   data[sec] = data[sec].filter(x => x.id !== id);
   store.set(SECTIONS[sec].storageKey, JSON.stringify(data[sec]));
   renderSection(sec);
   updateIncome();
+  if (removed) showUndoToast(`„${removed.name}" gelöscht`, () => {
+    data[sec].splice(Math.min(idx, data[sec].length), 0, removed);
+    store.set(SECTIONS[sec].storageKey, JSON.stringify(data[sec]));
+    renderSection(sec);
+    updateIncome();
+  });
 }
 
 // ---- Custom dialog (replaces native confirm/alert which are blocked in some sandboxes) ----
 let _dialogResolver = null;
+// --- Eintrag duplizieren (aus dem Bearbeiten-Modal) ---
+function duplicateEntry() {
+  const sec = activeSection;
+  if (!editId) return;
+  const src = data[sec].find(x => x.id === editId);
+  if (!src) return;
+  const copy = JSON.parse(JSON.stringify(src));
+  copy.id = Date.now().toString();
+  copy.name = (src.name || '') + ' Kopie';
+  data[sec].push(copy);
+  store.set(SECTIONS[sec].storageKey, JSON.stringify(data[sec]));
+  renderSection(sec);
+  updateIncome();
+  // Kopie direkt zum Umbenennen öffnen
+  openModal(sec, copy.id);
+  setTimeout(() => { const f = $('f-name'); f.focus(); f.select && f.select(); }, 80);
+}
+
+// --- Stand direkt in der Liste bearbeiten (antippen) ---
+function startInlineBalance(id, el) {
+  const e = data.b.find(x => x.id === id);
+  if (!e || el.querySelector('input')) return;
+  const old = e.balance;
+  el.innerHTML = `Stand: <input type="text" class="balance-inline" inputmode="decimal" autocomplete="off">`;
+  const inp = el.querySelector('input');
+  inp.value = fmt(old);
+  inp.focus();
+  inp.select && inp.select();
+  let done = false;
+  const commit = () => {
+    if (done) return;
+    done = true;
+    const v = parseMoney(inp.value);
+    if (v != null && !isNaN(v) && v >= 0) e.balance = v;
+    store.set(SECTIONS.b.storageKey, JSON.stringify(data.b));
+    renderSection('b');
+    renderDashboard();
+    updateIncome();
+  };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { ev.preventDefault(); inp.blur(); }
+  });
+}
+
+function duplicateUrlaub() {
+  if (!editUrlaubId) return;
+  const src = urlaube.find(x => x.id === editUrlaubId);
+  if (!src) return;
+  const copy = JSON.parse(JSON.stringify(src));
+  copy.id = Date.now().toString();
+  copy.name = (src.name || '') + ' Kopie';
+  urlaube.push(copy);
+  store.set(URLAUB_KEY, JSON.stringify(urlaube));
+  renderUrlaubeAll();
+  openUrlaubModal(copy.id);
+  setTimeout(() => { const f = $('urlaub-name'); f.focus(); f.select && f.select(); }, 80);
+}
+
 function showDialog(message, { title = 'Hinweis', okText = 'OK', cancelText = 'Abbrechen' } = {}) {
   return new Promise(resolve => {
     _dialogResolver = resolve;
@@ -2764,6 +3005,28 @@ function dialogResolve(val) {
   if (_dialogResolver) { _dialogResolver(val); _dialogResolver = null; }
 }
 function notify(message, title = 'Hinweis') { return showDialog(message, { title, cancelText: '' }); }
+
+// --- Undo-Toast: 5 Sek. Rückgängig nach dem Löschen ---
+let _undoTimer = null;
+function showUndoToast(label, restoreFn) {
+  let t = $('undo-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'undo-toast';
+    t.className = 'undo-toast';
+    document.body.appendChild(t);
+  }
+  clearTimeout(_undoTimer);
+  t.innerHTML = `<span class="undo-label">${label}</span><button class="undo-btn" type="button">Rückgängig</button>`;
+  t.querySelector('.undo-btn').onclick = () => { hideUndoToast(); restoreFn(); };
+  t.classList.add('show');
+  _undoTimer = setTimeout(hideUndoToast, 5000);
+}
+function hideUndoToast() {
+  clearTimeout(_undoTimer);
+  const t = $('undo-toast');
+  if (t) t.classList.remove('show');
+}
 
 // Info-Popup: welche Einträge fließen ins Gesamtvermögen ein
 function showWealthInfo() {
@@ -2783,8 +3046,248 @@ function showWealthInfo() {
 }
 
 // ---- Export / Import ----
-function exportData() {
-  const payload = {
+// ═══════════════ Cloud-Backup (GitHub, verschlüsselt) ═══════════════
+// Ablauf: Daten → AES-256-GCM verschlüsseln (Schlüssel aus Passphrase via PBKDF2)
+// → als backup.enc.json in ein privates GitHub-Repo pushen (Contents-API).
+// Bei GitHub liegt nur unlesbarer Ciphertext; entschlüsseln kann nur die Passphrase.
+const CLOUD_CFG_KEY = 'cloud_backup_v1';
+let cloudCfg = safeParse(store.get(CLOUD_CFG_KEY), null);
+let _cloudTimer = null;
+let _cloudBusy = false;
+
+function toggleCloudCfg() {
+  const el = $('cloud-cfg');
+  const show = el.style.display === 'none';
+  el.style.display = show ? '' : 'none';
+  if (show) loadCloudCfgUI();
+}
+function loadCloudCfgUI() {
+  if (!cloudCfg) { renderCloudStatus(); return; }
+  $('cb-repo').value = cloudCfg.repo || '';
+  $('cb-token').value = cloudCfg.token || '';
+  $('cb-pass').value = cloudCfg.pass || '';
+  $('cb-auto').checked = cloudCfg.auto !== false;
+  renderCloudStatus();
+}
+function saveCloudCfg() {
+  cloudCfg = {
+    repo: $('cb-repo').value.trim(),
+    token: $('cb-token').value.trim(),
+    pass: $('cb-pass').value,
+    auto: $('cb-auto').checked,
+    lastOk: cloudCfg && cloudCfg.lastOk || null
+  };
+  store.set(CLOUD_CFG_KEY, JSON.stringify(cloudCfg));
+}
+function cloudReady() {
+  return !!(cloudCfg && cloudCfg.repo && cloudCfg.repo.includes('/') && cloudCfg.token && cloudCfg.pass
+    && window.crypto && crypto.subtle);
+}
+function renderCloudStatus(msg, isError) {
+  const el = $('cloud-status');
+  if (!el) return;
+  if (msg) { el.textContent = msg; el.style.color = isError ? 'var(--danger)' : ''; return; }
+  el.style.color = '';
+  if (!cloudReady()) { el.textContent = 'Noch nicht eingerichtet. Anleitung: siehe CLOUD-BACKUP-ANLEITUNG.md im Repo.'; return; }
+  el.textContent = cloudCfg.lastOk
+    ? 'Letztes Cloud-Backup: ' + new Date(cloudCfg.lastOk).toLocaleString('de-DE')
+    : 'Eingerichtet – noch kein Backup gelaufen.';
+}
+
+// --- Krypto: Passphrase → AES-256-GCM ---
+const _te = new TextEncoder(), _td = new TextDecoder();
+function _b64(buf) { let s=''; new Uint8Array(buf).forEach(b => s += String.fromCharCode(b)); return btoa(s); }
+function _unb64(str) { const bin = atob(str); const a = new Uint8Array(bin.length); for (let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i); return a; }
+async function _deriveKey(pass, salt) {
+  const base = await crypto.subtle.importKey('raw', _te.encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' },
+    base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+  );
+}
+async function encryptBackup(text, pass) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await _deriveKey(pass, salt);
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, _te.encode(text));
+  return { app: 'finanzen-uebersicht', enc: 1, kdf: 'PBKDF2-SHA256-310000', alg: 'AES-256-GCM',
+           salt: _b64(salt), iv: _b64(iv), data: _b64(ct) };
+}
+async function decryptBackup(env, pass) {
+  const key = await _deriveKey(pass, _unb64(env.salt));
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: _unb64(env.iv) }, key, _unb64(env.data));
+  return _td.decode(pt);
+}
+
+// --- GitHub Contents-API ---
+const CLOUD_FILE = 'backup.enc.json';
+function _ghUrl() { return `https://api.github.com/repos/${cloudCfg.repo}/contents/${CLOUD_FILE}`; }
+function _ghHeaders() {
+  return { 'Authorization': 'Bearer ' + cloudCfg.token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' };
+}
+async function _ghGetFile() {
+  const res = await fetch(_ghUrl(), { headers: _ghHeaders() });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('GitHub: ' + res.status);
+  return res.json();
+}
+
+async function cloudBackupNow(manual) {
+  if (!cloudReady()) { if (manual) notify('Bitte erst Repository, Token und Passphrase eintragen.'); return; }
+  if (_cloudBusy) return;
+  _cloudBusy = true;
+  if (manual) renderCloudStatus('Sichere …');
+  try {
+    const text = JSON.stringify(buildBackupPayload());
+    const env = await encryptBackup(text, cloudCfg.pass);
+    const body = JSON.stringify(env, null, 2);
+    const contentB64 = btoa(unescape(encodeURIComponent(body)));
+    const existing = await _ghGetFile();
+    const res = await fetch(_ghUrl(), {
+      method: 'PUT',
+      headers: _ghHeaders(),
+      body: JSON.stringify({
+        message: 'Backup ' + new Date().toISOString(),
+        content: contentB64,
+        ...(existing ? { sha: existing.sha } : {})
+      })
+    });
+    if (!res.ok) throw new Error('GitHub: ' + res.status);
+    cloudCfg.lastOk = Date.now();
+    store.set(CLOUD_CFG_KEY, JSON.stringify(cloudCfg));
+    renderCloudStatus();
+  } catch (e) {
+    renderCloudStatus('Backup fehlgeschlagen (' + (e.message || 'Netzwerk') + ') – wird beim nächsten Mal erneut versucht.', true);
+  } finally {
+    _cloudBusy = false;
+  }
+}
+
+async function cloudRestore() {
+  if (!cloudReady()) { notify('Bitte erst Repository, Token und Passphrase eintragen.'); return; }
+  renderCloudStatus('Lade aus der Cloud …');
+  try {
+    const file = await _ghGetFile();
+    if (!file) { renderCloudStatus('Kein Cloud-Backup gefunden.', true); return; }
+    const raw = decodeURIComponent(escape(atob(file.content.replace(/\n/g, ''))));
+    const env = JSON.parse(raw);
+    if (!env || env.enc !== 1) { renderCloudStatus('Unbekanntes Backup-Format.', true); return; }
+    let text;
+    try { text = await decryptBackup(env, cloudCfg.pass); }
+    catch (e) { renderCloudStatus('Entschlüsselung fehlgeschlagen – Passphrase korrekt?', true); return; }
+    renderCloudStatus();
+    await applyBackup(text);
+  } catch (e) {
+    renderCloudStatus('Laden fehlgeschlagen (' + (e.message || 'Netzwerk') + ').', true);
+  }
+}
+
+// --- Auto-Trigger: 30 Sek. nach der letzten Datenänderung sichern ---
+const CLOUD_DATA_KEYS = new Set([
+  'abos_v1', 'budgets_v1', 'altersvorsorge_v1', 'income_v1', 'bonus_v1',
+  'urlaube_v1', 'urlaub_budget_v1', 'urlaub_deposits_v1', 'urlaub_rate_hist_v1', 'history_v1'
+]);
+function scheduleCloudBackup() {
+  if (!cloudReady() || cloudCfg.auto === false) return;
+  clearTimeout(_cloudTimer);
+  _cloudTimer = setTimeout(() => cloudBackupNow(false), 30000);
+}
+(function hookStoreForCloud() {
+  const orig = store.set.bind(store);
+  store.set = (k, v) => { orig(k, v); if (CLOUD_DATA_KEYS.has(k)) scheduleCloudBackup(); };
+})();
+
+// ═══════════════ App-Sperre (FaceID/TouchID via WebAuthn) ═══════════════
+// Beim Aktivieren wird ein Passkey auf dem Gerät erzeugt; Entsperren verlangt
+// Face ID / Touch ID. Hinweis: Das ist ein Sichtschutz gegen beiläufigen Zugriff —
+// die Daten selbst bleiben lokal unverschlüsselt gespeichert.
+const APPLOCK_KEY = 'applock_v1';
+let appLock = safeParse(store.get(APPLOCK_KEY), null);
+let _unlocked = false;
+
+function appLockAvailable() {
+  return !!(window.PublicKeyCredential && navigator.credentials && location.protocol === 'https:');
+}
+function renderAppLockUI() {
+  const btn = $('applock-btn'), st = $('applock-status');
+  if (!btn) return;
+  if (!appLockAvailable()) {
+    btn.style.display = 'none';
+    if (st) st.textContent = '';
+    return;
+  }
+  const on = !!(appLock && appLock.enabled);
+  btn.textContent = on ? '🔓 FaceID-Sperre deaktivieren' : '🔒 FaceID-Sperre aktivieren';
+  if (st) st.textContent = on
+    ? 'Aktiv – die App verlangt Face ID bei jedem Öffnen.'
+    : 'Schützt die App-Ansicht mit Face ID / Touch ID.';
+}
+async function toggleAppLock() {
+  if (!appLockAvailable()) return;
+  if (appLock && appLock.enabled) {
+    const ok = await showDialog('FaceID-Sperre wirklich deaktivieren?', { title: 'App-Sperre', okText: 'Deaktivieren' });
+    if (!ok) return;
+    appLock = null;
+    store.set(APPLOCK_KEY, JSON.stringify(null));
+    renderAppLockUI();
+    return;
+  }
+  try {
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      rp: { name: 'Finanzen', id: location.hostname },
+      user: { id: crypto.getRandomValues(new Uint8Array(16)), name: 'finanzen', displayName: 'Finanzen' },
+      pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+      timeout: 60000,
+      attestation: 'none'
+    }});
+    appLock = { credId: _b64(cred.rawId), enabled: true };
+    store.set(APPLOCK_KEY, JSON.stringify(appLock));
+    renderAppLockUI();
+    notify('FaceID-Sperre ist aktiv. Wichtig: Richte das Cloud-Backup ein – ohne Face ID gibt es keinen Zugriff auf die App.', 'App-Sperre');
+  } catch (e) {
+    notify('Einrichtung abgebrochen oder nicht unterstützt.', 'App-Sperre');
+  }
+}
+function engageLock() {
+  if (!(appLock && appLock.enabled)) return;
+  _unlocked = false;
+  const ls = $('lock-screen');
+  if (ls) { ls.style.display = 'flex'; const h = $('lock-hint'); if (h) h.textContent = ''; }
+}
+async function attemptUnlock() {
+  if (!(appLock && appLock.enabled)) return;
+  try {
+    await navigator.credentials.get({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      allowCredentials: [{ type: 'public-key', id: _unb64(appLock.credId) }],
+      userVerification: 'required',
+      timeout: 60000
+    }});
+    _unlocked = true;
+    const ls = $('lock-screen');
+    if (ls) ls.style.display = 'none';
+  } catch (e) {
+    const h = $('lock-hint');
+    if (h) h.textContent = 'Nicht erkannt – bitte erneut versuchen.';
+  }
+}
+function initAppLock() {
+  renderAppLockUI();
+  if (appLock && appLock.enabled && appLockAvailable()) {
+    engageLock();
+    // Direkt beim Öffnen einmal automatisch anstoßen
+    setTimeout(() => { if (!_unlocked) attemptUnlock(); }, 350);
+  }
+  // "Bei jedem Öffnen": App in den Hintergrund → wieder sperren
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && appLock && appLock.enabled) engageLock();
+  });
+}
+
+function buildBackupPayload() {
+  return {
     app: 'finanzen-uebersicht',
     version: 1,
     exportedAt: new Date().toISOString(),
@@ -2798,6 +3301,10 @@ function exportData() {
     avViewMode: avViewMode,
     history: history
   };
+}
+
+function exportData() {
+  const payload = buildBackupPayload();
   const text = JSON.stringify(payload, null, 2);
   const stamp = new Date().toISOString().slice(0,10);
   try {
@@ -2904,7 +3411,14 @@ applyAutoGrow();
 renderAll();
 applyCollapsedStates();
 initDashSwipe();
+renderHistRangeCtls();
 ['deposit-amount','urlaub-cost'].forEach(id => bindMoneyInput($(id)));
+
+// Service Worker registrieren (Offline-Fähigkeit); scheitert leise wenn nicht unterstützt (z.B. file://)
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+initAppLock();
 </script>
 </body>
 </html>
