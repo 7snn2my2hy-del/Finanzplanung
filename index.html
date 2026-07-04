@@ -102,7 +102,18 @@
     display: flex; align-items: center; justify-content: space-between;
     gap: 12px; padding: 12px 18px; margin-bottom: 6px;
   }
-  .app-header { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; margin: 4px 2px 16px; }
+  .app-header { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; margin: 4px 2px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .gear-btn { flex-shrink: 0; width: 32px; height: 32px; border-radius: 99px; border: 1px solid var(--stroke); background: var(--glass); color: var(--muted); font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); transition: transform 0.4s var(--spring), background 0.2s, color 0.2s; }
+  .gear-btn:hover { color: var(--text); background: var(--glass-hi); }
+  .gear-btn:active { transform: rotate(90deg); color: var(--accent); }
+  .gear-btn svg { width: 17px; height: 17px; }
+  /* Vollbild-Einstellungen */
+  .settings-screen { position: fixed; inset: 0; z-index: 400; background: var(--bg); overflow-y: auto; -webkit-overflow-scrolling: touch; transform: translateX(100%); transition: transform 0.4s var(--ease-ios); padding: calc(12px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom)); }
+  .settings-screen.open { transform: translateX(0); }
+  .settings-topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .settings-back { width: 40px; height: 40px; border-radius: 99px; border: 1px solid var(--stroke); background: var(--glass); color: var(--text); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.3s var(--spring); }
+  .settings-back:active { transform: scale(0.9); }
+  .settings-screen h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; }
   .income-left, .income-right { display: flex; flex-direction: column; gap: 3px; }
   .income-right { align-items: flex-end; }
   .income-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-2); }
@@ -120,16 +131,40 @@
   .income-avail.negative { color: var(--danger); }
   .income-divider { height: 1px; background: var(--stroke); margin: 40px 0 4px; }
 
-  .dash-swipe { margin: 40px 0 0; }
-  .dash-pages { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 0; }
+  .dash-swipe { margin: 40px 0 0; position: relative; }
+  /* Farb-Glow hinter dem Dashboard-Bereich – hebt ihn als eigene Zone ab */
+  .dash-swipe::before {
+    content: ''; position: absolute; z-index: -1;
+    left: 50%; top: -8%; transform: translateX(-50%);
+    width: 130%; height: 116%;
+    background:
+      radial-gradient(60% 55% at 30% 20%, rgba(90,120,255,0.20), transparent 70%),
+      radial-gradient(55% 50% at 80% 80%, rgba(170,90,240,0.16), transparent 72%);
+    filter: blur(28px);
+    pointer-events: none;
+  }
+  .dash-pages { display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 0; transition: height 0.4s var(--ease-ios); align-items: stretch; }
   .dash-pages::-webkit-scrollbar { display: none; }
-  .dash-page { flex: 0 0 100%; width: 100%; scroll-snap-align: center; scroll-snap-stop: always; }
+  .dash-page { flex: 0 0 100%; width: 100%; scroll-snap-align: center; scroll-snap-stop: always; overflow: hidden; }
   .dash-page > .glass { margin: 0; }
-  .dash-dots { display: flex; justify-content: center; gap: 7px; margin-top: 12px; }
+  .dash-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  .dash-title-row .dash-title { margin-bottom: 0; }
+  .dash-dots { display: flex; justify-content: center; gap: 7px; flex-shrink: 0; }
   .dash-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--stroke-hi); cursor: pointer; transition: background 0.3s var(--spring), width 0.3s var(--spring); }
   .dash-dot.active { background: var(--accent); width: 22px; }
 
   .dashboard { padding: 22px; margin: 40px 0 0; }
+  /* Dashboard-Karten kräftiger absetzen: tiefere Schatten, deutlichere Glaskante */
+  .dash-page > .glass {
+    background: rgba(34, 34, 40, 0.62);
+    box-shadow:
+      0 2px 1.5px rgba(255,255,255,0.18) inset,
+      0 -1px 1px rgba(0,0,0,0.3) inset,
+      0 0 0 0.5px rgba(255,255,255,0.06) inset,
+      0 22px 60px rgba(0,0,0,0.6),
+      0 4px 16px rgba(70,90,200,0.14);
+    border-color: var(--stroke-hi);
+  }
   .dash-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text); font-weight: 700; margin-bottom: 14px; }
   .dash-grid { display: flex; gap: 16px; align-items: center; }
   .dash-donut { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
@@ -207,6 +242,20 @@
   .section-body.collapsed { display: none; }
 
   .backup-row { display: flex; gap: 10px; }
+  /* iOS-Einstellungsgruppen: gruppierte Zeilen mit feinen Trennern */
+  .settings-group { background: var(--glass); border: 1px solid var(--stroke); border-radius: var(--r-control); overflow: hidden; margin-top: 10px; -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+  .settings-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; background: transparent; border: none; font: inherit; color: var(--text); text-align: left; cursor: pointer; transition: background 0.18s var(--ease-ios); }
+  .settings-row + .settings-row { border-top: 1px solid var(--stroke); }
+  .settings-row:active { background: var(--glass-hi); }
+  .settings-row .sr-icon { font-size: 1.05rem; width: 24px; text-align: center; flex-shrink: 0; }
+  .settings-row .sr-body { flex: 1; min-width: 0; }
+  .settings-row .sr-title { font-size: 0.92rem; font-weight: 500; }
+  .settings-row .sr-sub { font-size: 0.72rem; color: var(--muted-2); margin-top: 2px; line-height: 1.4; }
+  .settings-row .sr-chevron { color: var(--muted-2); font-size: 0.9rem; flex-shrink: 0; }
+  .settings-row.sr-danger .sr-title { color: var(--danger); }
+  .settings-note { color: var(--muted-2); font-size: 0.73rem; line-height: 1.5; margin: 8px 6px 0; }
+  .settings-detail { border-top: 1px solid var(--stroke); background: rgba(0,0,0,0.22); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .settings-detail .field label { font-size: 0.72rem; }
   .backup-btn {
     flex: 1; padding: 14px; font: inherit; font-size: 0.9rem; font-weight: 600;
     color: var(--text); cursor: pointer; border-radius: 16px;
@@ -514,7 +563,7 @@
 <div class="wrap">
   <div class="notice" id="notice">Speicherung im Browser ist hier nicht möglich – Einträge bleiben nur während dieser Sitzung erhalten. Speichere die App lokal (siehe Anleitung), um dauerhaft zu sichern.</div>
 
-  <div class="app-header">Jörg's Finanzen</div>
+  <div class="app-header"><span>Jörg's Finanzen</span><button class="gear-btn" aria-label="Einstellungen" onclick="openSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
 
   <div class="income-bar glass">
     <div class="income-left">
@@ -534,7 +583,7 @@
     <div class="dash-pages" id="dash-pages">
       <div class="dash-page">
         <div class="dashboard glass" id="dashboard">
-          <div class="dash-title">Übersicht</div>
+          <div class="dash-title-row"><span class="dash-title">Übersicht</span><span class="dash-dots" data-dots></span></div>
           <div class="uy-konto-head">
             <span>Gesamtvermögen</span>
             <b id="wealth-val">–</b>
@@ -573,60 +622,27 @@
       </div>
       <div class="dash-page">
         <div class="av-dash glass" id="av-dash">
-          <div class="dash-title">Altersvorsorge</div>
+          <div class="dash-title-row"><span class="dash-title">Altersvorsorge</span><span class="dash-dots" data-dots></span></div>
           <div id="av-kontostand"></div>
           <div id="av-table"></div>
         </div>
       </div>
       <div class="dash-page">
         <div class="av-dash glass" id="urlaub-dash">
-          <div class="dash-title">Urlaube</div>
+          <div class="dash-title-row"><span class="dash-title">Urlaube</span><span class="dash-dots" data-dots></span></div>
           <div id="urlaub-dash-body"></div>
         </div>
       </div>
       <div class="dash-page">
         <div class="av-dash glass" id="vertrag-dash">
-          <div class="dash-title">Verträge &amp; Versicherungen</div>
+          <div class="dash-title-row"><span class="dash-title">Verträge &amp; Versicherungen</span><span class="dash-dots" data-dots></span></div>
           <div id="vertrag-dash-body"></div>
         </div>
       </div>
     </div>
-    <div class="dash-dots" id="dash-dots">
-      <span class="dash-dot active" onclick="goDashPage(0)"></span>
-      <span class="dash-dot" onclick="goDashPage(1)"></span>
-      <span class="dash-dot" onclick="goDashPage(2)"></span>
-      <span class="dash-dot" onclick="goDashPage(3)"></span>
-    </div>
   </div>
 
   <div class="income-divider"></div>
-
-  <header class="sub-header" onclick="toggleSection('v')">
-    <div class="sub-header-text">
-      <h1>Versicherungen &amp; Verträge</h1>
-      <p>Alle laufenden Ausgaben im Blick</p>
-    </div>
-    <span class="section-chevron" id="chev-v">⌄</span>
-  </header>
-
-  <div class="section-body" id="body-v">
-  <div class="filter-row">
-    <select class="account-filter" id="filter-v" onchange="renderSection('v')"></select>
-  </div>
-  <div class="summary glass">
-    <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month">0,00 €</div></div>
-    <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year">0,00 €</div></div>
-    <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count">0</div></div>
-  </div>
-
-  <div class="section-label">Versicherungen &amp; Verträge</div>
-  <div class="list" id="list-v"></div>
-  <div class="empty" id="empty-v" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
-
-  <button class="add-btn" onclick="openModal('v')">＋ Eintrag hinzufügen</button>
-  </div>
-
-  <div class="group-divider"></div>
 
   <header class="sub-header" onclick="toggleSection('b')">
     <div class="sub-header-text">
@@ -656,29 +672,29 @@
 
   <div class="group-divider"></div>
 
-  <header class="sub-header" onclick="toggleSection('a')">
+  <header class="sub-header" onclick="toggleSection('v')">
     <div class="sub-header-text">
-      <h1>Altersvorsorge</h1>
-      <p>Vorsorge und Rente im Blick · Renteneintrittsalter 67</p>
+      <h1>Versicherungen &amp; Verträge</h1>
+      <p>Alle laufenden Ausgaben im Blick</p>
     </div>
-    <span class="section-chevron" id="chev-a">⌄</span>
+    <span class="section-chevron" id="chev-v">⌄</span>
   </header>
 
-  <div class="section-body" id="body-a">
+  <div class="section-body" id="body-v">
   <div class="filter-row">
-    <select class="account-filter" id="filter-a" onchange="renderSection('a')"></select>
+    <select class="account-filter" id="filter-v" onchange="renderSection('v')"></select>
   </div>
   <div class="summary glass">
-    <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month-a">0,00 €</div></div>
-    <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year-a">0,00 €</div></div>
-    <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count-a">0</div></div>
+    <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month">0,00 €</div></div>
+    <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year">0,00 €</div></div>
+    <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count">0</div></div>
   </div>
 
-  <div class="section-label">Altersvorsorge</div>
-  <div class="list" id="list-a"></div>
-  <div class="empty" id="empty-a" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
+  <div class="section-label">Versicherungen &amp; Verträge</div>
+  <div class="list" id="list-v"></div>
+  <div class="empty" id="empty-v" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
 
-  <button class="add-btn" onclick="openModal('a')">＋ Eintrag hinzufügen</button>
+  <button class="add-btn" onclick="openModal('v')">＋ Eintrag hinzufügen</button>
   </div>
 
   <div class="group-divider"></div>
@@ -712,6 +728,34 @@
   </div>
 
   <div class="group-divider"></div>
+
+  <header class="sub-header" onclick="toggleSection('a')">
+    <div class="sub-header-text">
+      <h1>Altersvorsorge</h1>
+      <p>Vorsorge und Rente im Blick · Renteneintrittsalter 67</p>
+    </div>
+    <span class="section-chevron" id="chev-a">⌄</span>
+  </header>
+
+  <div class="section-body" id="body-a">
+  <div class="filter-row">
+    <select class="account-filter" id="filter-a" onchange="renderSection('a')"></select>
+  </div>
+  <div class="summary glass">
+    <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month-a">0,00 €</div></div>
+    <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year-a">0,00 €</div></div>
+    <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count-a">0</div></div>
+  </div>
+
+  <div class="section-label">Altersvorsorge</div>
+  <div class="list" id="list-a"></div>
+  <div class="empty" id="empty-a" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
+
+  <button class="add-btn" onclick="openModal('a')">＋ Eintrag hinzufügen</button>
+  </div>
+
+  <div class="group-divider"></div>
+
   <header class="sub-header" onclick="toggleSection('bonus')">
     <div class="sub-header-text">
       <h1>Bonusprogramme</h1>
@@ -728,21 +772,27 @@
   <button class="add-btn" onclick="openBonusModal()">＋ Eintrag hinzufügen</button>
   </div>
 
-  <div class="group-divider"></div>
+
+</div>
+
+<!-- Vollbild-Einstellungen (Zahnrad) -->
+<div class="settings-screen" id="settings-screen">
+  <div class="settings-topbar">
+    <button class="settings-back" aria-label="Zurück" onclick="closeSettings()">‹</button>
+    <h2>Einstellungen</h2>
+  </div>
 
   <div class="section-label">Datensicherung</div>
-  <div class="backup-row">
-    <button class="backup-btn" onclick="exportData()">↓ Sichern</button>
-    <button class="backup-btn" onclick="$('import-file').click()">↑ Wiederherstellen</button>
-    <input type="file" id="import-file" accept="application/json,.json" style="display:none" onchange="importData(event)">
-  </div>
-  <p class="backup-hint">Sichern lädt alle Einträge als Datei herunter – lege sie z.B. in iCloud Drive ab. Wiederherstellen lädt so eine Datei wieder ein. Ideal als Backup vor App-Updates.</p>
-
-  <button class="backup-btn" style="width:100%;margin-top:12px" onclick="toggleCloudCfg()">☁ Cloud-Backup (GitHub) einrichten</button>
-  <button class="backup-btn" style="width:100%;margin-top:10px" id="applock-btn" onclick="toggleAppLock()">🔒 FaceID-Sperre aktivieren</button>
-  <p class="backup-hint" id="applock-status" style="margin-top:6px"></p>
-  <div id="cloud-cfg" style="display:none;margin-top:12px">
-    <div style="display:flex;flex-direction:column;gap:12px">
+  <div class="settings-group">
+    <button class="settings-row" onclick="cloudRowTap()">
+      <span class="sr-icon">☁</span>
+      <span class="sr-body">
+        <span class="sr-title">Cloud-Backup</span>
+        <span class="sr-sub" id="cloud-row-sub">Verschlüsselt zu GitHub – einrichten</span>
+      </span>
+      <span class="sr-chevron" id="cloud-row-chevron">›</span>
+    </button>
+    <div id="cloud-cfg" class="settings-detail" style="display:none">
       <div class="field">
         <label>Repository (benutzer/repo)</label>
         <input type="text" id="cb-repo" placeholder="z.B. joerg/finanzen-backup" autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -763,8 +813,16 @@
         <button class="backup-btn" onclick="saveCloudCfg(); cloudBackupNow(true)">☁ Jetzt sichern</button>
         <button class="backup-btn" onclick="saveCloudCfg(); cloudRestore()">↓ Aus Cloud laden</button>
       </div>
-      <p class="backup-hint" id="cloud-status" style="margin:0 6px"></p>
+      <p class="backup-hint" id="cloud-status" style="margin:0 6px">Sichern und Wiederherstellen läuft über GitHub. Anleitung: siehe CLOUD-BACKUP-ANLEITUNG.md im Repo.</p>
     </div>
+    <button class="settings-row" id="applock-btn" onclick="toggleAppLock()">
+      <span class="sr-icon">🔒</span>
+      <span class="sr-body">
+        <span class="sr-title" id="applock-title">FaceID-Sperre</span>
+        <span class="sr-sub" id="applock-status">Schützt die App-Ansicht mit Face ID</span>
+      </span>
+      <span class="sr-chevron">›</span>
+    </button>
   </div>
 </div>
 
@@ -1689,7 +1747,7 @@ function applyAutoGrow() {
   if (changed) store.set(SECTIONS.b.storageKey, JSON.stringify(data.b));
 }
 
-function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderAvDash(); renderBonus(); renderUrlaubeAll(); renderVertragDash(); updateIncome(); }
+function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderAvDash(); renderBonus(); renderUrlaubeAll(); renderVertragDash(); updateIncome(); if (typeof syncDashHeight === 'function') requestAnimationFrame(syncDashHeight); }
 
 // 4. Dashboard: alle Versicherungen & Verträge (nicht Abonnement/Verein)
 // Parst "TT.MM.JJJJ" -> Date (oder null)
@@ -1833,22 +1891,51 @@ function goDashPage(i) {
   const page = pages.children[i];
   if (page) pages.scrollTo({ left: page.offsetLeft, behavior: 'smooth' });
 }
+// Baut die Punkte in jede Seiten-Titelzeile (data-dots) ein
+function buildDashDots() {
+  const pages = $('dash-pages');
+  if (!pages) return;
+  const n = pages.children.length;
+  document.querySelectorAll('[data-dots]').forEach(slot => {
+    slot.innerHTML = Array.from({ length: n }, (_, i) =>
+      `<span class="dash-dot${i === currentDashPage ? ' active' : ''}" onclick="goDashPage(${i})"></span>`
+    ).join('');
+  });
+}
+// Höhe des Swipers an die aktive Seite anpassen (kein schwarzer Leerraum)
+function syncDashHeight() {
+  const pages = $('dash-pages');
+  if (!pages) return;
+  const page = pages.children[currentDashPage];
+  if (!page) return;
+  // Die aktive Seite bestimmt die Höhe; ihre Karte natürlich messen
+  const card = page.firstElementChild || page;
+  const h = Math.ceil(card.getBoundingClientRect().height);
+  if (h > 0) pages.style.height = h + 'px';
+}
 function updateDashDots() {
   const pages = $('dash-pages');
-  const dots = $('dash-dots');
-  if (!pages || !dots) return;
+  if (!pages) return;
   const idx = Math.round(pages.scrollLeft / pages.clientWidth);
   if (idx !== currentDashPage) currentDashPage = idx;
-  [...dots.children].forEach((d, i) => d.classList.toggle('active', i === idx));
+  document.querySelectorAll('[data-dots]').forEach(slot => {
+    [...slot.children].forEach((d, i) => d.classList.toggle('active', i === idx));
+  });
+  syncDashHeight();
 }
 function initDashSwipe() {
   const pages = $('dash-pages');
   if (!pages) return;
+  buildDashDots();
   let scrollTimer;
   pages.addEventListener('scroll', () => {
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(updateDashDots, 60);
   }, { passive: true });
+  // Höhe nachführen, sobald Inhalte gerendert und Layout stabil ist
+  requestAnimationFrame(() => requestAnimationFrame(syncDashHeight));
+  setTimeout(syncDashHeight, 250);  // Fallback, falls Fonts/Charts später fertig werden
+  window.addEventListener('resize', syncDashHeight);
 }
 
 function renderAvDash() {
@@ -3059,7 +3146,31 @@ function toggleCloudCfg() {
   const el = $('cloud-cfg');
   const show = el.style.display === 'none';
   el.style.display = show ? '' : 'none';
+  const chev = $('cloud-row-chevron');
+  if (chev) chev.textContent = show ? '⌄' : '›';
   if (show) loadCloudCfgUI();
+}
+function cloudRowTap() { toggleCloudCfg(); }
+function openSettings() {
+  renderAppLockUI();
+  renderCloudRow();
+  const scr = $('settings-screen');
+  if (scr) scr.classList.add('open');
+}
+function closeSettings() {
+  const scr = $('settings-screen');
+  if (scr) scr.classList.remove('open');
+}
+function renderCloudRow() {
+  const sub = $('cloud-row-sub');
+  if (!sub) return;
+  if (cloudReady() && cloudCfg && cloudCfg.lastOk) {
+    sub.textContent = 'Aktiv · zuletzt ' + new Date(cloudCfg.lastOk).toLocaleDateString('de-DE');
+  } else if (cloudReady()) {
+    sub.textContent = 'Eingerichtet – noch kein Backup gelaufen';
+  } else {
+    sub.textContent = 'Verschlüsselt zu GitHub – einrichten';
+  }
 }
 function loadCloudCfgUI() {
   if (!cloudCfg) { renderCloudStatus(); return; }
@@ -3092,6 +3203,7 @@ function renderCloudStatus(msg, isError) {
   el.textContent = cloudCfg.lastOk
     ? 'Letztes Cloud-Backup: ' + new Date(cloudCfg.lastOk).toLocaleString('de-DE')
     : 'Eingerichtet – noch kein Backup gelaufen.';
+  renderCloudRow();
 }
 
 // --- Krypto: Passphrase → AES-256-GCM ---
@@ -3209,18 +3321,23 @@ function appLockAvailable() {
   return !!(window.PublicKeyCredential && navigator.credentials && location.protocol === 'https:');
 }
 function renderAppLockUI() {
-  const btn = $('applock-btn'), st = $('applock-status');
+  const btn = $('applock-btn'), st = $('applock-status'), title = $('applock-title');
   if (!btn) return;
+  btn.style.display = '';  // Zeile immer sichtbar, damit das Feature auffindbar bleibt
   if (!appLockAvailable()) {
-    btn.style.display = 'none';
-    if (st) st.textContent = '';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    if (title) title.textContent = 'FaceID-Sperre';
+    if (st) st.textContent = 'Nur in der installierten App (über die GitHub-Adresse) verfügbar';
     return;
   }
+  btn.disabled = false;
+  btn.style.opacity = '';
   const on = !!(appLock && appLock.enabled);
-  btn.textContent = on ? '🔓 FaceID-Sperre deaktivieren' : '🔒 FaceID-Sperre aktivieren';
+  if (title) title.textContent = on ? 'FaceID-Sperre deaktivieren' : 'FaceID-Sperre';
   if (st) st.textContent = on
-    ? 'Aktiv – die App verlangt Face ID bei jedem Öffnen.'
-    : 'Schützt die App-Ansicht mit Face ID / Touch ID.';
+    ? 'Aktiv – Face ID bei jedem Öffnen'
+    : 'Schützt die App-Ansicht mit Face ID / Touch ID';
 }
 async function toggleAppLock() {
   if (!appLockAvailable()) return;
@@ -3301,34 +3418,6 @@ function buildBackupPayload() {
     avViewMode: avViewMode,
     history: history
   };
-}
-
-function exportData() {
-  const payload = buildBackupPayload();
-  const text = JSON.stringify(payload, null, 2);
-  const stamp = new Date().toISOString().slice(0,10);
-  try {
-    const blob = new Blob([text], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `finanzen-backup-${stamp}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
-  } catch (e) {
-    notify('Sichern wird in dieser Umgebung blockiert. Öffne die App über ihre Web-Adresse (z.B. GitHub Pages), dort funktioniert der Download.', 'Sichern nicht möglich');
-  }
-}
-
-function importData(event) {
-  const file = event.target.files && event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => { applyBackup(reader.result); event.target.value = ''; };
-  reader.onerror = () => { notify('Die Datei konnte nicht gelesen werden.'); event.target.value = ''; };
-  reader.readAsText(file);
 }
 
 async function applyBackup(rawText) {
@@ -3419,6 +3508,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 initAppLock();
+renderCloudRow();
 </script>
 </body>
 </html>
