@@ -144,7 +144,7 @@
     filter: blur(28px);
     pointer-events: none;
   }
-  .dash-pages { display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 0; transition: height 0.4s var(--ease-ios); align-items: stretch; }
+  .dash-pages { display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 0; transition: height 0.28s var(--ease-ios); align-items: stretch; }
   .dash-pages::-webkit-scrollbar { display: none; }
   .dash-page { flex: 0 0 100%; width: 100%; scroll-snap-align: center; scroll-snap-stop: always; overflow: hidden; }
   .dash-page > .glass { margin: 0; }
@@ -329,8 +329,8 @@
   .entry-amount { font-weight: 600; font-size: 0.97rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .entry-period { font-size: 0.7rem; color: var(--muted-2); text-align: right; margin-top: 2px; }
   .entry-yearly { font-size: 0.7rem; color: var(--muted); text-align: right; margin-top: 3px; font-variant-numeric: tabular-nums; }
-  .entry-balance { font-size: 0.74rem; font-weight: 600; color: var(--petrol); text-align: left; margin-top: 5px; font-variant-numeric: tabular-nums; cursor: pointer; }
-  .balance-inline { font: inherit; font-size: 0.78rem; font-weight: 600; color: var(--petrol); background: rgba(0,179,184,0.08); border: 1px solid rgba(0,179,184,0.35); border-radius: 8px; padding: 3px 8px; width: 130px; outline: none; font-variant-numeric: tabular-nums; }
+  .entry-balance { font-size: 0.74rem; font-weight: 600; color: var(--petrol); text-align: left; margin-top: 5px; font-variant-numeric: tabular-nums; cursor: pointer; display: flex; align-items: center; gap: 6px; min-height: 24px; }
+  .balance-inline { font-family: inherit; font-size: 0.74rem; font-weight: 600; line-height: 1.2; color: var(--petrol); background: rgba(0,179,184,0.10); border: 1px solid rgba(0,179,184,0.35); border-radius: 6px; padding: 2px 6px; width: 108px; max-width: 55%; outline: none; font-variant-numeric: tabular-nums; -webkit-appearance: none; box-sizing: border-box; }
   .balance-inline:focus { border-color: var(--petrol); }
   .entry-pension { display: flex; flex-wrap: wrap; gap: 1px 12px; margin-top: 2px; font-size: 0.78rem; line-height: 1.35; font-variant-numeric: tabular-nums; }
   .entry-pension .pv-date { color: var(--muted); }
@@ -1438,7 +1438,9 @@ function renderSection(sec) {
       }).join('') + `</div>`;
     }
     const balanceLine = (sec === 'b' && e.balance != null)
-      ? `<div class="entry-balance" onclick="event.stopPropagation(); startInlineBalance('${e.id}', this)">Stand: ${fmt(e.balance)}</div>`
+      ? `<div class="entry-balance" onclick="event.stopPropagation(); startInlineBalance('b', '${e.id}', this)"><span>Stand:</span> <span>${fmt(e.balance)}</span></div>`
+      : (sec === 'a' && e.cat === 'Privat' && e.current != null)
+      ? `<div class="entry-balance" onclick="event.stopPropagation(); startInlineBalance('a', '${e.id}', this)"><span>Stand:</span> <span>${fmt(e.current)}</span></div>`
       : '';
     const acctPill = e.account
       ? `<span class="acct-pill acct-${acctSlug(e.account)}">${esc(e.account)}</span>`
@@ -1922,16 +1924,19 @@ function updateDashDots() {
   document.querySelectorAll('[data-dots]').forEach(slot => {
     [...slot.children].forEach((d, i) => d.classList.toggle('active', i === idx));
   });
-  syncDashHeight();
 }
 function initDashSwipe() {
   const pages = $('dash-pages');
   if (!pages) return;
   buildDashDots();
-  let scrollTimer;
+  let dotTimer, settleTimer;
   pages.addEventListener('scroll', () => {
-    clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(updateDashDots, 60);
+    // Punkte dürfen dem Wisch live folgen (leichtgewichtig, keine Layout-Änderung)
+    clearTimeout(dotTimer);
+    dotTimer = setTimeout(updateDashDots, 40);
+    // Höhe ERST anpassen, wenn der Swipe zur Ruhe gekommen ist – sonst wackelt es
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(syncDashHeight, 140);
   }, { passive: true });
   // Höhe nachführen, sobald Inhalte gerendert und Layout stabil ist
   requestAnimationFrame(() => requestAnimationFrame(syncDashHeight));
@@ -3036,11 +3041,12 @@ function duplicateEntry() {
 }
 
 // --- Stand direkt in der Liste bearbeiten (antippen) ---
-function startInlineBalance(id, el) {
-  const e = data.b.find(x => x.id === id);
+function startInlineBalance(sec, id, el) {
+  const e = data[sec].find(x => x.id === id);
   if (!e || el.querySelector('input')) return;
-  const old = e.balance;
-  el.innerHTML = `Stand: <input type="text" class="balance-inline" inputmode="decimal" autocomplete="off">`;
+  const key = sec === 'a' ? 'current' : 'balance';
+  const old = e[key];
+  el.innerHTML = `<span>Stand:</span> <input type="text" class="balance-inline" inputmode="decimal" autocomplete="off">`;
   const inp = el.querySelector('input');
   inp.value = fmt(old);
   inp.focus();
@@ -3050,10 +3056,11 @@ function startInlineBalance(id, el) {
     if (done) return;
     done = true;
     const v = parseMoney(inp.value);
-    if (v != null && !isNaN(v) && v >= 0) e.balance = v;
-    store.set(SECTIONS.b.storageKey, JSON.stringify(data.b));
-    renderSection('b');
+    if (v != null && !isNaN(v) && v >= 0) e[key] = v;
+    store.set(SECTIONS[sec].storageKey, JSON.stringify(data[sec]));
+    renderSection(sec);
     renderDashboard();
+    if (sec === 'a') renderAvDash();
     updateIncome();
   };
   inp.addEventListener('blur', commit);
@@ -3337,7 +3344,7 @@ function renderAppLockUI() {
   const on = !!(appLock && appLock.enabled);
   if (title) title.textContent = on ? 'FaceID-Sperre deaktivieren' : 'FaceID-Sperre';
   if (st) st.textContent = on
-    ? 'Aktiv – Face ID bei jedem Öffnen'
+    ? 'Aktiv – Face ID nach 5 Min. im Hintergrund'
     : 'Schützt die App-Ansicht mit Face ID / Touch ID';
 }
 async function toggleAppLock() {
@@ -3391,16 +3398,28 @@ async function attemptUnlock() {
     if (h) h.textContent = 'Nicht erkannt – bitte erneut versuchen.';
   }
 }
+const APPLOCK_GRACE_MS = 5 * 60 * 1000;  // erst nach 5 Min. im Hintergrund sperren
+let _bgSince = null;
 function initAppLock() {
   renderAppLockUI();
   if (appLock && appLock.enabled && appLockAvailable()) {
     engageLock();
-    // Direkt beim Öffnen einmal automatisch anstoßen
+    // Beim ersten Öffnen der App einmal automatisch anstoßen
     setTimeout(() => { if (!_unlocked) attemptUnlock(); }, 350);
   }
-  // "Bei jedem Öffnen": App in den Hintergrund → wieder sperren
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && appLock && appLock.enabled) engageLock();
+    if (!(appLock && appLock.enabled)) return;
+    if (document.hidden) {
+      // Zeitpunkt merken, an dem die App in den Hintergrund ging
+      _bgSince = Date.now();
+    } else {
+      // Zurück im Vordergrund: nur sperren, wenn länger als 5 Min. weg
+      if (_bgSince && (Date.now() - _bgSince) >= APPLOCK_GRACE_MS) {
+        engageLock();
+        setTimeout(() => { if (!_unlocked) attemptUnlock(); }, 350);
+      }
+      _bgSince = null;
+    }
   });
 }
 
