@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -144,9 +144,9 @@
     filter: blur(28px);
     pointer-events: none;
   }
-  .dash-pages { display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 0; transition: height 0.28s var(--ease-ios); align-items: stretch; }
+  .dash-pages { display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 0; transition: height 0.28s var(--ease-ios); align-items: stretch; scroll-behavior: auto; overscroll-behavior-x: contain; }
   .dash-pages::-webkit-scrollbar { display: none; }
-  .dash-page { flex: 0 0 100%; width: 100%; scroll-snap-align: center; scroll-snap-stop: always; overflow: hidden; }
+  .dash-page { flex: 0 0 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow: hidden; transform: translateZ(0); will-change: transform; content-visibility: auto; }
   .dash-page > .glass { margin: 0; }
   .dash-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
   .dash-title-row .dash-title { margin-bottom: 0; }
@@ -155,11 +155,14 @@
   .dash-dot.active { background: var(--accent); width: 22px; }
 
   .dashboard { padding: 22px; margin: 40px 0 0; }
-  /* Dashboard-Karten kräftiger absetzen: tiefere Schatten, deutlichere Glaskante */
+  /* Dashboard-Karten kräftiger absetzen: tiefere Schatten, deutlichere Glaskante.
+     Bewusst OHNE backdrop-filter (solider Hintergrund) – das hält das Wischen flüssig,
+     da Safari keinen Live-Blur der bewegten Karte berechnen muss. */
   .dash-page > .glass {
-    background: rgba(34, 34, 40, 0.62);
+    background: #16171c;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
     box-shadow:
-      0 2px 1.5px rgba(255,255,255,0.18) inset,
+      0 2px 1.5px rgba(255,255,255,0.16) inset,
       0 -1px 1px rgba(0,0,0,0.3) inset,
       0 0 0 0.5px rgba(255,255,255,0.06) inset,
       0 22px 60px rgba(0,0,0,0.6),
@@ -249,9 +252,9 @@
   .settings-row + .settings-row { border-top: 1px solid var(--stroke); }
   .settings-row:active { background: var(--glass-hi); }
   .settings-row .sr-icon { font-size: 1.05rem; width: 24px; text-align: center; flex-shrink: 0; }
-  .settings-row .sr-body { flex: 1; min-width: 0; }
-  .settings-row .sr-title { font-size: 0.92rem; font-weight: 500; }
-  .settings-row .sr-sub { font-size: 0.72rem; color: var(--muted-2); margin-top: 2px; line-height: 1.4; }
+  .settings-row .sr-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .settings-row .sr-title { display: block; font-size: 0.92rem; font-weight: 500; }
+  .settings-row .sr-sub { display: block; font-size: 0.72rem; color: var(--muted-2); margin-top: 3px; line-height: 1.4; }
   .settings-row .sr-chevron { color: var(--muted-2); font-size: 0.9rem; flex-shrink: 0; }
   .settings-row.sr-danger .sr-title { color: var(--danger); }
   .settings-note { color: var(--muted-2); font-size: 0.73rem; line-height: 1.5; margin: 8px 6px 0; }
@@ -1929,18 +1932,28 @@ function initDashSwipe() {
   const pages = $('dash-pages');
   if (!pages) return;
   buildDashDots();
-  let dotTimer, settleTimer;
+  let dotTimer, settleRAF, lastLeft = -1, stillFrames = 0;
+  // Erkennt das Ende des Wischens über die Scroll-Position (flüssiger als ein fester Timer)
+  function watchSettle() {
+    const now = pages.scrollLeft;
+    if (Math.abs(now - lastLeft) < 0.5) {
+      stillFrames++;
+      if (stillFrames >= 3) { syncDashHeight(); return; }  // ~3 Frames ruhig → eingerastet
+    } else {
+      stillFrames = 0;
+    }
+    lastLeft = now;
+    settleRAF = requestAnimationFrame(watchSettle);
+  }
   pages.addEventListener('scroll', () => {
-    // Punkte dürfen dem Wisch live folgen (leichtgewichtig, keine Layout-Änderung)
     clearTimeout(dotTimer);
-    dotTimer = setTimeout(updateDashDots, 40);
-    // Höhe ERST anpassen, wenn der Swipe zur Ruhe gekommen ist – sonst wackelt es
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(syncDashHeight, 140);
+    dotTimer = setTimeout(updateDashDots, 30);
+    cancelAnimationFrame(settleRAF);
+    stillFrames = 0; lastLeft = -1;
+    settleRAF = requestAnimationFrame(watchSettle);
   }, { passive: true });
-  // Höhe nachführen, sobald Inhalte gerendert und Layout stabil ist
   requestAnimationFrame(() => requestAnimationFrame(syncDashHeight));
-  setTimeout(syncDashHeight, 250);  // Fallback, falls Fonts/Charts später fertig werden
+  setTimeout(syncDashHeight, 250);
   window.addEventListener('resize', syncDashHeight);
 }
 
