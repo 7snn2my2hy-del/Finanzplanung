@@ -676,6 +676,33 @@
 
   <div class="group-divider"></div>
 
+  <header class="sub-header" onclick="toggleSection('a')">
+    <div class="sub-header-text">
+      <h1>Altersvorsorge</h1>
+      <p>Vorsorge und Rente im Blick · Renteneintrittsalter 67</p>
+    </div>
+    <span class="section-chevron" id="chev-a">⌄</span>
+  </header>
+
+  <div class="section-body" id="body-a">
+  <div class="filter-row">
+    <select class="account-filter" id="filter-a" onchange="renderSection('a')"></select>
+  </div>
+  <div class="summary glass">
+    <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month-a">0,00 €</div></div>
+    <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year-a">0,00 €</div></div>
+    <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count-a">0</div></div>
+  </div>
+
+  <div class="section-label">Altersvorsorge</div>
+  <div class="list" id="list-a"></div>
+  <div class="empty" id="empty-a" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
+
+  <button class="add-btn" onclick="openModal('a')">＋ Eintrag hinzufügen</button>
+  </div>
+
+  <div class="group-divider"></div>
+
   <header class="sub-header" onclick="toggleSection('v')">
     <div class="sub-header-text">
       <h1>Versicherungen &amp; Verträge</h1>
@@ -733,33 +760,6 @@
 
   <div class="group-divider"></div>
 
-  <header class="sub-header" onclick="toggleSection('a')">
-    <div class="sub-header-text">
-      <h1>Altersvorsorge</h1>
-      <p>Vorsorge und Rente im Blick · Renteneintrittsalter 67</p>
-    </div>
-    <span class="section-chevron" id="chev-a">⌄</span>
-  </header>
-
-  <div class="section-body" id="body-a">
-  <div class="filter-row">
-    <select class="account-filter" id="filter-a" onchange="renderSection('a')"></select>
-  </div>
-  <div class="summary glass">
-    <div class="stat"><div class="stat-label">Monatlich</div><div class="stat-value month" id="sum-month-a">0,00 €</div></div>
-    <div class="stat"><div class="stat-label">Jährlich</div><div class="stat-value year" id="sum-year-a">0,00 €</div></div>
-    <div class="stat"><div class="stat-label">Einträge</div><div class="stat-value count" id="sum-count-a">0</div></div>
-  </div>
-
-  <div class="section-label">Altersvorsorge</div>
-  <div class="list" id="list-a"></div>
-  <div class="empty" id="empty-a" style="display:none">Noch keine Einträge. Tippe unten, um zu beginnen.</div>
-
-  <button class="add-btn" onclick="openModal('a')">＋ Eintrag hinzufügen</button>
-  </div>
-
-  <div class="group-divider"></div>
-
   <header class="sub-header" onclick="toggleSection('bonus')">
     <div class="sub-header-text">
       <h1>Bonusprogramme</h1>
@@ -775,6 +775,7 @@
 
   <button class="add-btn" onclick="openBonusModal()">＋ Eintrag hinzufügen</button>
   </div>
+
 
 
 </div>
