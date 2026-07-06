@@ -154,7 +154,13 @@
   /* Bento */
   .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .bento-tile { background: #141519; border: 1px solid var(--stroke); border-radius: var(--r-entry); padding: 16px 18px; box-shadow: 0 1.5px 1px rgba(255,255,255,0.10) inset, 0 12px 34px rgba(0,0,0,0.5); }
-  .bento-label { font-size: 0.7rem; color: var(--muted-2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .bento-label { font-size: 0.72rem; color: var(--text); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .bento-sub2 { font-size: 0.68rem; color: var(--muted-2); font-weight: 600; margin-top: 2px; }
+  .bento-acct-name { font-size: 0.9rem; font-weight: 700; margin-top: 8px; }
+  .bento-acct-total { font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .bento-break { margin-top: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .bento-break-row { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); }
+  .bento-break-row span:last-child { font-variant-numeric: tabular-nums; }
   .bento-val { font-size: 1.4rem; font-weight: 800; margin-top: 8px; font-variant-numeric: tabular-nums; }
   .bento-mini { font-size: 0.74rem; color: var(--muted); margin-top: 4px; }
   .bento-ring-wrap { display: flex; align-items: center; gap: 12px; }
@@ -1666,21 +1672,23 @@ function renderHeroBento() {
 
   // --- Bento-Kacheln ---
   const tiles = [];
-  // Sparquote (identische Ableitung wie Dashboard: AV+Sparen+Urlaub vs. Netto)
-  if (income > 0) {
-    const avM = data.a.reduce((s,e) => s + toMonthly(e.amount, e.period), 0);
-    const sparM = data.b.reduce((s,e) => s + (isGiro(e) || e.cat !== 'Sparen' ? 0 : toMonthly(e.amount, e.period)), 0);
-    const urlM = data.b.reduce((s,e) => s + (isGiro(e) || e.cat !== 'Urlaub' ? 0 : toMonthly(e.amount, e.period)), 0);
-    const saved = avM + sparM + urlM;
-    const pct = Math.round(saved / income * 100);
-    const r = 23, C = 2 * Math.PI * r, off = C * (1 - Math.min(pct,100)/100);
-    tiles.push(`<div class="bento-tile" onclick="openDetail('uebersicht')"><div class="bento-ring-wrap"><svg class="bento-ring" viewBox="0 0 58 58"><circle class="bento-ring-track" cx="29" cy="29" r="${r}"/><circle class="bento-ring-fill" cx="29" cy="29" r="${r}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg><div><div class="bento-ring-pct">${pct}%</div><div class="bento-label">Sparquote</div></div></div><div class="bento-mini">${fmt(saved)} von ${fmt(income)}</div></div>`);
+  // Kontostände: Haupt-Tagesgeldkonto + Aufschlüsselung nach Kategorie
+  {
+    const byAcct = {};
+    data.b.forEach(e => { if (isGiro(e) || !(e.balance > 0)) return; const a = e.account || '—'; (byAcct[a] = byAcct[a] || { total:0, cats:{} }); byAcct[a].total += e.balance; byAcct[a].cats[e.cat] = (byAcct[a].cats[e.cat]||0) + e.balance; });
+    const top = Object.entries(byAcct).sort((a,b) => b[1].total - a[1].total)[0];
+    if (top) {
+      const [acct, o] = top;
+      const parts = Object.entries(o.cats).filter(([,v]) => v > 0).sort((a,b)=>b[1]-a[1]).slice(0,3)
+        .map(([c,v]) => `<div class="bento-break-row"><span>${esc(c)}</span><span>${fmt(v)}</span></div>`).join('');
+      tiles.push(`<div class="bento-tile" onclick="openDetail('uebersicht')"><div class="bento-label">Übersicht</div><div class="bento-acct-name">${esc(acct)}</div><div class="bento-acct-total">${fmt(o.total)}</div><div class="bento-break">${parts}</div></div>`);
+    }
   }
   // Fällig diesen Monat (nutzt dueThisMonth)
   const due = dueThisMonth();
   if (due.length) {
     const sum = due.reduce((s,d) => s + (Number(d.e.amount)||0), 0);
-    tiles.push(`<div class="bento-tile" onclick="openDetail('v')"><div class="bento-label bento-c-blue">Fällig diesen Monat</div><div class="bento-val bento-c-blue">${fmt(sum)}</div><div class="bento-mini">${due.length === 1 ? '1 Abbuchung offen' : due.length + ' Abbuchungen offen'}</div></div>`);
+    tiles.push(`<div class="bento-tile" onclick="openDetail('v')"><div class="bento-label">Verträge &amp; Versicherungen</div><div class="bento-sub2">Fällig diesen Monat</div><div class="bento-val">${fmt(sum)}</div><div class="bento-mini">${due.length === 1 ? '1 Abbuchung offen' : due.length + ' Abbuchungen offen'}</div></div>`);
   }
   // Nächste Kündigung (nutzt dieselbe Radar-Logik)
   const today = new Date(); today.setHours(0,0,0,0);
@@ -1702,17 +1710,25 @@ function renderHeroBento() {
     const cls = dl <= 60 ? 'warn' : 'ok';
     const dd = next.deadline;
     const dstr = `${String(dd.getDate()).padStart(2,'0')}.${String(dd.getMonth()+1).padStart(2,'0')}.${String(dd.getFullYear()).slice(2)}`;
-    tiles.push(`<div class="bento-tile" onclick="openDetail('v')"><div class="bento-label bento-c-warn">Nächste Kündigung</div><div class="bento-radar-row"><span>${esc(next.e.name)}</span><span class="d">${dstr}</span></div><span class="bento-chip ${cls}">${label}</span></div>`);
+    tiles.push(`<div class="bento-tile" onclick="openDetail('v')"><div class="bento-label">Verträge &amp; Versicherungen</div><div class="bento-sub2">Nächste Kündigung</div><div class="bento-radar-row"><span>${esc(next.e.name)}</span><span class="d">${dstr}</span></div><span class="bento-chip ${cls}">${label}</span></div>`);
   }
-  // Urlaubskasse (aktueller Kontostand der Urlaubskasse)
-  const urlaubKasse = data.b.reduce((s,e) => s + (!isGiro(e) && e.cat === 'Urlaub' ? (e.balance || 0) : 0), 0);
-  if (urlaubKasse > 0) {
-    tiles.push(`<div class="bento-tile" onclick="openDetail('urlaub')"><div class="bento-label bento-c-violet">Urlaubskasse</div><div class="bento-val bento-c-violet">${fmt(urlaubKasse)}</div><div class="bento-mini">Aktueller Stand</div></div>`);
+  // Urlaube: Restbudget laufendes Jahr (Dashboard-Wert), positiv/negativ eingefärbt
+  const urlaubRest = currentYearUrlaubBalance();
+  if (urlaubRest !== null) {
+    const pos = urlaubRest >= 0;
+    const jahr = new Date().getFullYear();
+    tiles.push(`<div class="bento-tile" onclick="openDetail('urlaub')"><div class="bento-label">Urlaube</div><div class="bento-val ${pos?'bento-c-green':'bento-c-warn'}">${fmt(urlaubRest)}</div><div class="bento-mini">${pos?'Restbudget':'im Minus'} ${jahr}</div></div>`);
   }
-  // Altersvorsorge (Privat-Wert + monatliche Rate)
-  if (pensionSum > 0 || data.a.length) {
-    const avRate = data.a.reduce((s,e) => s + toMonthly(e.amount, e.period), 0);
-    tiles.push(`<div class="bento-tile" onclick="openDetail('a')"><div class="bento-label bento-c-green">Altersvorsorge</div><div class="bento-val bento-c-green">${fmt(pensionSum)}</div><div class="bento-mini">${avRate > 0 ? fmt(avRate) + '/Mt · Rente mit 67' : 'Rente mit 67'}</div></div>`);
+  // Altersvorsorge: nominal, ohne Zinsen – monatlich (m) + einmalig (e)
+  if (data.a.length) {
+    const { m, e } = avNominalBase();
+    const parts = [];
+    if (m > 0) parts.push(`${fmt(m)} (m)`);
+    if (e > 0) parts.push(`${fmt(e)} (e)`);
+    if (parts.length) {
+      const big = parts.shift();
+      tiles.push(`<div class="bento-tile" onclick="openDetail('a')"><div class="bento-label">Altersvorsorge</div><div class="bento-val">${big}</div><div class="bento-mini">${parts.length ? parts[0] + ' · ' : ''}Rente mit 67 · nominal</div></div>`);
+    }
   }
   const bento = $('bento'), bentoTag = $('bento-tag');
   if (tiles.length) {
@@ -2431,6 +2447,42 @@ function tripList(items) {
 }
 
 // Oben: grafisches Urlaube-Dashboard (Kontostand-Kopf + Jahresübersicht + Reisen)
+// Restbudget des laufenden Jahres – identische Formel wie im Urlaube-Dashboard
+function currentYearUrlaubBalance() {
+  const yearlyBudget = urlaubBudget;
+  const nowY = new Date().getFullYear();
+  const expByYear = {}, depoByYear = {};
+  urlaube.forEach(u => { const ry = parseInt(tripYear(u), 10); if (ry) expByYear[ry] = (expByYear[ry] || 0) + tripCost(u); });
+  urlaubDeposits.forEach(d => { const y = parseInt(String(d.y),10), m = parseInt(String(d.m),10), a = d.amount||0; if (y && m>=1 && m<=12 && a) depoByYear[y] = (depoByYear[y]||0) + a; });
+  const numYears = Array.from(new Set([
+    ...urlaube.map(u => parseInt(tripYear(u),10)).filter(Boolean),
+    ...Object.keys(depoByYear).map(Number)
+  ])).filter(Boolean).sort((a,b) => a-b);
+  if (!numYears.length || yearlyBudget <= 0) return null;
+  const minY = numYears[0], maxY = Math.max(numYears[numYears.length-1], nowY);
+  let bc = 0, carryOfNow = 0;
+  for (let y = minY; y <= maxY; y++) {
+    if (y === nowY) carryOfNow = bc;
+    bc += yearlyBudget + (depoByYear[y]||0) - (expByYear[y]||0);
+  }
+  const available = carryOfNow + yearlyBudget + (depoByYear[nowY]||0);
+  return available - (expByYear[nowY]||0);
+}
+
+// Altersvorsorge nominal, ohne Zinsen: monatlich (m) + einmalig (e) – wie im AV-Dashboard
+function avNominalBase() {
+  const mo = monthsToRetirement();
+  let m = 0, e = 0;
+  data.a.forEach(x => {
+    let proj, ptype;
+    if (x.cat === 'Privat') { proj = (x.current||0) + toMonthly(x.amount||0, x.period) * mo; ptype = 'einmal'; }
+    else { proj = x.projected; ptype = x.cat === 'Gesetzlich' ? 'monatlich' : x.projectedType; }
+    if (!proj) return;
+    if (ptype === 'monatlich') m += proj; else e += proj;
+  });
+  return { m, e };
+}
+
 function renderUrlaubeDash() {
   const body = $('urlaub-dash-body');
   if (!body) return;
