@@ -1709,6 +1709,11 @@ function renderHeroBento() {
   if (urlaubKasse > 0) {
     tiles.push(`<div class="bento-tile" onclick="openDetail('urlaub')"><div class="bento-label bento-c-violet">Urlaubskasse</div><div class="bento-val bento-c-violet">${fmt(urlaubKasse)}</div><div class="bento-mini">Aktueller Stand</div></div>`);
   }
+  // Altersvorsorge (Privat-Wert + monatliche Rate)
+  if (pensionSum > 0 || data.a.length) {
+    const avRate = data.a.reduce((s,e) => s + toMonthly(e.amount, e.period), 0);
+    tiles.push(`<div class="bento-tile" onclick="openDetail('a')"><div class="bento-label bento-c-green">Altersvorsorge</div><div class="bento-val bento-c-green">${fmt(pensionSum)}</div><div class="bento-mini">${avRate > 0 ? fmt(avRate) + '/Mt · Rente mit 67' : 'Rente mit 67'}</div></div>`);
+  }
   const bento = $('bento'), bentoTag = $('bento-tag');
   if (tiles.length) {
     bento.innerHTML = tiles.join('');
