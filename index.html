@@ -133,6 +133,41 @@
   .income-avail.negative { color: var(--danger); }
   .income-divider { height: 1px; background: var(--stroke); margin: 40px 0 4px; }
 
+  /* Hero: Gesamtvermögen */
+  .hero { text-align: center; padding: 22px 0 24px; cursor: pointer; }
+  .bento-tile { cursor: pointer; transition: transform 0.2s var(--spring); }
+  .bento-tile:active { transform: scale(0.97); }
+  /* Detail-Sheet (öffnet über Hero/Bento) */
+  .detail-sheet { position: fixed; inset: 0; z-index: 380; background: var(--bg); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; transform: translateX(100%); transition: transform 0.4s var(--ease-ios), visibility 0s linear 0.4s; padding: calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); visibility: hidden; }
+  .detail-sheet.open { transform: translateX(0); visibility: visible; transition: transform 0.4s var(--ease-ios), visibility 0s; }
+  .detail-panel { display: none; }
+  .detail-panel.on { display: block; }
+  .hero-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--petrol); font-weight: 700; }
+  .hero-val { font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; margin-top: 6px; line-height: 1; }
+  .hero-delta { display: inline-block; margin-top: 12px; font-size: 0.88rem; font-weight: 700; padding: 5px 12px; border-radius: 99px; }
+  .hero-delta.up { color: var(--green); background: rgba(48,209,55,0.12); }
+  .hero-delta.down { color: var(--danger); background: rgba(255,69,58,0.12); }
+  .hero-spark, #hero-spark { width: 100%; }
+  #hero-spark svg { width: 100%; height: 64px; margin-top: 16px; display: block; }
+  .hero-sub { display: block; font-size: 0.76rem; color: var(--muted-2); margin-top: 14px; }
+  .tag { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-2); margin: 6px 2px 10px; font-weight: 700; }
+  /* Bento */
+  .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .bento-tile { background: #141519; border: 1px solid var(--stroke); border-radius: var(--r-entry); padding: 16px 18px; box-shadow: 0 1.5px 1px rgba(255,255,255,0.10) inset, 0 12px 34px rgba(0,0,0,0.5); }
+  .bento-label { font-size: 0.7rem; color: var(--muted-2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .bento-val { font-size: 1.4rem; font-weight: 800; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .bento-mini { font-size: 0.74rem; color: var(--muted); margin-top: 4px; }
+  .bento-ring-wrap { display: flex; align-items: center; gap: 12px; }
+  .bento-ring { width: 58px; height: 58px; flex-shrink: 0; }
+  .bento-ring-track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 8; }
+  .bento-ring-fill { fill: none; stroke: var(--green); stroke-width: 8; stroke-linecap: round; transform: rotate(-90deg); transform-origin: center; transition: stroke-dashoffset 0.6s var(--ease-ios); }
+  .bento-ring-pct { font-size: 1rem; font-weight: 800; }
+  .bento-c-blue { color: var(--accent); } .bento-c-violet { color: var(--violet); } .bento-c-green { color: var(--green); } .bento-c-warn { color: var(--danger); }
+  .bento-radar-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.82rem; margin-top: 8px; }
+  .bento-radar-row .d { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .bento-chip { display: inline-block; font-size: 0.64rem; padding: 2px 8px; border-radius: 99px; font-weight: 700; margin-top: 4px; }
+  .bento-chip.warn { background: rgba(255,69,58,0.15); color: var(--danger); }
+  .bento-chip.ok { background: rgba(48,209,55,0.12); color: var(--green); }
   .dash-swipe { margin: 40px 0 0; position: relative; }
   /* Farb-Glow hinter dem Dashboard-Bereich – hebt ihn als eigene Zone ab */
   .dash-swipe::before {
@@ -144,31 +179,11 @@
     filter: blur(28px);
     pointer-events: none;
   }
-  .dash-pages { display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 0; transition: height 0.28s var(--ease-ios); align-items: stretch; scroll-behavior: auto; overscroll-behavior-x: contain; }
-  .dash-pages::-webkit-scrollbar { display: none; }
-  .dash-page { flex: 0 0 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow: hidden; transform: translateZ(0); will-change: transform; content-visibility: auto; }
-  .dash-page > .glass { margin: 0; }
-  .dash-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
-  .dash-title-row .dash-title { margin-bottom: 0; }
-  .dash-dots { display: flex; justify-content: center; gap: 7px; flex-shrink: 0; }
-  .dash-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--stroke-hi); cursor: pointer; transition: background 0.3s var(--spring), width 0.3s var(--spring); }
-  .dash-dot.active { background: var(--accent); width: 22px; }
 
   .dashboard { padding: 22px; margin: 40px 0 0; }
   /* Dashboard-Karten kräftiger absetzen: tiefere Schatten, deutlichere Glaskante.
      Bewusst OHNE backdrop-filter (solider Hintergrund) – das hält das Wischen flüssig,
      da Safari keinen Live-Blur der bewegten Karte berechnen muss. */
-  .dash-page > .glass {
-    background: #16171c;
-    -webkit-backdrop-filter: none; backdrop-filter: none;
-    box-shadow:
-      0 2px 1.5px rgba(255,255,255,0.16) inset,
-      0 -1px 1px rgba(0,0,0,0.3) inset,
-      0 0 0 0.5px rgba(255,255,255,0.06) inset,
-      0 22px 60px rgba(0,0,0,0.6),
-      0 4px 16px rgba(70,90,200,0.14);
-    border-color: var(--stroke-hi);
-  }
   .dash-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text); font-weight: 700; margin-bottom: 14px; }
   .dash-grid { display: flex; gap: 16px; align-items: center; }
   .dash-donut { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
@@ -194,12 +209,14 @@
   .acct-row-name { flex: 1; min-width: 0; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .acct-row-val { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; width: 92px; text-align: right; flex-shrink: 0; }
   .acct-row-pct { width: 40px; text-align: right; color: var(--muted-2); font-variant-numeric: tabular-nums; flex-shrink: 0; }
-  .bal-acct-row { padding-left: 16px; }
+  .bal-acct-row { padding-left: 0; }
   #saverate-bars, #account-bars, #balance-bars { display: flex; flex-direction: column; gap: 8px; }
   .bal-acct-head { display: flex; justify-content: space-between; align-items: baseline; }
   .bal-acct-name { font-size: 0.82rem; font-weight: 600; }
   .bal-acct-total { font-size: 0.82rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
-  .bal-acct-break { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+  .bal-acct-break { font-size: 0.74rem; color: var(--muted); margin-top: 4px; display: flex; flex-direction: column; gap: 2px; }
+  .bal-break-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .bal-break-row span:last-child { font-variant-numeric: tabular-nums; flex-shrink: 0; padding-left: 10px; }
   .balance-box { padding: 14px 16px; margin-bottom: 6px; }
   .bb-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--stroke); }
   .bb-head span:first-child { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-2); }
@@ -583,65 +600,77 @@
     </div>
   </div>
 
-  <div class="dash-swipe" id="dash-swipe">
-    <div class="dash-pages" id="dash-pages">
-      <div class="dash-page">
-        <div class="dashboard glass" id="dashboard">
-          <div class="dash-title-row"><span class="dash-title">Übersicht</span><span class="dash-dots" data-dots></span></div>
-          <div class="uy-konto-head">
-            <span>Gesamtvermögen</span>
-            <b id="wealth-val">–</b>
-            <span class="wealth-sub-row"><span class="saverate-eur" id="wealth-sub"></span><button class="info-i" aria-label="Info" onclick="showWealthInfo()">i</button></span>
-          </div>
-          <div class="dash-accounts" style="margin-top:0;border-top:none;padding-top:0">
-            <div class="dash-sub-label">Ausgaben nach Kategorie</div>
-            <div class="dash-grid">
-              <div class="dash-donut">
-                <svg viewBox="0 0 120 120" id="donut-svg" width="100" height="100"></svg>
-                <div class="donut-center">
-                  <span class="donut-center-label">Netto</span>
-                  <span class="donut-center-val" id="donut-center-val">–</span>
-                </div>
+  <!-- Hero: Gesamtvermögen -->
+  <div class="hero" id="hero" onclick="openDetail('uebersicht')">
+    <div class="hero-label">Gesamtvermögen</div>
+    <div class="hero-val" id="hero-val">–</div>
+    <div class="hero-delta" id="hero-delta" style="display:none"></div>
+    <div id="hero-spark"></div>
+    <span class="hero-sub" id="hero-sub"></span>
+  </div>
+
+  <!-- Bento: Kennzahlen auf einen Blick -->
+  <div class="tag" id="bento-tag" style="display:none">Auf einen Blick</div>
+  <div class="bento" id="bento" style="display:none"></div>
+
+  <!-- Detail-Ansichten: werden über die Bento-Kacheln geöffnet (alle Render-Ziele unverändert) -->
+  <div class="detail-sheet" id="detail-sheet">
+    <div class="settings-topbar">
+      <button class="settings-back" aria-label="Zurück" onclick="closeDetail()">‹</button>
+      <h2 id="detail-title">Details</h2>
+    </div>
+    <div class="detail-panel" id="panel-uebersicht">
+      <div class="dashboard glass" id="dashboard">
+        <div class="uy-konto-head">
+          <span>Gesamtvermögen</span>
+          <b id="wealth-val">–</b>
+          <span class="wealth-sub-row"><span class="saverate-eur" id="wealth-sub"></span><button class="info-i" aria-label="Info" onclick="showWealthInfo()">i</button></span>
+        </div>
+        <div class="dash-accounts" style="margin-top:0;border-top:none;padding-top:0">
+          <div class="dash-sub-label">Ausgaben nach Kategorie</div>
+          <div class="dash-grid">
+            <div class="dash-donut">
+              <svg viewBox="0 0 120 120" id="donut-svg" width="100" height="100"></svg>
+              <div class="donut-center">
+                <span class="donut-center-label">Netto</span>
+                <span class="donut-center-val" id="donut-center-val">–</span>
               </div>
-              <div class="dash-legend" id="dash-legend"></div>
             </div>
+            <div class="dash-legend" id="dash-legend"></div>
           </div>
-          <div class="dash-accounts" id="dash-wealth-hist" style="display:none">
-            <div class="hist-head"><span class="dash-sub-label">Gesamtvermögensverlauf</span><span class="hist-range-ctl" data-target="wealth"></span></div>
-            <div id="wealth-hist-chart"></div>
-          </div>
-          <div class="dash-accounts" id="dash-balances">
-            <div class="dash-sub-label">Kontostände</div>
-            <div id="balance-bars"></div>
-          </div>
-          <div class="dash-accounts" id="dash-saverates" style="display:none">
-            <div class="dash-sub-label">Sparquoten</div>
-            <div id="saverate-bars"></div>
-          </div>
-          <div class="dash-accounts" id="dash-accounts">
-            <div class="dash-sub-label">Ausgaben nach Konto</div>
-            <div id="account-bars"></div>
-          </div>
+        </div>
+        <div class="dash-accounts" id="dash-wealth-hist" style="display:none">
+          <div class="hist-head"><span class="dash-sub-label">Gesamtvermögensverlauf</span><span class="hist-range-ctl" data-target="wealth"></span></div>
+          <div id="wealth-hist-chart"></div>
+        </div>
+        <div class="dash-accounts" id="dash-balances">
+          <div class="dash-sub-label">Kontostände</div>
+          <div id="balance-bars"></div>
+        </div>
+        <div class="dash-accounts" id="dash-saverates" style="display:none">
+          <div class="dash-sub-label">Sparquoten</div>
+          <div id="saverate-bars"></div>
+        </div>
+        <div class="dash-accounts" id="dash-accounts">
+          <div class="dash-sub-label">Ausgaben nach Konto</div>
+          <div id="account-bars"></div>
         </div>
       </div>
-      <div class="dash-page">
-        <div class="av-dash glass" id="av-dash">
-          <div class="dash-title-row"><span class="dash-title">Altersvorsorge</span><span class="dash-dots" data-dots></span></div>
-          <div id="av-kontostand"></div>
-          <div id="av-table"></div>
-        </div>
+    </div>
+    <div class="detail-panel" id="panel-a">
+      <div class="av-dash glass" id="av-dash">
+        <div id="av-kontostand"></div>
+        <div id="av-table"></div>
       </div>
-      <div class="dash-page">
-        <div class="av-dash glass" id="urlaub-dash">
-          <div class="dash-title-row"><span class="dash-title">Urlaube</span><span class="dash-dots" data-dots></span></div>
-          <div id="urlaub-dash-body"></div>
-        </div>
+    </div>
+    <div class="detail-panel" id="panel-urlaub">
+      <div class="av-dash glass" id="urlaub-dash">
+        <div id="urlaub-dash-body"></div>
       </div>
-      <div class="dash-page">
-        <div class="av-dash glass" id="vertrag-dash">
-          <div class="dash-title-row"><span class="dash-title">Verträge &amp; Versicherungen</span><span class="dash-dots" data-dots></span></div>
-          <div id="vertrag-dash-body"></div>
-        </div>
+    </div>
+    <div class="detail-panel" id="panel-v">
+      <div class="av-dash glass" id="vertrag-dash">
+        <div id="vertrag-dash-body"></div>
       </div>
     </div>
   </div>
@@ -1582,8 +1611,118 @@ function updateIncome() {
 }
 
 // Monthly total of a specific category within a section
+// Hero (Gesamtvermögen) + Bento-Kacheln – nutzt exakt dieselben Berechnungen wie das Dashboard
+function openDetail(which) {
+  const titles = { uebersicht: 'Übersicht', a: 'Altersvorsorge', urlaub: 'Urlaube', v: 'Verträge & Versicherungen' };
+  document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('on'));
+  const panel = $('panel-' + which);
+  if (panel) panel.classList.add('on');
+  const t = $('detail-title'); if (t) t.textContent = titles[which] || 'Details';
+  const sheet = $('detail-sheet'); if (sheet) sheet.classList.add('open');
+}
+function closeDetail() {
+  const sheet = $('detail-sheet'); if (sheet) sheet.classList.remove('open');
+}
+
+function renderHeroBento() {
+  // Gesamtvermögen (identische Formel wie im Dashboard)
+  const balanceSum = data.b.reduce((s,e) => s + (isGiro(e) ? 0 : (e.balance || 0)), 0);
+  const pensionSum = data.a.reduce((s,e) => s + (e.cat === 'Privat' ? (e.current || 0) : 0), 0);
+  const wealth = balanceSum + pensionSum;
+  const hv = $('hero-val'), hSub = $('hero-sub'), hDelta = $('hero-delta'), hSpark = $('hero-spark');
+  if (!hv) return;
+  if (wealth > 0) {
+    hv.textContent = fmt(wealth);
+    const parts = [];
+    if (balanceSum > 0) parts.push('Vermögen ' + fmt(balanceSum));
+    if (pensionSum > 0) parts.push('Vorsorge ' + fmt(pensionSum));
+    hSub.textContent = parts.join(' · ');
+  } else {
+    hv.textContent = '–';
+    hSub.textContent = 'Stände eintragen';
+  }
+  // Delta + Sparkline aus der Verlaufs-History
+  const hist = histSlice(history);
+  if (hist.length >= 2 && wealth > 0) {
+    const first = hist[0].wealth, last = hist[hist.length-1].wealth;
+    const delta = last - first;
+    hDelta.style.display = '';
+    hDelta.className = 'hero-delta ' + (delta >= 0 ? 'up' : 'down');
+    hDelta.textContent = (delta >= 0 ? '▲ ' : '▼ ') + (delta >= 0 ? '+' : '') + fmtShort(delta) + ' in ' + hist.length + ' Monaten';
+    // Sparkline
+    const vals = hist.map(h => h.wealth);
+    const mn = Math.min(...vals), mx = Math.max(...vals), rng = (mx - mn) || 1;
+    const W = 320, H = 64, n = vals.length;
+    const xAt = i => (i / (n - 1)) * W;
+    const yAt = v => 6 + (1 - (v - mn) / rng) * (H - 12);
+    const line = vals.map((v,i) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ');
+    const area = `M0,${yAt(vals[0]).toFixed(1)} ` + vals.map((v,i) => `L${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ') + ` L${W},${H} L0,${H} Z`;
+    const col = delta >= 0 ? 'var(--green)' : 'var(--danger)';
+    hSpark.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${delta>=0?'rgba(48,209,55,0.28)':'rgba(255,69,58,0.24)'}"/><stop offset="1" stop-color="rgba(0,0,0,0)"/></linearGradient></defs><path d="${area}" fill="url(#hg)"/><polyline points="${line}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  } else {
+    hDelta.style.display = 'none';
+    hSpark.innerHTML = '';
+  }
+
+  // --- Bento-Kacheln ---
+  const tiles = [];
+  // Sparquote (identische Ableitung wie Dashboard: AV+Sparen+Urlaub vs. Netto)
+  if (income > 0) {
+    const avM = data.a.reduce((s,e) => s + toMonthly(e.amount, e.period), 0);
+    const sparM = data.b.reduce((s,e) => s + (isGiro(e) || e.cat !== 'Sparen' ? 0 : toMonthly(e.amount, e.period)), 0);
+    const urlM = data.b.reduce((s,e) => s + (isGiro(e) || e.cat !== 'Urlaub' ? 0 : toMonthly(e.amount, e.period)), 0);
+    const saved = avM + sparM + urlM;
+    const pct = Math.round(saved / income * 100);
+    const r = 23, C = 2 * Math.PI * r, off = C * (1 - Math.min(pct,100)/100);
+    tiles.push(`<div class="bento-tile" onclick="openDetail('uebersicht')"><div class="bento-ring-wrap"><svg class="bento-ring" viewBox="0 0 58 58"><circle class="bento-ring-track" cx="29" cy="29" r="${r}"/><circle class="bento-ring-fill" cx="29" cy="29" r="${r}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg><div><div class="bento-ring-pct">${pct}%</div><div class="bento-label">Sparquote</div></div></div><div class="bento-mini">${fmt(saved)} von ${fmt(income)}</div></div>`);
+  }
+  // Fällig diesen Monat (nutzt dueThisMonth)
+  const due = dueThisMonth();
+  if (due.length) {
+    const sum = due.reduce((s,d) => s + (Number(d.e.amount)||0), 0);
+    tiles.push(`<div class="bento-tile" onclick="openDetail('v')"><div class="bento-label bento-c-blue">Fällig diesen Monat</div><div class="bento-val bento-c-blue">${fmt(sum)}</div><div class="bento-mini">${due.length === 1 ? '1 Abbuchung offen' : due.length + ' Abbuchungen offen'}</div></div>`);
+  }
+  // Nächste Kündigung (nutzt dieselbe Radar-Logik)
+  const today = new Date(); today.setHours(0,0,0,0);
+  const MS = 86400000;
+  const radar = [];
+  data.v.filter(e => ['Versicherung','Vertrag'].includes(e.cat)).forEach(e => {
+    const st = parseDeDate(e.startDate);
+    const days = parseNoticeDays(e.noticePeriod);
+    if (!st || days == null) return;
+    const deadline = new Date(st.getTime() - days * MS);
+    radar.push({ e, deadline, daysLeft: Math.round((deadline - today)/MS) });
+  });
+  radar.sort((a,b) => a.deadline - b.deadline);
+  const next = radar.find(r => r.daysLeft >= 0) || radar[0];
+  if (next) {
+    const dl = next.daysLeft;
+    const months = Math.round(dl / 30);
+    const label = dl < 0 ? 'Frist abgelaufen' : dl <= 60 ? `in ${dl} Tagen` : `in ${months} Monaten`;
+    const cls = dl <= 60 ? 'warn' : 'ok';
+    const dd = next.deadline;
+    const dstr = `${String(dd.getDate()).padStart(2,'0')}.${String(dd.getMonth()+1).padStart(2,'0')}.${String(dd.getFullYear()).slice(2)}`;
+    tiles.push(`<div class="bento-tile" onclick="openDetail('v')"><div class="bento-label bento-c-warn">Nächste Kündigung</div><div class="bento-radar-row"><span>${esc(next.e.name)}</span><span class="d">${dstr}</span></div><span class="bento-chip ${cls}">${label}</span></div>`);
+  }
+  // Urlaubskasse (aktueller Kontostand der Urlaubskasse)
+  const urlaubKasse = data.b.reduce((s,e) => s + (!isGiro(e) && e.cat === 'Urlaub' ? (e.balance || 0) : 0), 0);
+  if (urlaubKasse > 0) {
+    tiles.push(`<div class="bento-tile" onclick="openDetail('urlaub')"><div class="bento-label bento-c-violet">Urlaubskasse</div><div class="bento-val bento-c-violet">${fmt(urlaubKasse)}</div><div class="bento-mini">Aktueller Stand</div></div>`);
+  }
+  const bento = $('bento'), bentoTag = $('bento-tag');
+  if (tiles.length) {
+    bento.innerHTML = tiles.join('');
+    bento.style.display = '';
+    bentoTag.style.display = '';
+  } else {
+    bento.style.display = 'none';
+    bentoTag.style.display = 'none';
+  }
+}
+
 function renderDashboard() {
   recordSnapshot();
+  renderHeroBento();
   const tV = sectionMonthlyTotal('v');
   const tB = sectionMonthlyTotal('b');
   const tA = sectionMonthlyTotal('a');
@@ -1723,7 +1862,7 @@ function renderDashboard() {
     balWrap.style.display = '';
     balEl.innerHTML = balRows.map(([name,o]) => {
       const breakdown = Object.entries(o.cats).filter(([,v]) => v > 0).sort((a,b)=>b[1]-a[1])
-        .map(([c,v]) => `${esc(c)}: ${fmt(v)}`).join(' · ');
+        .map(([c,v]) => `<div class="bal-break-row"><span>${esc(c)}</span><span>${fmt(v)}</span></div>`).join('');
       return `<div class="bal-acct-row"><div class="bal-acct-head"><span class="bal-acct-name">${esc(name)}</span><span class="bal-acct-total">${fmt(o.total)}</span></div><div class="bal-acct-break">${breakdown}</div></div>`;
     }).join('');
   } else {
@@ -1754,7 +1893,7 @@ function applyAutoGrow() {
   if (changed) store.set(SECTIONS.b.storageKey, JSON.stringify(data.b));
 }
 
-function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderAvDash(); renderBonus(); renderUrlaubeAll(); renderVertragDash(); updateIncome(); if (typeof syncDashHeight === 'function') requestAnimationFrame(syncDashHeight); }
+function renderAll() { renderSection('v'); renderSection('b'); renderSection('a'); renderAvDash(); renderBonus(); renderUrlaubeAll(); renderVertragDash(); updateIncome(); }
 
 // 4. Dashboard: alle Versicherungen & Verträge (nicht Abonnement/Verein)
 // Parst "TT.MM.JJJJ" -> Date (oder null)
@@ -1890,74 +2029,6 @@ function renderVertragDash() {
   html += `</div>`;
   body.innerHTML = html;
 }
-
-let currentDashPage = 0;
-function goDashPage(i) {
-  const pages = $('dash-pages');
-  if (!pages) return;
-  const page = pages.children[i];
-  if (page) pages.scrollTo({ left: page.offsetLeft, behavior: 'smooth' });
-}
-// Baut die Punkte in jede Seiten-Titelzeile (data-dots) ein
-function buildDashDots() {
-  const pages = $('dash-pages');
-  if (!pages) return;
-  const n = pages.children.length;
-  document.querySelectorAll('[data-dots]').forEach(slot => {
-    slot.innerHTML = Array.from({ length: n }, (_, i) =>
-      `<span class="dash-dot${i === currentDashPage ? ' active' : ''}" onclick="goDashPage(${i})"></span>`
-    ).join('');
-  });
-}
-// Höhe des Swipers an die aktive Seite anpassen (kein schwarzer Leerraum)
-function syncDashHeight() {
-  const pages = $('dash-pages');
-  if (!pages) return;
-  const page = pages.children[currentDashPage];
-  if (!page) return;
-  // Die aktive Seite bestimmt die Höhe; ihre Karte natürlich messen
-  const card = page.firstElementChild || page;
-  const h = Math.ceil(card.getBoundingClientRect().height);
-  if (h > 0) pages.style.height = h + 'px';
-}
-function updateDashDots() {
-  const pages = $('dash-pages');
-  if (!pages) return;
-  const idx = Math.round(pages.scrollLeft / pages.clientWidth);
-  if (idx !== currentDashPage) currentDashPage = idx;
-  document.querySelectorAll('[data-dots]').forEach(slot => {
-    [...slot.children].forEach((d, i) => d.classList.toggle('active', i === idx));
-  });
-}
-function initDashSwipe() {
-  const pages = $('dash-pages');
-  if (!pages) return;
-  buildDashDots();
-  let dotTimer, settleRAF, lastLeft = -1, stillFrames = 0;
-  // Erkennt das Ende des Wischens über die Scroll-Position (flüssiger als ein fester Timer)
-  function watchSettle() {
-    const now = pages.scrollLeft;
-    if (Math.abs(now - lastLeft) < 0.5) {
-      stillFrames++;
-      if (stillFrames >= 3) { syncDashHeight(); return; }  // ~3 Frames ruhig → eingerastet
-    } else {
-      stillFrames = 0;
-    }
-    lastLeft = now;
-    settleRAF = requestAnimationFrame(watchSettle);
-  }
-  pages.addEventListener('scroll', () => {
-    clearTimeout(dotTimer);
-    dotTimer = setTimeout(updateDashDots, 30);
-    cancelAnimationFrame(settleRAF);
-    stillFrames = 0; lastLeft = -1;
-    settleRAF = requestAnimationFrame(watchSettle);
-  }, { passive: true });
-  requestAnimationFrame(() => requestAnimationFrame(syncDashHeight));
-  setTimeout(syncDashHeight, 250);
-  window.addEventListener('resize', syncDashHeight);
-}
-
 function renderAvDash() {
   const dash = $('av-dash');
   if (!dash) return;
@@ -3533,7 +3604,6 @@ populateFilters();
 applyAutoGrow();
 renderAll();
 applyCollapsedStates();
-initDashSwipe();
 renderHistRangeCtls();
 ['deposit-amount','urlaub-cost'].forEach(id => bindMoneyInput($(id)));
 
