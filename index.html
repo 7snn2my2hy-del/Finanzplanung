@@ -152,8 +152,14 @@
   .hero-sub { display: block; font-size: 0.76rem; color: var(--muted-2); margin-top: 14px; }
   .tag { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-2); margin: 6px 2px 10px; font-weight: 700; }
   /* Bento – einheitlicher Apple-Stil */
-  .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .bento-tile { background: #131418; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--r-entry); padding: 16px 18px; min-height: 172px; display: flex; flex-direction: column; box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 30px rgba(0,0,0,0.4); }
+  .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 100%; }
+  .bento-tile { background: #131418; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--r-entry); padding: 16px 18px; min-height: 172px; min-width: 0; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 30px rgba(0,0,0,0.4); }
+  .bento-value-sm { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1; margin-top: 12px; white-space: nowrap; }
+  .bento-value-sm.pos { color: var(--green); } .bento-value-sm.neg { color: var(--danger); }
+  .bento-unit { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin-left: 3px; }
+  .bento-tl-name { font-size: 0.6rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 52px; font-weight: 600; }
+  .bento-tl-node.warn { background: var(--danger); box-shadow: 0 0 0 3px rgba(255,69,58,0.18); }
+  .bento-av-spark { width: 100%; height: 26px; margin-top: 10px; display: block; }
   .bento-head { display: flex; align-items: center; gap: 8px; margin-bottom: auto; }
   .bento-hdot { width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0; }
   .bento-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--muted); }
@@ -169,14 +175,14 @@
   .bento-konto-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
   .bento-donut { width: 44px; height: 44px; flex-shrink: 0; }
   .bento-acct-sub { font-size: 0.7rem; color: var(--muted); }
-  .bento-konto-txt .bento-value { margin-top: 1px; font-size: 1.25rem; }
+  .bento-konto-txt .bento-value { margin-top: 1px; font-size: 1.02rem; white-space: nowrap; }
   .bento-break { margin-top: 10px; display: flex; flex-direction: column; gap: 3px; }
   .bento-break-row { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); }
   .bento-break-row span:last-child { font-variant-numeric: tabular-nums; }
   .bento-leg-dot { display: inline-block; width: 7px; height: 7px; border-radius: 99px; margin-right: 6px; vertical-align: middle; }
   /* Urlaube-Timeline */
-  .bento-timeline { display: flex; align-items: flex-start; margin-top: 12px; }
-  .bento-tl-stop { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+  .bento-timeline { display: flex; align-items: flex-start; margin-top: 12px; max-width: 100%; overflow: hidden; }
+  .bento-tl-stop { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 1; min-width: 0; }
   .bento-tl-node { width: 9px; height: 9px; border-radius: 99px; background: var(--violet); box-shadow: 0 0 0 3px rgba(191,90,242,0.18); }
   .bento-tl-lbl { font-size: 0.6rem; color: var(--muted); white-space: nowrap; }
   .bento-tl-line { flex: 1; height: 2px; background: rgba(255,255,255,0.12); margin: 4px 2px 0; min-width: 8px; }
@@ -1710,78 +1716,96 @@ function renderHeroBento() {
       }).join('');
       const legend = order.map(([cat,v]) => `<div class="bento-break-row"><span><span class="bento-leg-dot" style="background:${CAT_COL[cat]||'var(--muted)'}"></span>${esc(cat)}</span><span>${fmt(v)}</span></div>`).join('');
       tiles.push(`<div class="bento-tile" onclick="openDetail('uebersicht')">
-        <div class="bento-head"><span class="bento-hdot" style="background:var(--petrol)"></span><span class="bento-title">Konten</span></div>
+        <div class="bento-head"><span class="bento-title">Konten</span></div>
         <div class="bento-konto-row"><svg class="bento-donut" viewBox="0 0 42 42">${segs}</svg><div class="bento-konto-txt"><div class="bento-acct-sub">${esc(acct)}</div><div class="bento-value">${fmt(total)}</div></div></div>
         <div class="bento-break">${legend}</div>
       </div>`);
     }
   }
 
-  // VERTRÄGE & VERSICHERUNGEN: nächste Kündigung (Radar-Logik)
-  const today = new Date(); today.setHours(0,0,0,0);
-  const MS = 86400000;
-  const radar = [];
-  data.v.filter(e => ['Versicherung','Vertrag'].includes(e.cat)).forEach(e => {
-    const st = parseDeDate(e.startDate);
-    const days = parseNoticeDays(e.noticePeriod);
-    if (!st || days == null) return;
-    const deadline = new Date(st.getTime() - days * MS);
-    radar.push({ e, deadline, daysLeft: Math.round((deadline - today)/MS) });
-  });
-  radar.sort((a,b) => a.deadline - b.deadline);
-  const next = radar.find(r => r.daysLeft >= 0) || radar[0];
-  if (next) {
-    const dl = next.daysLeft;
-    const months = Math.round(dl / 30);
-    const label = dl < 0 ? 'Frist abgelaufen' : dl <= 60 ? `in ${dl} Tagen` : `in ${months} Monaten`;
-    const cls = dl <= 60 ? 'warn' : 'ok';
-    const dd = next.deadline;
-    const dstr = `${String(dd.getDate()).padStart(2,'0')}.${String(dd.getMonth()+1).padStart(2,'0')}.${String(dd.getFullYear()).slice(2)}`;
-    tiles.push(`<div class="bento-tile" onclick="openDetail('v')">
-      <div class="bento-head"><span class="bento-hdot" style="background:var(--accent)"></span><span class="bento-title">Verträge</span></div>
-      <div class="bento-row"><span class="k">${esc(next.e.name)}</span><span class="v">${dstr}</span></div>
-      <span class="bento-chip ${cls}">Kündigung ${label}</span>
-    </div>`);
+  // VERTRÄGE & VERSICHERUNGEN: Anzahl + Monatssumme + Kündigungs-Timeline
+  {
+    const vAll = data.v.filter(e => ['Versicherung','Vertrag'].includes(e.cat));
+    if (vAll.length) {
+      const monatlich = vAll.reduce((s,e) => s + toMonthly(Number(e.amount)||0, e.period), 0);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const MS = 86400000;
+      const radar = [];
+      vAll.forEach(e => {
+        const st = parseDeDate(e.startDate);
+        const days = parseNoticeDays(e.noticePeriod);
+        if (!st || days == null) return;
+        const deadline = new Date(st.getTime() - days * MS);
+        radar.push({ e, deadline, daysLeft: Math.round((deadline - today)/MS) });
+      });
+      radar.sort((a,b) => a.deadline - b.deadline);
+      const upcoming = radar.filter(r => r.daysLeft >= 0).slice(0,4);
+      const MON = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+      let timeline = '';
+      if (upcoming.length) {
+        const stops = upcoming.map(r => { const d = r.deadline; const warn = r.daysLeft <= 60; return `<div class="bento-tl-stop"><span class="bento-tl-node${warn?' warn':''}"></span><span class="bento-tl-name">${esc(r.e.name)}</span><span class="bento-tl-lbl">${MON[d.getMonth()]} ${String(d.getFullYear()).slice(2)}</span></div>`; }).join('<span class="bento-tl-line"></span>');
+        timeline = `<div class="bento-timeline">${stops}</div>`;
+      } else {
+        timeline = `<div class="bento-mini">Keine Kündigungsfristen</div>`;
+      }
+      tiles.push(`<div class="bento-tile" onclick="openDetail('v')">
+        <div class="bento-head"><span class="bento-title">Verträge</span></div>
+        <div class="bento-value">${fmt(monatlich)}<span class="bento-unit">/Mt</span></div>
+        <div class="bento-sub">${vAll.length} ${vAll.length === 1 ? 'Vertrag' : 'Verträge'} · Kündigungsfristen</div>
+        ${timeline}
+      </div>`);
+    }
   }
 
-  // URLAUBE: Restbudget + Mini-Timeline der geplanten Reisen
+  // URLAUBE: Restbudget + Timeline mit Zielen
   {
     const urlaubRest = currentYearUrlaubBalance();
     if (urlaubRest !== null) {
       const pos = urlaubRest >= 0;
       const jahr = new Date().getFullYear();
-      // kommende Reisen (ab heute), max 4, als Timeline-Punkte
-      const trips = urlaube.map(u => ({ u, y: parseInt(tripYear(u),10), m: tripMonthNum(u), cost: tripCost(u) }))
+      const trips = urlaube.map(u => ({ u, y: parseInt(tripYear(u),10), m: tripMonthNum(u) }))
         .filter(t => t.y && (t.y > jahr || (t.y === jahr && t.m >= (new Date().getMonth()+1))))
         .sort((a,b) => (a.y-b.y) || (a.m-b.m)).slice(0,4);
       const MON = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
-      let timeline = '';
+      let timeline;
       if (trips.length) {
-        const dots = trips.map(t => `<div class="bento-tl-stop"><span class="bento-tl-node"></span><span class="bento-tl-lbl">${MON[t.m-1]||''} ${String(t.y).slice(2)}</span></div>`).join('<span class="bento-tl-line"></span>');
-        timeline = `<div class="bento-timeline">${dots}</div>`;
+        const stops = trips.map(t => `<div class="bento-tl-stop"><span class="bento-tl-node"></span><span class="bento-tl-name">${esc(t.u.name)}</span><span class="bento-tl-lbl">${MON[t.m-1]||''} ${String(t.y).slice(2)}</span></div>`).join('<span class="bento-tl-line"></span>');
+        timeline = `<div class="bento-timeline">${stops}</div>`;
       } else {
         timeline = `<div class="bento-mini">Keine Reisen geplant</div>`;
       }
       tiles.push(`<div class="bento-tile" onclick="openDetail('urlaub')">
-        <div class="bento-head"><span class="bento-hdot" style="background:var(--violet)"></span><span class="bento-title">Urlaube</span></div>
-        <div class="bento-value ${pos?'pos':'neg'}">${fmt(urlaubRest)}</div>
+        <div class="bento-head"><span class="bento-title">Urlaube</span></div>
+        <div class="bento-value-sm ${pos?'pos':'neg'}">${fmt(urlaubRest)}</div>
         <div class="bento-sub">${pos?'Restbudget':'im Minus'} ${jahr}</div>
         ${timeline}
       </div>`);
     }
   }
 
-  // ALTERSVORSORGE: monatlich (m) und einmalig (e) gleichwertig
+  // ALTERSVORSORGE: m + e je eine Zeile, Countdown bis 67, Vorsorge-Sparkline
   if (data.a.length) {
     const { m, e } = avNominalBase();
     const rows = [];
     if (m > 0) rows.push(`<div class="bento-av-row"><span class="bento-av-val">${fmt(m)}</span><span class="bento-av-tag">/Monat</span></div>`);
     if (e > 0) rows.push(`<div class="bento-av-row"><span class="bento-av-val">${fmt(e)}</span><span class="bento-av-tag">einmalig</span></div>`);
     if (rows.length) {
+      const yearsLeft = Math.max(0, Math.round(monthsToRetirement() / 12));
+      // Vorsorge-Sparkline aus History
+      const ph = histSlice(history).filter(h => h.pension != null);
+      let spark = '';
+      if (ph.length >= 2) {
+        const vals = ph.map(h => h.pension);
+        const mn = Math.min(...vals), mx = Math.max(...vals), rng = (mx - mn) || 1;
+        const W = 150, H = 26, n = vals.length;
+        const line = vals.map((v,i) => `${((i/(n-1))*W).toFixed(1)},${(3 + (1-(v-mn)/rng)*(H-6)).toFixed(1)}`).join(' ');
+        spark = `<svg class="bento-av-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${line}" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      }
       tiles.push(`<div class="bento-tile" onclick="openDetail('a')">
-        <div class="bento-head"><span class="bento-hdot" style="background:var(--green)"></span><span class="bento-title">Altersvorsorge</span></div>
+        <div class="bento-head"><span class="bento-title">Altersvorsorge</span></div>
         <div class="bento-av-stack">${rows.join('')}</div>
-        <div class="bento-sub">Rente mit 67 · nominal</div>
+        <div class="bento-sub">noch ${yearsLeft} Jahre bis 67 · nominal</div>
+        ${spark}
       </div>`);
     }
   }
