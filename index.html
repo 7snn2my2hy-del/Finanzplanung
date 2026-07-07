@@ -162,23 +162,27 @@
   .bento-caption { font-size: 0.74rem; color: var(--muted); margin-top: 4px; line-height: 1.3; }
   .bento-foot { margin-top: auto; }
   /* Konten */
-  .bento-donut { width: 38px; height: 38px; flex-shrink: 0; }
   .bento-foot { display: flex; align-items: center; gap: 12px; }
+  .bento-foot-col { flex-direction: column; align-items: stretch; gap: 8px; }
+  .bento-segbar { display: flex; height: 7px; border-radius: 99px; overflow: hidden; gap: 2px; }
+  .bento-seg { border-radius: 99px; min-width: 4px; }
   .bento-break { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-  .bento-break-row { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--muted); }
+  .bento-break-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.7rem; color: var(--muted); }
+  .bento-break-row .bl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .bento-break-row .bv { white-space: nowrap; flex-shrink: 0; padding-left: 8px; font-variant-numeric: tabular-nums; }
   .bento-break-row span:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 8px; }
   .bento-leg-dot { display: inline-block; width: 6px; height: 6px; border-radius: 99px; margin-right: 5px; vertical-align: middle; }
   /* Timeline (Verträge + Urlaube) */
   .bento-timeline { display: flex; align-items: flex-start; justify-content: space-between; width: 100%; gap: 3px; }
   .bento-tl-stop { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1 1 0; min-width: 0; }
-  .bento-tl-node { width: 9px; height: 9px; border-radius: 99px; background: var(--violet); box-shadow: 0 0 0 3px rgba(191,90,242,0.16); }
-  .bento-tl-node.warn { background: var(--danger); box-shadow: 0 0 0 3px rgba(255,69,58,0.16); }
+  .bento-tl-node { width: 7px; height: 7px; border-radius: 99px; background: var(--violet); }
+  .bento-tl-node.warn { background: var(--danger); }
   .bento-tl-name { font-size: 0.58rem; color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; }
   .bento-tl-lbl { font-size: 0.56rem; color: var(--muted-2); white-space: nowrap; }
   .bento-tl-line { display: none; }
   .bento-mini { font-size: 0.72rem; color: var(--muted-2); }
   /* AV-Sparkline */
-  .bento-av-spark { width: 100%; height: 24px; display: block; }
+  .bento-av-spark { width: 100%; height: 34px; display: block; border-radius: 4px; }
   .dash-swipe { margin: 40px 0 0; position: relative; }
   /* Farb-Glow hinter dem Dashboard-Bereich – hebt ihn als eigene Zone ab */
   .dash-swipe::before {
@@ -1692,21 +1696,13 @@ function renderHeroBento() {
     if (total > 0) {
       const CAT_COL = { Urlaub: 'var(--violet)', Sparen: 'var(--green)', Konsum: 'var(--accent)' };
       const order = Object.entries(cats).sort((a,b) => b[1] - a[1]);
-      // Donut-Segmente
-      const R = 15, C = 2 * Math.PI * R;
-      let off = 0;
-      const segs = order.map(([cat,v]) => {
-        const frac = v / total, len = frac * C;
-        const col = CAT_COL[cat] || 'var(--muted)';
-        const s = `<circle cx="21" cy="21" r="${R}" fill="none" stroke="${col}" stroke-width="6" stroke-dasharray="${len.toFixed(1)} ${(C-len).toFixed(1)}" stroke-dashoffset="${(-off).toFixed(1)}" transform="rotate(-90 21 21)"/>`;
-        off += len; return s;
-      }).join('');
-      const legend = order.map(([cat,v]) => `<div class="bento-break-row"><span><span class="bento-leg-dot" style="background:${CAT_COL[cat]||'var(--muted)'}"></span>${esc(cat)}</span><span>${fmt(v)}</span></div>`).join('');
+      const bar = order.map(([cat,v]) => `<span class="bento-seg" style="flex:${(v/total).toFixed(4)};background:${CAT_COL[cat]||'var(--muted)'}"></span>`).join('');
+      const legend = order.map(([cat,v]) => `<div class="bento-break-row"><span class="bl"><span class="bento-leg-dot" style="background:${CAT_COL[cat]||'var(--muted)'}"></span>${esc(cat)}</span><span class="bv">${fmt(v)}</span></div>`).join('');
       tiles.push(`<div class="bento-tile" onclick="openDetail('uebersicht')">
         <div class="bento-head"><span class="bento-title">Konten</span></div>
         <div class="bento-primary">${fmt(total)}</div>
         <div class="bento-caption">${esc(acct)}</div>
-        <div class="bento-foot"><svg class="bento-donut" viewBox="0 0 42 42">${segs}</svg><div class="bento-break">${legend}</div></div>
+        <div class="bento-foot bento-foot-col"><div class="bento-segbar">${bar}</div><div class="bento-break">${legend}</div></div>
       </div>`);
     }
   }
@@ -1785,9 +1781,10 @@ function renderHeroBento() {
       if (ph.length >= 2) {
         const vals = ph.map(h => h.pension);
         const mn = Math.min(...vals), mx = Math.max(...vals), rng = (mx - mn) || 1;
-        const W = 150, H = 26, n = vals.length;
+        const W = 150, H = 34, n = vals.length;
         const line = vals.map((v,i) => `${((i/(n-1))*W).toFixed(1)},${(3 + (1-(v-mn)/rng)*(H-6)).toFixed(1)}`).join(' ');
-        spark = `<svg class="bento-av-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${line}" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        const area = `M0,${H} ` + vals.map((v,i) => `L${((i/(n-1))*W).toFixed(1)},${(3 + (1-(v-mn)/rng)*(H-6)).toFixed(1)}`).join(' ') + ` L${W},${H} Z`;
+        spark = `<svg class="bento-av-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="avg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(48,209,55,0.30)"/><stop offset="1" stop-color="rgba(48,209,55,0)"/></linearGradient></defs><path d="${area}" fill="url(#avg)"/><polyline points="${line}" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
       }
       const eLine = e > 0 ? `<div class="bento-caption">+ ${fmt(e)} einmalig · noch ${yearsLeft} J. bis 67</div>` : `<div class="bento-caption">noch ${yearsLeft} Jahre bis 67 · nominal</div>`;
       tiles.push(`<div class="bento-tile" onclick="openDetail('a')">
