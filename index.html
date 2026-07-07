@@ -153,46 +153,32 @@
   .tag { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-2); margin: 6px 2px 10px; font-weight: 700; }
   /* Bento – einheitlicher Apple-Stil */
   .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 100%; }
-  .bento-tile { background: #131418; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--r-entry); padding: 16px 18px; height: 200px; min-width: 0; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 30px rgba(0,0,0,0.4); }
-  .bento-value-sm { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: auto; margin-bottom: 6px; white-space: nowrap; }
-  .bento-value-sm.pos { color: var(--green); } .bento-value-sm.neg { color: var(--danger); }
-  .bento-unit { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin-left: 3px; }
-  .bento-value-mid { font-size: 1.35rem; }
-  .bento-tl-name { font-size: 0.58rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-weight: 600; text-align: center; }
-  .bento-tl-node.warn { background: var(--danger); box-shadow: 0 0 0 3px rgba(255,69,58,0.18); }
-  .bento-av-spark { width: 100%; height: 26px; margin-top: 10px; display: block; }
-  .bento-head { display: flex; align-items: center; gap: 8px; margin-bottom: auto; }
-  .bento-hdot { width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0; }
+  .bento-tile { background: #131418; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--r-entry); padding: 16px 18px; height: 210px; min-width: 0; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 30px rgba(0,0,0,0.4); }
+  .bento-head { margin-bottom: 4px; }
   .bento-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--muted); }
-  .bento-value { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 12px; white-space: nowrap; }
-  .bento-value.pos { color: var(--green); } .bento-value.neg { color: var(--danger); }
-  .bento-sub { font-size: 0.76rem; color: var(--muted); margin-top: 5px; font-variant-numeric: tabular-nums; }
-  .bento-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.82rem; margin-top: 12px; }
-  .bento-row .k { color: var(--muted); } .bento-row .v { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; }
-  .bento-chip { display: inline-block; font-size: 0.64rem; padding: 3px 9px; border-radius: 99px; font-weight: 700; margin-top: 8px; align-self: flex-start; }
-  .bento-chip.warn { background: rgba(255,69,58,0.16); color: var(--danger); }
-  .bento-chip.ok { background: rgba(48,209,55,0.12); color: var(--green); }
-  /* Konten-Kachel */
-  .bento-konto-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
-  .bento-donut { width: 40px; height: 40px; flex-shrink: 0; }
-  .bento-acct-sub { font-size: 0.68rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .bento-konto-txt { min-width: 0; } .bento-konto-txt .bento-value { margin-top: 1px; font-size: 1.1rem; white-space: nowrap; }
-  .bento-break { margin-top: 10px; display: flex; flex-direction: column; gap: 3px; }
-  .bento-break-row { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); }
-  .bento-break-row span:last-child { font-variant-numeric: tabular-nums; }
-  .bento-leg-dot { display: inline-block; width: 7px; height: 7px; border-radius: 99px; margin-right: 6px; vertical-align: middle; }
-  /* Urlaube-Timeline */
-  .bento-timeline { display: flex; align-items: flex-start; justify-content: space-between; margin-top: 14px; max-width: 100%; gap: 2px; }
+  .bento-primary { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.15; margin-top: 8px; white-space: nowrap; }
+  .bento-primary.pos { color: var(--green); } .bento-primary.neg { color: var(--danger); }
+  .bento-unit { font-size: 0.78rem; color: var(--muted); font-weight: 600; margin-left: 3px; letter-spacing: 0; }
+  .bento-caption { font-size: 0.74rem; color: var(--muted); margin-top: 4px; line-height: 1.3; }
+  .bento-foot { margin-top: auto; }
+  /* Konten */
+  .bento-donut { width: 38px; height: 38px; flex-shrink: 0; }
+  .bento-foot { display: flex; align-items: center; gap: 12px; }
+  .bento-break { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .bento-break-row { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--muted); }
+  .bento-break-row span:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 8px; }
+  .bento-leg-dot { display: inline-block; width: 6px; height: 6px; border-radius: 99px; margin-right: 5px; vertical-align: middle; }
+  /* Timeline (Verträge + Urlaube) */
+  .bento-timeline { display: flex; align-items: flex-start; justify-content: space-between; width: 100%; gap: 3px; }
   .bento-tl-stop { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1 1 0; min-width: 0; }
-  .bento-tl-node { width: 9px; height: 9px; border-radius: 99px; background: var(--violet); box-shadow: 0 0 0 3px rgba(191,90,242,0.18); }
-  .bento-tl-lbl { font-size: 0.58rem; color: var(--muted); white-space: nowrap; }
+  .bento-tl-node { width: 9px; height: 9px; border-radius: 99px; background: var(--violet); box-shadow: 0 0 0 3px rgba(191,90,242,0.16); }
+  .bento-tl-node.warn { background: var(--danger); box-shadow: 0 0 0 3px rgba(255,69,58,0.16); }
+  .bento-tl-name { font-size: 0.58rem; color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; }
+  .bento-tl-lbl { font-size: 0.56rem; color: var(--muted-2); white-space: nowrap; }
   .bento-tl-line { display: none; }
-  .bento-mini { font-size: 0.72rem; color: var(--muted-2); margin-top: 10px; }
-  /* AV-Kachel: m + e gleichwertig */
-  .bento-av-stack { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
-  .bento-av-row { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
-  .bento-av-val { font-size: 1.02rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: -0.02em; }
-  .bento-av-tag { font-size: 0.64rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  .bento-mini { font-size: 0.72rem; color: var(--muted-2); }
+  /* AV-Sparkline */
+  .bento-av-spark { width: 100%; height: 24px; display: block; }
   .dash-swipe { margin: 40px 0 0; position: relative; }
   /* Farb-Glow hinter dem Dashboard-Bereich – hebt ihn als eigene Zone ab */
   .dash-swipe::before {
@@ -1718,8 +1704,9 @@ function renderHeroBento() {
       const legend = order.map(([cat,v]) => `<div class="bento-break-row"><span><span class="bento-leg-dot" style="background:${CAT_COL[cat]||'var(--muted)'}"></span>${esc(cat)}</span><span>${fmt(v)}</span></div>`).join('');
       tiles.push(`<div class="bento-tile" onclick="openDetail('uebersicht')">
         <div class="bento-head"><span class="bento-title">Konten</span></div>
-        <div class="bento-konto-row"><svg class="bento-donut" viewBox="0 0 42 42">${segs}</svg><div class="bento-konto-txt"><div class="bento-acct-sub">${esc(acct)}</div><div class="bento-value">${fmt(total)}</div></div></div>
-        <div class="bento-break">${legend}</div>
+        <div class="bento-primary">${fmt(total)}</div>
+        <div class="bento-caption">${esc(acct)}</div>
+        <div class="bento-foot"><svg class="bento-donut" viewBox="0 0 42 42">${segs}</svg><div class="bento-break">${legend}</div></div>
       </div>`);
     }
   }
@@ -1751,9 +1738,9 @@ function renderHeroBento() {
       }
       tiles.push(`<div class="bento-tile" onclick="openDetail('v')">
         <div class="bento-head"><span class="bento-title">Verträge</span></div>
-        <div class="bento-value bento-value-mid">${fmt(monatlich)}<span class="bento-unit">/Mt</span></div>
-        <div class="bento-sub">${vAll.length} ${vAll.length === 1 ? 'Vertrag' : 'Verträge'} · Kündigungsfristen</div>
-        ${timeline}
+        <div class="bento-primary">${fmt(monatlich)}<span class="bento-unit">/Mt</span></div>
+        <div class="bento-caption">${vAll.length} ${vAll.length === 1 ? 'Vertrag' : 'Verträge'} · nächste Fristen</div>
+        <div class="bento-foot">${timeline}</div>
       </div>`);
     }
   }
@@ -1777,9 +1764,9 @@ function renderHeroBento() {
       }
       tiles.push(`<div class="bento-tile" onclick="openDetail('urlaub')">
         <div class="bento-head"><span class="bento-title">Urlaube</span></div>
-        <div class="bento-value-sm ${pos?'pos':'neg'}">${fmt(urlaubRest)}</div>
-        <div class="bento-sub">${pos?'Restbudget':'im Minus'} ${jahr}</div>
-        ${timeline}
+        <div class="bento-primary ${pos?'pos':'neg'}">${fmt(urlaubRest)}</div>
+        <div class="bento-caption">${pos?'Restbudget':'im Minus'} ${jahr}</div>
+        <div class="bento-foot">${timeline}</div>
       </div>`);
     }
   }
@@ -1802,11 +1789,12 @@ function renderHeroBento() {
         const line = vals.map((v,i) => `${((i/(n-1))*W).toFixed(1)},${(3 + (1-(v-mn)/rng)*(H-6)).toFixed(1)}`).join(' ');
         spark = `<svg class="bento-av-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${line}" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
       }
+      const eLine = e > 0 ? `<div class="bento-caption">+ ${fmt(e)} einmalig · noch ${yearsLeft} J. bis 67</div>` : `<div class="bento-caption">noch ${yearsLeft} Jahre bis 67 · nominal</div>`;
       tiles.push(`<div class="bento-tile" onclick="openDetail('a')">
         <div class="bento-head"><span class="bento-title">Altersvorsorge</span></div>
-        <div class="bento-av-stack">${rows.join('')}</div>
-        <div class="bento-sub">noch ${yearsLeft} Jahre bis 67 · nominal</div>
-        ${spark}
+        <div class="bento-primary">${m > 0 ? fmt(m) : fmt(e)}<span class="bento-unit">${m > 0 ? '/Mt' : 'einm.'}</span></div>
+        ${eLine}
+        <div class="bento-foot">${spark}</div>
       </div>`);
     }
   }
