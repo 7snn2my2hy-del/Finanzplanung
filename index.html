@@ -141,6 +141,7 @@
   .detail-sheet { position: fixed; inset: 0; z-index: 380; background: var(--bg); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; transform: translateX(100%); transition: transform 0.4s var(--ease-ios), visibility 0s linear 0.4s; padding: calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); visibility: hidden; }
   .detail-sheet.open { transform: translateX(0); visibility: visible; transition: transform 0.4s var(--ease-ios), visibility 0s; }
   .detail-panel { display: none; }
+  .detail-panel .dashboard, .detail-panel .av-dash { margin: 0 0 14px; }
   .detail-panel.on { display: block; }
   .hero-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--petrol); font-weight: 700; }
   .hero-val { font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; margin-top: 6px; line-height: 1; }
@@ -153,10 +154,10 @@
   .tag { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-2); margin: 6px 2px 10px; font-weight: 700; }
   /* Bento – einheitlicher Apple-Stil */
   .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 100%; }
-  .bento-tile { background: #131418; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--r-entry); padding: 16px 18px; min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 30px rgba(0,0,0,0.4); }
+  .bento-tile { background: #1c1c1e; border: 1px solid rgba(255,255,255,0.06); border-radius: 26px; padding: 15px 16px; min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 30px rgba(0,0,0,0.4); }
   .bento-head { margin-bottom: 4px; }
   .bento-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--muted); }
-  .bento-primary { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.15; margin-top: 8px; white-space: nowrap; }
+  .bento-primary { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.15; margin-top: 8px; white-space: nowrap; }
   .bento-primary.pos { color: var(--green); } .bento-primary.neg { color: var(--danger); }
   .bento-unit { font-size: 0.78rem; color: var(--muted); font-weight: 600; margin-left: 3px; letter-spacing: 0; }
   .bento-caption { font-size: 0.74rem; color: var(--muted); margin-top: 4px; line-height: 1.3; }
@@ -186,7 +187,14 @@
   .bento-list-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.78rem; }
   .bento-list-row .bl { color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .bento-list-row .bl.warn { color: var(--danger); }
+  .bento-list-row.av { font-size: 0.74rem; }
+  .bento-list-row.av .bl { flex-shrink: 0; }
   .bento-list-row .bv { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; padding-left: 10px; }
+  /* Urlaubs-Weltkarte */
+  .bento-map-wrap { width: 100%; }
+  .bento-map { width: 100%; height: auto; display: block; border-radius: 10px; background: rgba(255,255,255,0.03); }
+  .bento-map-legend { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; font-size: 0.6rem; color: var(--muted-2); }
+  .bento-map-legend i { display: inline-block; width: 6px; height: 6px; border-radius: 99px; margin-right: 4px; }
   /* Fortschrittsbalken bis 67 */
   .bento-progress { height: 6px; border-radius: 99px; background: rgba(255,255,255,0.08); overflow: hidden; }
   .bento-progress-fill { display: block; height: 100%; border-radius: 99px; background: var(--green); }
@@ -1017,6 +1025,11 @@
       <label>Reiseziel / Name</label>
       <input type="text" id="urlaub-name" placeholder="z.B. Namibia" autocomplete="off">
     </div>
+    <div class="field">
+      <label>Land (für die Karte)</label>
+      <input type="text" id="urlaub-country" placeholder="z.B. Namibia" autocomplete="off" list="country-list">
+      <datalist id="country-list"></datalist>
+    </div>
     <div class="field field-row">
       <div>
         <label>Reisejahr</label>
@@ -1299,27 +1312,34 @@ function currentWealthSnapshot() {
 function recordSnapshot() {
   const now = new Date();
   const ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  const date = ym + '-01';  // jeder Monatswert ist fest auf den 1. des Monats verankert
+  const date = ym + '-' + String(now.getDate()).padStart(2, '0');  // Tages-Snapshot
   const snap = currentWealthSnapshot();
-  if (snap.wealth === 0 && snap.pension === 0) return;  // nothing to record yet
-  const existing = history.find(h => h.ym === ym);
+  if (snap.wealth === 0 && snap.pension === 0) return;
+  const existing = history.find(h => h.date === date);
   if (existing) {
-    // laufender Monat: bis zum Monatswechsel mit den aktuellen Ständen aktualisieren
-    existing.wealth = snap.wealth; existing.pension = snap.pension; existing.date = date;
+    existing.wealth = snap.wealth; existing.pension = snap.pension;
   } else {
     history.push({ ym, date, wealth: snap.wealth, pension: snap.pension });
   }
-  history = history.slice(-60);  // keep last 5 years
+  history.sort((a,b) => String(a.date).localeCompare(String(b.date)));
+  history = history.slice(-1100);  // ~3 Jahre Tageswerte
   store.set(HISTORY_KEY, JSON.stringify(history));
 }
+function histDate(h) { return h.date || (h.ym + '-01'); }
 
 // Renders a simple SVG line chart. series = [{points:[v,...], color, label}]
 // Zeitraum-Auswahl für Verlaufs-Charts (6M / 1J / Alle), geteilt für beide Charts
 let histRange = store.get('hist_range_v1') || 'all';
+function histLabel(h) {
+  const d = histDate(h);
+  return d.slice(8,10) + '.' + d.slice(5,7) + '.';
+}
 function histSlice(arr) {
-  if (histRange === '6m') return arr.slice(-6);
-  if (histRange === '1y') return arr.slice(-12);
-  return arr;
+  if (histRange === 'all') return arr;
+  const cut = new Date();
+  cut.setMonth(cut.getMonth() - (histRange === '6m' ? 6 : 12));
+  const cs = cut.toISOString().slice(0,10);
+  return arr.filter(h => histDate(h) >= cs);
 }
 function setHistRange(r) {
   histRange = r;
@@ -1351,7 +1371,7 @@ function renderHistoryChart(containerId, labels, series) {
     svg += `<line x1="0" y1="${yMid}" x2="${W}" y2="${yMid}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
     series.forEach(s => { svg += `<circle cx="${(W/2).toFixed(1)}" cy="${yMid}" r="3" fill="${s.color}"/>`; });
     svg += `</svg>`;
-    el.innerHTML = `${svg}<div class="hist-range">Startwert ${labels[0]}: ${fmtShort(series[0].points[0])} · Verlauf ab dem 2. Monat</div>`;
+    el.innerHTML = `${svg}<div class="hist-range">Startwert ${labels[0]}: ${fmtShort(series[0].points[0])} · Verlauf ab dem 2. Tag</div>`;
     return;
   }
   const W = 300, H = 90, padL = 4, padR = 4, padT = 8, padB = 4;
@@ -1635,7 +1655,7 @@ function updateIncome() {
 // Monthly total of a specific category within a section
 // Hero (Gesamtvermögen) + Bento-Kacheln – nutzt exakt dieselben Berechnungen wie das Dashboard
 function openDetail(which) {
-  const titles = { uebersicht: 'Übersicht', a: 'Altersvorsorge', urlaub: 'Urlaube', v: 'Verträge & Versicherungen' };
+  const titles = { uebersicht: 'Konten', a: 'Altersvorsorge', urlaub: 'Urlaube', v: 'Verträge & Versicherungen' };
   document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('on'));
   const panel = $('panel-' + which);
   if (panel) panel.classList.add('on');
@@ -1670,7 +1690,10 @@ function renderHeroBento() {
     const delta = last - first;
     hDelta.style.display = '';
     hDelta.className = 'hero-delta ' + (delta >= 0 ? 'up' : 'down');
-    hDelta.textContent = (delta >= 0 ? '▲ ' : '▼ ') + (delta >= 0 ? '+' : '') + fmtShort(delta) + ' in ' + hist.length + ' Monaten';
+    const d0 = new Date(histDate(hist[0])), d1 = new Date(histDate(hist[hist.length-1]));
+    const days = Math.max(1, Math.round((d1 - d0) / 86400000));
+    const span = days >= 60 ? Math.round(days/30) + ' Monaten' : days + (days === 1 ? ' Tag' : ' Tagen');
+    hDelta.textContent = (delta >= 0 ? '▲ ' : '▼ ') + (delta >= 0 ? '+' : '') + fmtShort(delta) + ' in ' + span;
     // Sparkline
     const vals = hist.map(h => h.wealth);
     const mn = Math.min(...vals), mx = Math.max(...vals), rng = (mx - mn) || 1;
@@ -1716,7 +1739,7 @@ function renderHeroBento() {
 
   // VERTRÄGE & VERSICHERUNGEN: Anzahl + Monatssumme + Kündigungs-Timeline
   {
-    const vAll = data.v.filter(e => ['Versicherung','Vertrag'].includes(e.cat));
+    const vAll = data.v.slice();
     if (vAll.length) {
       const monatlich = vAll.reduce((s,e) => s + toMonthly(Number(e.amount)||0, e.period), 0);
       const today = new Date(); today.setHours(0,0,0,0);
@@ -1764,11 +1787,27 @@ function renderHeroBento() {
       } else {
         timeline = `<div class="bento-mini">Keine Reisen geplant</div>`;
       }
+      // Weltkarte: Reisen mit Land als Punkte, Jahr farblich (26 violett, 27 petrol)
+      const yearNow = jahr, yearNext = jahr + 1;
+      const mapTrips = urlaube.map(u => ({ u, y: parseInt(tripYear(u),10) }))
+        .filter(t => (t.y === yearNow || t.y === yearNext) && t.u.country && COUNTRY_COORDS[t.u.country]);
+      let map = '';
+      if (mapTrips.length) {
+        const dots = mapTrips.map(t => {
+          const [x,y] = COUNTRY_COORDS[t.u.country];
+          const col = t.y === yearNow ? 'var(--violet)' : 'var(--petrol)';
+          return `<circle cx="${x}" cy="${y}" r="1.8" fill="${col}"/><circle cx="${x}" cy="${y}" r="3.4" fill="${col}" opacity="0.25"/>`;
+        }).join('');
+        map = `<div class="bento-map-wrap"><svg class="bento-map" viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet">
+          <path fill="rgba(255,255,255,0.09)" d="M14,8 C20,6 26,7 28,10 C30,13 27,16 25,19 C27,21 28,24 27,27 C25,25 22,24 21,21 C19,18 16,16 15,13 Z M28,22 C31,23 33,26 34,30 C35,34 33,38 31,40 C30,36 29,32 28,28 Z M44,8 C48,7 53,7 56,9 C58,11 57,13 55,14 C52,15 48,14 46,12 Z M46,15 C50,14 55,15 58,17 C60,20 61,24 60,28 C58,32 56,35 55,33 C53,30 51,27 49,24 C47,21 46,18 46,15 Z M60,10 C66,8 74,8 80,10 C86,12 90,14 89,17 C86,20 82,19 79,21 C77,23 76,26 74,25 C71,23 69,20 66,18 C63,16 60,13 60,10 Z M70,20 C73,21 76,23 77,26 C77,28 75,29 73,28 C71,26 70,23 70,20 Z M84,30 C88,29 92,31 93,34 C93,37 90,38 87,37 C85,35 84,33 84,30 Z"/>
+          ${dots}
+        </svg><div class="bento-map-legend"><span><i style="background:var(--violet)"></i>${String(yearNow).slice(2)}</span><span><i style="background:var(--petrol)"></i>${String(yearNext).slice(2)}</span></div></div>`;
+      }
       tiles.push(`<div class="bento-tile" onclick="openDetail('urlaub')">
         <div class="bento-head"><span class="bento-title">Urlaube</span></div>
         <div class="bento-primary ${pos?'pos':'neg'}">${fmt(urlaubRest)}</div>
         <div class="bento-caption">${pos?'Restbudget':'im Minus'} ${jahr}</div>
-        <div class="bento-foot">${timeline}</div>
+        <div class="bento-foot bento-foot-col">${timeline}${map}</div>
       </div>`);
     }
   }
@@ -1778,8 +1817,8 @@ function renderHeroBento() {
     const { m, e } = avNominalBase();
     if (m > 0 || e > 0) {
       const rows = [];
-      if (m > 0) rows.push(`<div class="bento-list-row"><span class="bl">Monatlich</span><span class="bv">${fmt(m)}</span></div>`);
-      if (e > 0) rows.push(`<div class="bento-list-row"><span class="bl">Einmalig</span><span class="bv">${fmt(e)}</span></div>`);
+      if (m > 0) rows.push(`<div class="bento-list-row av"><span class="bl">Monatlich</span><span class="bv">${fmt(m)}</span></div>`);
+      if (e > 0) rows.push(`<div class="bento-list-row av"><span class="bl">Einmalig</span><span class="bv">${fmt(e)}</span></div>`);
       // Fortschritt: Anteil der Lebensarbeitszeit bis 67 bereits vergangen
       const now = new Date();
       const totalMs = new Date(BIRTH_DATE.getFullYear() + RETIREMENT_AGE, BIRTH_DATE.getMonth(), BIRTH_DATE.getDate()) - BIRTH_DATE;
@@ -1788,7 +1827,6 @@ function renderHeroBento() {
       tiles.push(`<div class="bento-tile" onclick="openDetail('a')">
         <div class="bento-head"><span class="bento-title">Altersvorsorge</span></div>
         <div class="bento-list" style="margin-top:10px">${rows.join('')}</div>
-        <div class="bento-caption">nominal · vor Steuern</div>
         <div class="bento-foot bento-foot-col"><div class="bento-progress"><span class="bento-progress-fill" style="width:${pct}%"></span></div><div class="bento-caption" style="margin-top:4px">noch ${yearsLeft} Jahre bis 67</div></div>
       </div>`);
     }
@@ -1902,7 +1940,7 @@ function renderDashboard() {
   if (history.length >= 1) {
     whWrap.style.display = '';
     const wh = histSlice(history);
-    renderHistoryChart('wealth-hist-chart', wh.map(h => ymLabel(h.ym)), [
+    renderHistoryChart('wealth-hist-chart', wh.map(histLabel), [
       { points: wh.map(h => h.wealth), color: COLORS.a, label: 'Gesamtvermögen' }
     ]);
   } else {
@@ -2262,7 +2300,7 @@ function renderPensionHistory() {
   if (history.length >= 1 && data.a.length) {
     phWrap.style.display = '';
     const ph = histSlice(history);
-    renderHistoryChart('pension-hist-chart', ph.map(h => ymLabel(h.ym)), [
+    renderHistoryChart('pension-hist-chart', ph.map(histLabel), [
       { points: ph.map(h => h.pension), color: '#30d158', label: 'Vorsorge gesamt' }
     ]);
   } else {
@@ -2512,6 +2550,28 @@ function tripList(items) {
 
 // Oben: grafisches Urlaube-Dashboard (Kontostand-Kopf + Jahresübersicht + Reisen)
 // Restbudget des laufenden Jahres – identische Formel wie im Urlaube-Dashboard
+
+// Länder → Kartenkoordinaten (vereinfachte Zentroide; x=(lon+180)/3.6, y=(90-lat)/3.6)
+const COUNTRY_COORDS = {
+  'Deutschland':[52.6,10.6],'Österreich':[53.9,11.9],'Schweiz':[52.3,11.9],'Italien':[53.5,13.3],'Frankreich':[50.6,11.9],
+  'Spanien':[48.9,13.9],'Portugal':[47.8,14.1],'Griechenland':[56.1,14.2],'Kroatien':[54.4,12.5],'Niederlande':[51.5,10.5],
+  'Belgien':[51.2,11.1],'Dänemark':[52.8,9.6],'Norwegen':[52.4,7.9],'Schweden':[55.0,8.1],'Finnland':[57.2,7.3],
+  'Island':[45.0,7.1],'Irland':[47.8,10.2],'Großbritannien':[49.4,9.7],'Polen':[55.3,10.6],'Tschechien':[54.3,11.3],
+  'Ungarn':[55.4,11.9],'Türkei':[59.7,14.1],'USA':[23.3,14.4],'Kanada':[20.4,9.4],'Mexiko':[22.2,18.6],
+  'Costa Rica':[26.7,22.2],'Kuba':[27.8,18.9],'Dominikanische Republik':[30.4,19.8],'Brasilien':[35.3,28.9],'Argentinien':[32.2,34.7],
+  'Chile':[30.3,33.9],'Peru':[28.9,27.5],'Kolumbien':[29.4,23.9],'Namibia':[54.7,31.1],'Südafrika':[57.1,33.3],
+  'Kenia':[60.6,25.1],'Tansania':[59.7,26.7],'Marokko':[48.6,16.1],'Ägypten':[58.3,17.5],'Mauritius':[65.9,30.6],
+  'Seychellen':[65.3,26.3],'Thailand':[77.9,20.8],'Vietnam':[79.6,20.6],'Indonesien':[82.9,26.4],'Malaysia':[80.3,23.9],
+  'Singapur':[78.9,24.6],'Japan':[88.3,15.0],'Südkorea':[85.6,15.1],'China':[79.2,15.0],'Indien':[71.9,19.2],
+  'Sri Lanka':[72.4,22.8],'Malediven':[70.3,24.0],'VAE':[65.1,18.1],'Katar':[64.3,17.9],'Israel':[59.7,16.2],
+  'Australien':[87.1,32.4],'Neuseeland':[97.4,36.6],'Fidschi':[99.6,29.7],'Palau':[87.2,23.0],'Philippinen':[83.6,21.6],
+  'Bali':[82.6,27.4],'Hawaii':[6.1,19.4],'Kanaren':[45.6,17.1],'Madeira':[45.3,16.0],'Mallorca':[50.8,14.1]
+};
+function fillCountryDatalist() {
+  const dl = $('country-list');
+  if (!dl || dl.children.length) return;
+  dl.innerHTML = Object.keys(COUNTRY_COORDS).sort((a,b) => a.localeCompare(b,'de')).map(n => `<option value="${n}">`).join('');
+}
 function currentYearUrlaubBalance() {
   const yearlyBudget = urlaubBudget;
   const nowY = new Date().getFullYear();
@@ -2825,10 +2885,12 @@ function updatePayHint() {
 
 function openUrlaubModal(id) {
   editUrlaubId = id || null;
+  fillCountryDatalist();
   $('urlaub-title').textContent = id ? 'Urlaub bearbeiten' : 'Neuer Urlaub';
   $('btn-duplicate-urlaub').style.display = id ? '' : 'none';
   const e = id ? urlaube.find(x => x.id === id) : null;
   $('urlaub-name').value = e ? e.name : '';
+  if ($('urlaub-country')) $('urlaub-country').value = (e && e.country) || '';
   $('urlaub-year').value = e ? (tripYear(e) || '') : '';
   $('urlaub-month').value = e ? String(tripMonthNum(e)).padStart(2,'0') : '';
   $('urlaub-cost').value = e ? fmt(tripCost(e)) : '';
@@ -2858,7 +2920,9 @@ function saveUrlaub() {
   const raw = readUrlaubPayments();
   if (raw.some(p => (p.amount > 0) !== !!p.m)) { notify('Bitte für jede Anzahlung Monat und Betrag angeben (oder die Zeile entfernen).'); return; }
   const payments = raw.filter(p => p.m && p.amount > 0).map(p => ({ m: p.m, amount: p.amount, y: p.y || year }));
+  const country = ($('urlaub-country') ? $('urlaub-country').value.trim() : '');
   const obj = { name, year, month, cost };
+  if (country) obj.country = country;
   if (payments.length) obj.payments = payments;
   if (editUrlaubId) {
     const i = urlaube.findIndex(x => x.id === editUrlaubId);
