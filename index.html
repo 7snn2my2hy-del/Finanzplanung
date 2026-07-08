@@ -1799,7 +1799,7 @@ function renderHeroBento() {
           return `<circle cx="${x}" cy="${y}" r="1.8" fill="${col}"/><circle cx="${x}" cy="${y}" r="3.4" fill="${col}" opacity="0.25"/>`;
         }).join('');
         map = `<div class="bento-map-wrap"><svg class="bento-map" viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet">
-          <path fill="rgba(255,255,255,0.09)" d="M14,8 C20,6 26,7 28,10 C30,13 27,16 25,19 C27,21 28,24 27,27 C25,25 22,24 21,21 C19,18 16,16 15,13 Z M28,22 C31,23 33,26 34,30 C35,34 33,38 31,40 C30,36 29,32 28,28 Z M44,8 C48,7 53,7 56,9 C58,11 57,13 55,14 C52,15 48,14 46,12 Z M46,15 C50,14 55,15 58,17 C60,20 61,24 60,28 C58,32 56,35 55,33 C53,30 51,27 49,24 C47,21 46,18 46,15 Z M60,10 C66,8 74,8 80,10 C86,12 90,14 89,17 C86,20 82,19 79,21 C77,23 76,26 74,25 C71,23 69,20 66,18 C63,16 60,13 60,10 Z M70,20 C73,21 76,23 77,26 C77,28 75,29 73,28 C71,26 70,23 70,20 Z M84,30 C88,29 92,31 93,34 C93,37 90,38 87,37 C85,35 84,33 84,30 Z"/>
+          <path fill="rgba(255,255,255,0.10)" d="M10,6 L16,5 L22,6 L26,8 L28,11 L26,13 L28,15 L27,18 L24,19 L22,17 L19,17 L17,14 L13,13 L11,10 Z M24,20 L27,21 L29,24 L31,27 L32,31 L31,35 L29,38 L27,40 L26,37 L27,33 L26,29 L24,26 L23,22 Z M45,6 L49,5 L53,6 L55,8 L53,10 L50,11 L47,12 L45,10 Z M45,13 L49,13 L53,14 L57,16 L59,19 L60,23 L59,27 L57,31 L55,34 L53,32 L52,28 L50,25 L48,21 L46,17 Z M56,5 L62,4 L69,4 L76,5 L82,7 L87,9 L90,12 L88,14 L85,13 L82,15 L79,17 L77,20 L75,22 L73,20 L72,17 L69,15 L66,13 L62,11 L58,9 L56,7 Z M73,23 L76,24 L78,27 L77,29 L74,28 L73,25 Z M79,18 L82,19 L84,22 L83,24 L80,23 L79,20 Z M85,29 L89,28 L93,30 L94,33 L92,36 L88,36 L85,33 Z M95,38 L97,37 L98,39 L96,41 Z"/>
           ${dots}
         </svg><div class="bento-map-legend"><span><i style="background:var(--violet)"></i>${String(yearNow).slice(2)}</span><span><i style="background:var(--petrol)"></i>${String(yearNext).slice(2)}</span></div></div>`;
       }
@@ -1807,7 +1807,7 @@ function renderHeroBento() {
         <div class="bento-head"><span class="bento-title">Urlaube</span></div>
         <div class="bento-primary ${pos?'pos':'neg'}">${fmt(urlaubRest)}</div>
         <div class="bento-caption">${pos?'Restbudget':'im Minus'} ${jahr}</div>
-        <div class="bento-foot bento-foot-col">${timeline}${map}</div>
+        <div class="bento-foot bento-foot-col">${map}</div>
       </div>`);
     }
   }
@@ -2916,7 +2916,8 @@ function saveUrlaub() {
   const cost = parseMoney($('urlaub-cost').value) || 0;
   if (!name) { notify('Bitte ein Reiseziel eingeben.'); return; }
   if (!month) { notify('Bitte einen Reisemonat (1–12) angeben.'); return; }
-  if (cost <= 0) { notify('Bitte die Gesamtkosten eingeben.'); return; }
+  if (parseMoney($('urlaub-cost').value) === null && $('urlaub-cost').value.trim() !== '') { notify('Bitte gültige Gesamtkosten eingeben.'); return; }
+  if ($('urlaub-cost').value.includes('-')) { notify('Gesamtkosten können nicht negativ sein.'); return; }
   const raw = readUrlaubPayments();
   if (raw.some(p => (p.amount > 0) !== !!p.m)) { notify('Bitte für jede Anzahlung Monat und Betrag angeben (oder die Zeile entfernen).'); return; }
   const payments = raw.filter(p => p.m && p.amount > 0).map(p => ({ m: p.m, amount: p.amount, y: p.y || year }));
@@ -3615,7 +3616,7 @@ function renderAppLockUI() {
   if (title) title.textContent = on ? 'FaceID-Sperre deaktivieren' : 'FaceID-Sperre';
   if (st) st.textContent = on
     ? 'Aktiv – Face ID nach 5 Min. im Hintergrund'
-    : 'Schützt die App-Ansicht mit Face ID / Touch ID';
+    : 'Schützt die App-Ansicht mit Face ID';
 }
 async function toggleAppLock() {
   if (!appLockAvailable()) return;
