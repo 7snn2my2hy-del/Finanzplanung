@@ -1827,7 +1827,7 @@ function renderHeroBento() {
       const avRate = data.a.reduce((s,x) => s + toMonthly(Number(x.amount)||0, x.period), 0);
       tiles.push(`<div class="bento-tile" onclick="openDetail('a')">
         <div class="bento-head"><span class="bento-title">Altersvorsorge</span></div>
-        <div class="bento-primary">${fmt(avRate)}<span class="bento-unit">/Mt Sparrate</span></div>
+        <div class="bento-primary">${fmt(avRate)}<span class="bento-unit">/Mt</span></div>
         <div class="bento-list" style="margin-top:8px">${rows.join('')}</div>
         <div class="bento-foot bento-foot-col"><div class="bento-progress"><span class="bento-progress-fill" style="width:${pct}%"></span></div><div class="bento-caption" style="margin-top:4px">noch ${yearsLeft} Jahre bis 67</div></div>
       </div>`);
