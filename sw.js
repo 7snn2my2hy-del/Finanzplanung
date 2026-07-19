@@ -1,9 +1,9 @@
 // Service Worker für die Finanzen-App
 // Strategie: Netz zuerst (immer aktuellste Version, wenn online),
 // Cache als Fallback (App funktioniert komplett offline).
-// Diese Datei muss nach dem Einrichten nie wieder angefasst werden.
+// Bei einem App-Update nur die Versionsnummer erhöhen (v2 -> v3 ...).
 
-const CACHE = 'finanzen-cache-v1';
+const CACHE = 'finanzen-cache-v2';
 const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', (event) => {

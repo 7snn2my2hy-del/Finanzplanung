@@ -541,9 +541,9 @@
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.5);
     -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-    z-index: 100; align-items: flex-end; justify-content: center; padding: 0;
+    z-index: 450; align-items: flex-end; justify-content: center; padding: 0;
   }
-  #dialog-overlay { z-index: 200; }
+  #dialog-overlay { z-index: 460; }
   .overlay.open { display: flex; }
 
   .modal {
@@ -930,6 +930,10 @@
       </div>
       <p class="backup-hint" id="cloud-status" style="margin:0 6px">Sichern und Wiederherstellen läuft über GitHub. Anleitung: siehe CLOUD-BACKUP-ANLEITUNG.md im Repo.</p>
     </div>
+  </div>
+
+  <div class="section-label">Sicherheit</div>
+  <div class="settings-group">
     <button class="settings-row" id="applock-btn" onclick="toggleAppLock()">
       <span class="sr-icon">🔒</span>
       <span class="sr-body">
@@ -1057,7 +1061,7 @@
     </div>
     <div class="field">
       <label>Verfall</label>
-      <input type="text" id="bonus-expiry" placeholder="z.B. 31.12.2026" autocomplete="off">
+      <input type="text" id="bonus-expiry" placeholder="z.B. 31.12.2026" inputmode="numeric" autocomplete="off" oninput="autoDate(this)" onblur="fixDate(this)">
     </div>
     </div>
     <div class="modal-actions">
@@ -1154,11 +1158,23 @@ const store = (() => {
   let memory = {}, usable = false;
   try { window.localStorage.setItem('__t','1'); window.localStorage.removeItem('__t'); usable = true; }
   catch (e) { usable = false; }
+  const P = 'fin_';  // Namespace-Präfix: macht Finanzen-Keys eindeutig (analog Reisen 'rp_')
   return {
     persistent: usable,
-    get(k){ try { return usable ? window.localStorage.getItem(k) : (memory[k] ?? null); } catch(e){ return memory[k] ?? null; } },
-    set(k,v){ try { if (usable) window.localStorage.setItem(k,v); else memory[k]=v; } catch(e){ memory[k]=v; } }
+    get(k){ try { return usable ? window.localStorage.getItem(P+k) : (memory[P+k] ?? null); } catch(e){ return memory[P+k] ?? null; } },
+    set(k,v){ try { if (usable) window.localStorage.setItem(P+k,v); else memory[P+k]=v; } catch(e){ memory[P+k]=v; try { notify('Speicher voll – bitte etwas Platz schaffen.'); } catch(_){} } },
+    remove(k){ try { if (usable) window.localStorage.removeItem(P+k); else delete memory[P+k]; } catch(e){} }
   };
+})();
+/* Einmalige, nicht-destruktive Migration: bestehende Keys ohne Präfix auf 'fin_' kopieren.
+   Läuft VOR dem ersten Datenzugriff. Alte Keys bleiben als Sicherheitskopie erhalten. */
+(function migrateKeyPrefix(){
+  if (!store.persistent) return;
+  const ls = window.localStorage;
+  const keys = ['abos_v1','budgets_v1','altersvorsorge_v1','income_v1','bonus_v1','urlaube_v1','urlaub_budget_v1','urlaub_deposits_v1','urlaub_rate_hist_v1','history_v1','income_meta_v1','av_view_mode_v1','hist_range_v1','collapsed_sections_v1','cloud_backup_v1','applock_v1'];
+  for (const k of keys){
+    try { if (ls.getItem('fin_'+k) === null && ls.getItem(k) !== null) ls.setItem('fin_'+k, ls.getItem(k)); } catch(e){}
+  }
 })();
 
 // Per-section configuration
@@ -1172,9 +1188,9 @@ const SECTIONS = {
     showPeriod: true,
     extra: { kind: 'text', label: 'Vertragsnummer (optional)', placeholder: '—' },
     textFields: [
-      { key:'startDate', label:'Stichtag (optional)', placeholder:'z.B. TT.MM.JJJJ', display:'Stichtag', half:true },
+      { key:'startDate', label:'Stichtag (optional)', placeholder:'z.B. TT.MM.JJJJ', display:'Stichtag', half:true, date:true, iso:true },
       { key:'noticePeriod', label:'Kündigungsfrist (optional)', placeholder:'z.B. 4 Monate', display:'Kündigungsfrist', half:true },
-      { key:'debitDate', label:'Abbuchungsdatum (optional)', placeholder:'z.B. TT.MM.JJJJ', display:'Abbuchung', half:true },
+      { key:'debitDate', label:'Abbuchungsdatum (optional)', placeholder:'z.B. TT.MM.JJJJ', display:'Abbuchung', half:true, date:true },
       { key:'benefit', label:'Leistung (optional)', placeholder:'z.B. 1.000,00 €', display:'Leistung', kind:'money', half:true }
     ],
     namePlaceholder: 'z.B. Netflix',
@@ -2140,6 +2156,66 @@ function displayDate(s) {
   return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 }
 
+/* --- Datums-Eingabehelfer (identisch zur Reisen-App) ---
+   Tippen ohne Trennzeichen (10092026 -> 10.09.2026) und Normalisieren beim Verlassen
+   (10.9.26 -> 10.09.2026). Gespeichert wird weiterhin als TT.MM.JJJJ. */
+function isoToDE(iso){ if(!iso) return ''; const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}.${m[2]}.${m[1]}` : String(iso); }
+function deToISO(s){
+  if(!s) return '';
+  s=String(s).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/);
+  if(!m) return '';
+  let y=m[3]; if(y.length===2) y='20'+y;
+  const day=+m[1], mon=+m[2], year=+y;
+  if(year<1900 || year>2200) return '';
+  const dt=new Date(year, mon-1, day);
+  if(dt.getFullYear()!==year || dt.getMonth()!==mon-1 || dt.getDate()!==day) return '';
+  return `${y}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function autoDate(el){
+  const raw = el.value;
+  const atEnd = el.selectionStart === raw.length;
+  let s = raw.replace(/[^\d.]/g,'').replace(/\.{2,}/g,'.');
+  let parts = s.split('.');
+  const max = [2,2,4];
+  for (let i=0; i<3; i++){
+    if (parts[i] === undefined) break;
+    if (parts[i].length > max[i]){
+      const overflow = parts[i].slice(max[i]);
+      parts[i] = parts[i].slice(0, max[i]);
+      parts[i+1] = overflow + (parts[i+1] || '');
+    }
+  }
+  parts = parts.slice(0,3);
+  if (parts[2] !== undefined) parts[2] = parts[2].slice(0,4);
+  const out = parts.join('.');
+  if (out !== raw) { el.value = out; if (atEnd) el.setSelectionRange(out.length, out.length); }
+}
+/* Normalisiert beim Verlassen auf TT.MM.JJJJ. Ungültiges bleibt stehen zum Korrigieren. */
+function fixDate(el){
+  const iso = deToISO(el.value);
+  if (iso) el.value = isoToDE(iso);
+}
+/* Einmalige Migration: gespeicherte Datumsangaben (Stichtag, Abbuchung, Bonus-Verfall)
+   von TT.MM.JJJJ auf ISO umstellen. Anzeige & Parsing lesen beide Formate -> gefahrlos. */
+(function migrateDatesToISO(){
+  const changed = { v:false, b:false, a:false, bonus:false };
+  const conv = (obj, key, flag) => {
+    const v = obj && obj[key];
+    if (typeof v === 'string' && /^\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}$/.test(v)) {
+      const iso = deToISO(v);
+      if (iso && iso !== v) { obj[key] = iso; changed[flag] = true; }
+    }
+  };
+  ['v','b','a'].forEach(sec => { (data[sec] || []).forEach(e => { conv(e,'startDate',sec); }); });
+  (typeof bonus !== 'undefined' ? bonus : []).forEach(e => conv(e,'expiry','bonus'));
+  if (changed.v) store.set(SECTIONS.v.storageKey, JSON.stringify(data.v));
+  if (changed.b) store.set(SECTIONS.b.storageKey, JSON.stringify(data.b));
+  if (changed.a) store.set(SECTIONS.a.storageKey, JSON.stringify(data.a));
+  if (changed.bonus) store.set(BONUS_KEY, JSON.stringify(bonus));
+})();
+
 // Parst Kündigungsfrist-Freitext ("4 Monate", "6 Wochen", "30 Tage") -> Tage (oder null)
 function parseNoticeDays(s) {
   if (!s) return null;
@@ -2474,7 +2550,7 @@ function renderBonus() {
   empty.style.display = bonus.length ? 'none' : 'block';
   [...bonus].sort((a,b)=>a.name.localeCompare(b.name)).forEach(e => {
     const subLines = [];
-    if (e.expiry) subLines.push('Verfall: ' + esc(e.expiry));
+    if (e.expiry) subLines.push('Verfall: ' + esc(displayDate(e.expiry)));
     const subLinesHtml = subLines.length
       ? `<div class="entry-sub">${subLines.map(l => `<div>${l}</div>`).join('')}</div>`
       : '';
@@ -2500,7 +2576,7 @@ function openBonusModal(id) {
   const e = id ? bonus.find(x => x.id === id) : null;
   $('bonus-name').value   = e ? e.name : '';
   $('bonus-points').value = e ? (e.points || '') : '';
-  $('bonus-expiry').value = e ? (e.expiry || '') : '';
+  $('bonus-expiry').value = e ? isoToDE(e.expiry || '') : '';
   $('bonus-overlay').classList.add('open');
   setTimeout(() => $('bonus-name').focus(), 60);
 }
@@ -2510,7 +2586,8 @@ function closeBonusModal(){ $('bonus-overlay').classList.remove('open'); }
 function saveBonus() {
   const name   = $('bonus-name').value.trim();
   const points = $('bonus-points').value.trim();
-  const expiry = $('bonus-expiry').value.trim();
+  const expiryRaw = $('bonus-expiry').value.trim();
+  const expiry = deToISO(expiryRaw) || expiryRaw;
   if (!name) { notify('Bitte einen Namen eingeben.'); return; }
   if (editBonusId) {
     const i = bonus.findIndex(x => x.id === editBonusId);
@@ -3189,7 +3266,9 @@ function openModal(sec, id) {
   const tf = cfg.textFields || [];
   $('f-texts').innerHTML = (() => {
     let html = '', i = 0;
-    const fieldHtml = (ff) => `<div class="field"><label>${ff.label}</label><input type="${ff.kind === 'date' ? 'date' : 'text'}" id="tf-${ff.key}" placeholder="${ff.placeholder||''}" autocomplete="off"></div>`;
+    const fieldHtml = (ff) => ff.date
+      ? `<div class="field"><label>${ff.label}</label><input type="text" id="tf-${ff.key}" placeholder="${ff.placeholder||''}" inputmode="numeric" autocomplete="off" oninput="autoDate(this)" onblur="fixDate(this)"></div>`
+      : `<div class="field"><label>${ff.label}</label><input type="${ff.kind === 'date' ? 'date' : 'text'}" id="tf-${ff.key}" placeholder="${ff.placeholder||''}" autocomplete="off"></div>`;
     while (i < tf.length) {
       const f = tf[i];
       if (f.half && tf[i+1] && tf[i+1].half) {
@@ -3226,6 +3305,8 @@ function openModal(sec, id) {
     const val = vEntry ? vEntry[f.key] : null;
     if (f.kind === 'money') {
       $('tf-' + f.key).value = (val != null && val !== '') ? Number(val).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
+    } else if (f.iso) {
+      $('tf-' + f.key).value = isoToDE(val || '');
     } else {
       $('tf-' + f.key).value = val || '';
     }
@@ -3311,7 +3392,7 @@ function saveEntry() {
   });
   (cfg.textFields || []).forEach(f => {
     const raw = $('tf-' + f.key).value.trim();
-    fields[f.key] = (f.kind === 'money') ? (raw === '' ? '' : parseMoney(raw)) : raw;
+    fields[f.key] = (f.kind === 'money') ? (raw === '' ? '' : parseMoney(raw)) : (f.iso ? (deToISO(raw) || raw) : raw);
   });
   if (cfg.unitsField) {
     // Privat rendert Einheiten inline (f-units-input-inline), sonst Standard-Feld
@@ -3388,7 +3469,7 @@ async function deleteEntry(sec, id) {
 }
 
 // ---- Custom dialog (replaces native confirm/alert which are blocked in some sandboxes) ----
-let _dialogResolver = null;
+let _dialogResolve = null;
 // --- Eintrag duplizieren (aus dem Bearbeiten-Modal) ---
 function duplicateEntry() {
   const sec = activeSection;
@@ -3452,7 +3533,7 @@ function duplicateUrlaub() {
 
 function showDialog(message, { title = 'Hinweis', okText = 'OK', cancelText = 'Abbrechen' } = {}) {
   return new Promise(resolve => {
-    _dialogResolver = resolve;
+    _dialogResolve = resolve;
     $('dialog-title').textContent = title;
     $('dialog-msg').textContent = message;
     $('dialog-ok').textContent = okText;
@@ -3464,7 +3545,7 @@ function showDialog(message, { title = 'Hinweis', okText = 'OK', cancelText = 'A
 }
 function dialogResolve(val) {
   $('dialog-overlay').classList.remove('open');
-  if (_dialogResolver) { _dialogResolver(val); _dialogResolver = null; }
+  if (_dialogResolve) { _dialogResolve(val); _dialogResolve = null; }
 }
 function notify(message, title = 'Hinweis') { return showDialog(message, { title, cancelText: '' }); }
 
@@ -3670,10 +3751,14 @@ async function cloudRestore() {
 }
 
 // --- Auto-Trigger: 30 Sek. nach der letzten Datenänderung sichern ---
-const CLOUD_DATA_KEYS = new Set([
-  'abos_v1', 'budgets_v1', 'altersvorsorge_v1', 'income_v1', 'bonus_v1',
-  'urlaube_v1', 'urlaub_budget_v1', 'urlaub_deposits_v1', 'urlaub_rate_hist_v1', 'history_v1', 'income_meta_v1'
-]);
+/* Zentrales Registry aller gesicherten Datenschlüssel – eine Quelle der Wahrheit.
+   Neue Datenart? Hier eintragen, dann wird sie automatisch mit ins Cloud-Backup genommen. */
+const KEYS = {
+  abos:'abos_v1', budgets:'budgets_v1', altersvorsorge:'altersvorsorge_v1', income:'income_v1', bonus:'bonus_v1',
+  urlaube:'urlaube_v1', urlaubBudget:'urlaub_budget_v1', urlaubDeposits:'urlaub_deposits_v1',
+  urlaubRateHist:'urlaub_rate_hist_v1', history:'history_v1', incomeMeta:'income_meta_v1'
+};
+const CLOUD_DATA_KEYS = new Set(Object.values(KEYS));
 function scheduleCloudBackup() {
   if (!cloudReady() || cloudCfg.auto === false) return;
   clearTimeout(_cloudTimer);
